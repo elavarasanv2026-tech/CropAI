@@ -1,0 +1,41 @@
+@startuml
+node "Farmer Device\nBrowser" as Browser {
+  artifact "HTML/CSS/JS pages\nindex.html, dashboard.html,\nprofile.html, login.html" as Frontend
+}
+
+node "CropAI Application Host\nWindows / Node.js Runtime" as Host {
+  node "Express Server" as Express {
+    artifact "server.js"
+    artifact "routes/auth.js"
+    artifact "services/kindwiseClient.js"
+    artifact "models/User.js"
+    artifact "database.js"
+  }
+
+  folder "public/" as PublicDir
+  folder "Crop Recommendation datasets/" as DatasetDir
+  database "farmers.json" as JsonDb
+  collections "In-memory sessions" as Sessions
+}
+
+database "MongoDB" as Mongo
+cloud "SMTP / Gmail" as Mailer
+cloud "Google Identity" as Google
+cloud "Plant.id API" as PlantId
+cloud "Kindwise Crop Health API" as Kindwise
+cloud "OpenRouter / LLM APIs" as LLM
+cloud "Open-Meteo API" as WeatherApi
+
+Browser --> Express : HTTP/HTTPS
+Express --> PublicDir : serves static assets
+Express --> DatasetDir : reads datasets
+Express --> JsonDb : JSON fallback persistence
+Express --> Sessions : session read/write
+Express --> Mongo : primary persistence
+Express --> Mailer : verification/reset mail
+Express --> Google : token verification
+Express --> PlantId : crop detection
+Express --> Kindwise : crop health analysis
+Express --> LLM : assistant chat\nand AI fallback recommendation
+Express --> WeatherApi : weather/climate forecast
+@enduml

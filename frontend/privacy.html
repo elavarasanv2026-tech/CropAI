@@ -1,0 +1,295 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - CropAI</title>
+    <link rel="icon" type="image/png" href="images/cropai-favicon.png?v=20260428c">
+    <link rel="apple-touch-icon" href="images/cropai-apple-touch.png?v=20260428c">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            /* Futuristic Jungle Palette */
+            --primary-color: #00ff88;
+            --primary-glow: rgba(0, 255, 136, 0.5);
+            --primary-dim: rgba(0, 255, 136, 0.1);
+            --secondary-color: #050a06;
+            --accent-color: #00e5ff;
+
+            --bg-body: #020402;
+            --card-bg: rgba(10, 20, 15, 0.6);
+            --nav-bg: rgba(2, 4, 3, 0.8);
+
+            --text-main: #e0f2e9;
+            --text-muted: #8aa395;
+
+            --border-color: rgba(0, 255, 136, 0.15);
+            --glass-bg: rgba(0, 255, 136, 0.02);
+            --glass-border: rgba(0, 255, 136, 0.1);
+        }
+
+        [data-theme="light"] {
+            /* Premium Ethereal Day Palette */
+            --primary-color: #008f4c;
+            --primary-glow: rgba(0, 143, 76, 0.3);
+            --primary-dim: rgba(0, 143, 76, 0.1);
+            --secondary-color: #f0fdf4;
+
+            --bg-body: #ced9d5;
+            --card-bg: rgba(245, 247, 246, 0.65);
+            --nav-bg: rgba(245, 247, 246, 0.9);
+
+            --text-main: #051f15;
+            --text-muted: #3a4f44;
+
+            --border-color: rgba(0, 143, 76, 0.15);
+            --glass-bg: rgba(255, 255, 255, 0.5);
+            --glass-border: rgba(0, 143, 76, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            color: var(--text-main);
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 15% 25%, var(--primary-dim) 0%, transparent 45%),
+                radial-gradient(circle at 85% 75%, rgba(59, 130, 246, 0.08) 0%, transparent 45%);
+            background-attachment: fixed;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            background: var(--primary-dim);
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            color: var(--primary-color);
+            background: rgba(0, 255, 136, 0.15);
+            transform: translateX(-5px);
+            border-color: var(--primary-color);
+            text-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        /* Policy Header */
+        .policy-header {
+            padding: 20px 0 10px;
+            text-align: center;
+        }
+
+        /* Policy Content */
+        .policy-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Footer */
+        footer {
+            background: #000;
+            padding: 40px 0 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-link:hover {
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Simple Header with Single Back Option -->
+    <div class="container-fluid py-1 px-4 d-flex justify-content-between align-items-center position-relative"
+        style="z-index: 1100;">
+        <a href="javascript:history.back()" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Go Back
+        </a>
+        <button class="btn back-btn" id="theme-toggle">
+            <i class="fas fa-moon" id="theme-icon"></i>
+        </button>
+    </div>
+
+    <!-- Header -->
+    <header class="policy-header">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">Privacy Policy</h1>
+            <p class="lead text-muted">How we protect and handle your agricultural data.</p>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="policy-content">
+                    <span class="last-updated">Last Updated: October 24, 2024</span>
+
+                    <h2>1. Introduction</h2>
+                    <p>At CropAI, we take your privacy seriously. We understand that your farm data, soil reports, and
+                        yield information are valuable assets. This Privacy Policy outlines how we collect, use,
+                        disclose, and safeguard your information when you visit our website or use our crop
+                        recommendation services.</p>
+
+                    <h2>2. Information We Collect</h2>
+                    <p>We collect information that you provide directly to us when you register for an account, request
+                        a crop recommendation, or contact our support team:</p>
+                    <ul>
+                        <li><strong>Personal Information:</strong> Name, email address, phone number, and farm location.
+                        </li>
+                        <li><strong>Agricultural Data:</strong> Soil type, pH levels, moisture levels, historical yield
+                            data, and crop preferences.</li>
+                        <li><strong>Uploaded Content:</strong> Images of crops or soil for analysis.</li>
+                    </ul>
+
+                    <h2>3. How We Use Your Information</h2>
+                    <p>We use the collected data for the following purposes:</p>
+                    <ul>
+                        <li>To provide accurate AI-driven crop recommendations tailored to your specific conditions.
+                        </li>
+                        <li>To improve our machine learning models (data is anonymized before finding patterns).</li>
+                        <li>To send you important weather alerts or pest warnings relevant to your region.</li>
+                        <li>To maintain and improve the security of our platform.</li>
+                    </ul>
+
+                    <h2>4. Data Sharing and Disclosure</h2>
+                    <p>We do <strong>not</strong> sell your personal data to third parties. We may share your
+                        information in the following limited circumstances:</p>
+                    <ul>
+                        <li><strong>Service Providers:</strong> We may employ third-party companies to facilitate our
+                            service (e.g., cloud hosting, email delivery), but they are bound by confidentiality
+                            agreements.</li>
+                        <li><strong>Legal Requirements:</strong> We may disclose usage data where required by law or to
+                            protect our rights.</li>
+                    </ul>
+
+                    <h2>5. Data Security</h2>
+                    <p>We implement appropriate technical and organizational security measures to protect your data. All
+                        sensitive data is encrypted in transit and at rest. However, please note that no method of
+                        transmission over the Internet is 100% secure.</p>
+
+                    <h2>6. Your Rights</h2>
+                    <p>You have the right to access, correct, or delete your personal information. You can manage your
+                        profile settings directly through the dashboard or contact our support team for assistance with
+                        data export or deletion requests.</p>
+
+                    <h2>7. Contact Us</h2>
+                    <p>If you have questions or comments about this Privacy Policy, please contact us at:</p>
+                    <p>
+                        <strong>Email:</strong> privacy@cropai.com<br>
+                        <strong>Address:</strong> 123 AgriTech Valley, Innovation City, 560100
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5 class="fw-bold text-white mb-3">CropAI</h5>
+                    <p class="text-muted">Empowering farmers with intelligent crop recommendations and real-time
+                        monitoring.</p>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold text-white mb-3">Product</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="index.html#features" class="footer-link">Features</a></li>
+                        <li class="mb-2"><a href="pricing.html" class="footer-link">Pricing</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold text-white mb-3">Company</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="about-us.html" class="footer-link">About Us</a></li>
+                        <li class="mb-2"><a href="careers.html" class="footer-link">Careers</a></li>
+                        <li class="mb-2"><a href="blog.html" class="footer-link">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold text-white mb-3">Support</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="help-center.html" class="footer-link">Help Center</a></li>
+                        <li class="mb-2"><a href="community.html" class="footer-link">Community</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold text-white mb-3">Legal</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="privacy.html" class="footer-link"
+                                style="color: var(--primary-color)">Privacy</a></li>
+                        <li class="mb-2"><a href="terms.html" class="footer-link">Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-top border-secondary pt-4 text-center">
+                <p class="text-muted small mb-0">&copy; 2024 CropAI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const htmlElement = document.documentElement;
+
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            if (theme === 'light') {
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+            }
+        }
+    </script>
+    <script src="translations.js"></script>
+    <script src="i18n.js"></script>
+</body>
+
+</html>

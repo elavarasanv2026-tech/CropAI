@@ -1,0 +1,748 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Forum - CropAI</title>
+    <link rel="icon" type="image/png" href="images/cropai-favicon.png?v=20260428c">
+    <link rel="apple-touch-icon" href="images/cropai-apple-touch.png?v=20260428c">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            /* Futuristic Jungle Palette */
+            --primary-color: #00ff88;
+            --primary-glow: rgba(0, 255, 136, 0.5);
+            --primary-dim: rgba(0, 255, 136, 0.1);
+            --secondary-color: #050a06;
+            --accent-color: #00e5ff;
+
+            --bg-body: #020402;
+            --card-bg: rgba(10, 20, 15, 0.6);
+            --nav-bg: rgba(2, 4, 3, 0.8);
+
+            --text-main: #e0f2e9;
+            --text-muted: #8aa395;
+
+            --border-color: rgba(0, 255, 136, 0.15);
+            --glass-bg: rgba(0, 255, 136, 0.02);
+            --glass-border: rgba(0, 255, 136, 0.1);
+        }
+
+        [data-theme="light"] {
+            /* Premium Ethereal Day Palette */
+            --primary-color: #008f4c;
+            --primary-glow: rgba(0, 143, 76, 0.3);
+            --primary-dim: rgba(0, 143, 76, 0.1);
+            --secondary-color: #f0fdf4;
+
+            --bg-body: #ced9d5;
+            --card-bg: rgba(245, 247, 246, 0.65);
+            --nav-bg: rgba(245, 247, 246, 0.9);
+
+            --text-main: #051f15;
+            --text-muted: #3a4f44;
+
+            --border-color: rgba(0, 143, 76, 0.15);
+            --glass-bg: rgba(255, 255, 255, 0.5);
+            --glass-border: rgba(0, 143, 76, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            color: var(--text-main);
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 15% 25%, var(--primary-dim) 0%, transparent 45%),
+                radial-gradient(circle at 85% 75%, rgba(59, 130, 246, 0.08) 0%, transparent 45%);
+            background-attachment: fixed;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            background: var(--primary-dim);
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            color: var(--primary-color);
+            background: rgba(0, 255, 136, 0.15);
+            transform: translateX(-5px);
+            border-color: var(--primary-color);
+            text-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        /* Forum Header */
+        .forum-header {
+            padding: 20px 0 20px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, var(--primary-dim) 100%);
+            text-align: center;
+        }
+
+        /* Categories */
+        .category-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            height: 100%;
+            transition: transform 0.2s;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-color);
+        }
+
+        /* Thread List */
+        .thread-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            padding: 1.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .thread-item:hover {
+            border-color: var(--primary-color);
+            background: var(--glass-bg);
+        }
+
+        .thread-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .tag-badge {
+            background: var(--primary-dim);
+            color: var(--primary-color);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid var(--glass-border);
+        }
+
+        /* Footer */
+        footer {
+            background: #000;
+            padding: 40px 0 20px;
+            margin-top: 40px;
+            border-top: 1px solid var(--border-color);
+            box-shadow: 0 -10px 30px rgba(0, 255, 136, 0.05);
+        }
+
+        .footer-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-link:hover {
+            color: var(--primary-color);
+        }
+
+        /* Modal Styles */
+        .modal-content-custom {
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            
+        }
+
+        .form-control-custom {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .form-control-custom:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary-color);
+            color: var(--text-main);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        /* Fix search button in input group */
+        .input-group .btn-custom {
+            border-radius: 0 12px 12px 0 !important;
+            margin: 0 !important;
+        }
+
+        .input-group-lg .form-control {
+            border-radius: 0 !important;
+        }
+
+        .input-group-lg .input-group-text {
+            border-radius: 12px 0 0 12px !important;
+        }
+
+        .category-item.active {
+            color: var(--primary-color) !important;
+            background: var(--primary-dim) !important;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Simple Header with Single Back Option -->
+    <div class="container-fluid py-1 px-4 d-flex justify-content-between align-items-center position-relative"
+        style="z-index: 1100;">
+        <a href="javascript:history.back()" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Go Back
+        </a>
+        <button class="btn back-btn" id="theme-toggle">
+            <i class="fas fa-moon" id="theme-icon"></i>
+        </button>
+    </div>
+
+    <!-- Forum Header -->
+    <header class="forum-header">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-2">Community Forum</h1>
+            <p class="lead text-muted mb-3">Join the conversation with thousands of farmers and agricultural experts.
+            </p>
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-transparent border-end-0 text-muted"
+                            style="border-color: var(--text-muted)">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" id="searchInput" class="form-control bg-transparent border-start-0 text-main"
+                            placeholder="Search discussions..."
+                            style="border-color: var(--text-muted); color: var(--text-main)">
+                        <button id="searchBtn" class="btn btn-custom px-4">Search</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container pb-3">
+        <div class="row g-4">
+            <!-- Sidebar / Categories -->
+            <div class="col-lg-3">
+                <div class="d-grid gap-3">
+                    <button class="btn btn-custom w-100 mb-2 shadow-sm" data-bs-toggle="modal"
+                        data-bs-target="#newDiscussionModal">
+                        <i class="fas fa-plus me-2"></i> New Discussion
+                    </button>
+
+                    <div class="card bg-transparent border-0">
+                        <h6 class="fw-bold text-uppercase text-muted mb-3 small ls-1">Categories</h6>
+                        <div class="list-group list-group-flush bg-transparent">
+                            <a href="#" data-category="all"
+                                class="list-group-item list-group-item-action bg-transparent text-main border-0 active fw-bold px-2 category-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-globe me-2 text-primary"></i> All Discussions</span>
+                                <span class="badge bg-dark rounded-pill">142</span>
+                            </a>
+                            <a href="#" data-category="Crop Advice"
+                                class="list-group-item list-group-item-action bg-transparent text-muted border-0 px-2 category-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-leaf me-2 text-success"></i> Crop Advice</span>
+                                <span class="badge bg-dark rounded-pill">54</span>
+                            </a>
+                            <a href="#" data-category="Pest Control"
+                                class="list-group-item list-group-item-action bg-transparent text-muted border-0 px-2 category-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-bug me-2 text-danger"></i> Pest Control</span>
+                                <span class="badge bg-dark rounded-pill">32</span>
+                            </a>
+                            <a href="#" data-category="Hardware Support"
+                                class="list-group-item list-group-item-action bg-transparent text-muted border-0 px-2 category-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-microchip me-2 text-info"></i> Hardware Support</span>
+                                <span class="badge bg-dark rounded-pill">28</span>
+                            </a>
+                            <a href="#" data-category="Announcements"
+                                class="list-group-item list-group-item-action bg-transparent text-muted border-0 px-2 category-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-bullhorn me-2 text-warning"></i> Announcements</span>
+                                <span class="badge bg-dark rounded-pill">15</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thread List -->
+            <div class="col-lg-9">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold mb-0">Latest Discussions</h4>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle btn-sm" type="button"
+                            data-bs-toggle="dropdown">
+                            Sort by: Newest
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item sort-option" href="#" data-sort="newest">Newest</a></li>
+                            <li><a class="dropdown-item sort-option" href="#" data-sort="popular">Most Popular</a></li>
+                            <li><a class="dropdown-item sort-option" href="#" data-sort="unanswered">Unanswered</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Discussion Items -->
+                <div id="discussionList">
+                    <div class="thread-item" data-time="1739345000" data-replies="15" data-views="234"
+                        data-category="Crop Advice">
+                        <div class="d-flex gap-3">
+                            <img src="https://ui-avatars.com/api/?name=John+Doe&background=0D8ABC&color=fff"
+                                class="rounded-circle" width="48" height="48">
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <h5 class="fw-bold mb-1">Optimal soil moisture for cherry tomatoes?</h5>
+                                    <span class="tag-badge">Crop Advice</span>
+                                </div>
+                                <p class="text-muted mb-2 line-clamp-2">I've been monitoring my sensors and I'm getting
+                                    readings around 45%. Is this too dry for this stage of growth? The AI suggests
+                                    60%...
+                                </p>
+                                <div class="d-flex align-items-center gap-3 thread-meta">
+                                    <span><i class="fas fa-user me-1"></i> JohnD_Farmer</span>
+                                    <span><i class="far fa-clock me-1"></i> 2 hours ago</span>
+                                    <span><i class="far fa-comment me-1"></i> 15 replies</span>
+                                    <span><i class="far fa-eye me-1"></i> 234 views</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="thread-item" data-time="1739258600" data-replies="42" data-views="500"
+                        data-category="Announcements">
+                        <div class="d-flex gap-3">
+                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                                style="width: 48px; height: 48px;">SA</div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <h5 class="fw-bold mb-1">Sensor V2 Firmware Update - Release Notes</h5>
+                                    <span class="tag-badge"
+                                        style="color: var(--warning-color); background: rgba(255,183,0,0.1)">Announcements</span>
+                                </div>
+                                <p class="text-muted mb-2">We've just pushed a new firmware update for all V2 sensors.
+                                    This
+                                    addresses the connectivity dropouts some users engaged...</p>
+                                <div class="d-flex align-items-center gap-3 thread-meta">
+                                    <span><i class="fas fa-user me-1"></i> CropAI_Team</span>
+                                    <span><i class="far fa-clock me-1"></i> 1 day ago</span>
+                                    <span><i class="fas fa-thumbtack me-1 text-warning"></i> Pinned</span>
+                                    <span><i class="far fa-comment me-1"></i> 42 replies</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="thread-item" data-time="1739341400" data-replies="8" data-views="150"
+                        data-category="Hardware Support">
+                        <div class="d-flex gap-3">
+                            <img src="https://ui-avatars.com/api/?name=Mike+Ross&background=random"
+                                class="rounded-circle" width="48" height="48">
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <h5 class="fw-bold mb-1">Connectivity issues with new router</h5>
+                                    <span class="tag-badge text-info bg-opacity-10"
+                                        style="background: rgba(59,130,246,0.1)">Hardware</span>
+                                </div>
+                                <p class="text-muted mb-2">Has anyone else had trouble connecting the gateway to a WiFi
+                                    6
+                                    router? It seems to time out during the handshake...</p>
+                                <div class="d-flex align-items-center gap-3 thread-meta">
+                                    <span><i class="fas fa-user me-1"></i> MikeR</span>
+                                    <span><i class="far fa-clock me-1"></i> 3 hours ago</span>
+                                    <span><i class="far fa-comment me-1"></i> 8 replies</span>
+                                    <span><i class="fas fa-check-circle text-success ms-2"></i> Solved</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <nav class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item disabled"><a class="page-link" href="#"
+                                    style="background: transparent; border-color: var(--border-color); color: var(--text-muted)">Previous</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#"
+                                    style="background: var(--primary-color); border-color: var(--primary-color); color: black">1</a>
+                            </li>
+                            <li class="page-item"><a class="page-link" href="community-2.html"
+                                    style="background: transparent; border-color: var(--border-color); color: var(--text-main)">2</a>
+                            </li>
+                            <li class="page-item"><a class="page-link" href="community-3.html"
+                                    style="background: transparent; border-color: var(--border-color); color: var(--text-main)">3</a>
+                            </li>
+                            <li class="page-item"><a class="page-link" href="community-2.html"
+                                    style="background: transparent; border-color: var(--border-color); color: var(--text-main)">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div> <!-- End #discussionList -->
+            </div> <!-- End .col-lg-9 -->
+        </div> <!-- End .row -->
+    </div> <!-- End .container -->
+
+    <!-- New Discussion Modal -->
+    <div class="modal fade" id="newDiscussionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal-content-custom bg-dark">
+                <div class="modal-header border-bottom border-secondary">
+                    <h5 class="modal-title fw-bold text-white">Start New Discussion</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="newDiscussionForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Discussion Title</label>
+                            <input type="text" class="form-control form-control-custom" id="discTitle" required
+                                placeholder="Enter a descriptive title...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Category</label>
+                            <select class="form-select form-control-custom" id="discCategory">
+                                <option value="Crop Advice">Crop Advice</option>
+                                <option value="Pest Control">Pest Control</option>
+                                <option value="Hardware Support">Hardware Support</option>
+                                <option value="Announcements">Announcements</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">Message</label>
+                            <textarea class="form-control form-control-custom" id="discMessage" rows="5" required
+                                placeholder="What's on your mind?"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top border-secondary">
+                        <button type="button" class="btn btn-link text-muted text-decoration-none"
+                            data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-custom px-4">Post Discussion</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Discussion Modal -->
+    <div class="modal fade" id="viewDiscussionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content modal-content-custom bg-dark">
+                <div class="modal-header border-bottom border-secondary">
+                    <h5 class="modal-title fw-bold text-white" id="viewDiscTitle">Discussion Details
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <img id="viewDiscAvatar" src="" class="rounded-circle" width="50" height="50">
+                        <div>
+                            <h6 class="fw-bold mb-0 text-white" id="viewDiscAuthor">Author</h6>
+                            <small class="text-muted" id="viewDiscMeta">Just now</small>
+                        </div>
+                        <span class="tag-badge ms-auto" id="viewDiscCategory">Category</span>
+                    </div>
+                    <div class="p-4 rounded-4"
+                        style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color);">
+                        <p class="text-main mb-0" id="viewDiscBody" style="font-size: 1.1rem; line-height: 1.8;">Message
+                            content...</p>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-secondary">
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-custom" placeholder="Write a reply...">
+                        <button class="btn btn-custom px-4">Reply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5 class="fw-bold text-white mb-3">CropAI</h5>
+                    <p class="text-muted">Empowering farmers with intelligent crop recommendations and
+                        real-time
+                        monitoring.</p>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold text-white mb-3">Product</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="index.html#features" class="footer-link">Features</a>
+                        </li>
+                        <li class="mb-2"><a href="pricing.html" class="footer-link">Pricing</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold text-white mb-3">Company</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="about-us.html" class="footer-link">About Us</a></li>
+                        <li class="mb-2"><a href="careers.html" class="footer-link">Careers</a></li>
+                        <li class="mb-2"><a href="blog.html" class="footer-link">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold text-white mb-3">Support</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="help-center.html" class="footer-link">Help Center</a>
+                        </li>
+                        <li class="mb-2"><a href="community.html" class="footer-link">Community</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold text-white mb-3">Legal</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="privacy.html" class="footer-link">Privacy</a></li>
+                        <li class="mb-2"><a href="terms.html" class="footer-link">Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-top border-secondary pt-4 text-center">
+                <p class="text-muted small mb-0">&copy; 2024 CropAI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const htmlElement = document.documentElement;
+
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            if (theme === 'light') {
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+            }
+        }
+
+        // Handle New Discussion Submission
+        document.getElementById('newDiscussionForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const title = document.getElementById('discTitle').value;
+            const category = document.getElementById('discCategory').value;
+            const message = document.getElementById('discMessage').value;
+            const submitBtn = this.querySelector('button[type="submit"]');
+
+            // Visual feedback
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Posting...';
+            submitBtn.disabled = true;
+
+            // Mocking a responsible background process
+            setTimeout(() => {
+                const now = Math.floor(Date.now() / 1000);
+                // Create new thread item HTML
+                const newPostHTML = `
+                <div class="thread-item animate__animated animate__fadeInDown" 
+                     data-time="${now}" data-replies="0" data-views="1">
+                    <div class="d-flex gap-3">
+                        <img src="https://ui-avatars.com/api/?name=You&background=00ff88&color=000"
+                            class="rounded-circle" width="48" height="48">
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h5 class="fw-bold mb-1">${title}</h5>
+                                <span class="tag-badge">${category}</span>
+                            </div>
+                            <p class="text-muted mb-2 line-clamp-2">${message}</p>
+                            <div class="d-flex align-items-center gap-3 thread-meta">
+                                <span><i class="fas fa-user me-1"></i> You</span>
+                                <span><i class="far fa-clock me-1"></i> Just now</span>
+                                <span><i class="far fa-comment me-1"></i> 0 replies</span>
+                                <span><i class="far fa-eye me-1"></i> 1 view</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+
+                // Add to list
+                const list = document.getElementById('discussionList');
+                list.insertAdjacentHTML('afterbegin', newPostHTML);
+
+                bootstrap.Modal.getInstance(document.getElementById('newDiscussionModal')).hide();
+
+                // Reset form
+                this.reset();
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+
+                // Scroll to top of list to see new post
+                window.scrollTo({ top: list.offsetTop - 100, behavior: 'smooth' });
+            }, 800);
+        });
+
+        // Handle Discussion Viewing
+        const viewModal = new bootstrap.Modal(document.getElementById('viewDiscussionModal'));
+
+        document.getElementById('discussionList').addEventListener('click', function (e) {
+            const thread = e.target.closest('.thread-item');
+            if (!thread) return;
+
+            const title = thread.querySelector('h5').textContent;
+            const author = thread.querySelector('.thread-meta span:first-child').textContent.trim();
+            const category = thread.querySelector('.tag-badge').textContent;
+            const message = thread.querySelector('p').textContent;
+            const avatar = thread.querySelector('img') ? thread.querySelector('img').src : '';
+
+            document.getElementById('viewDiscTitle').textContent = title;
+            document.getElementById('viewDiscAuthor').textContent = author;
+            document.getElementById('viewDiscCategory').textContent = category;
+            document.getElementById('viewDiscBody').textContent = message;
+
+            if (avatar) {
+                document.getElementById('viewDiscAvatar').src = avatar;
+                document.getElementById('viewDiscAvatar').style.display = 'block';
+            } else {
+                document.getElementById('viewDiscAvatar').style.display = 'none';
+            }
+
+            viewModal.show();
+        });
+
+        // Handle Sorting
+        document.querySelectorAll('.sort-option').forEach(option => {
+            option.addEventListener('click', function (e) {
+                e.preventDefault();
+                const sortType = this.getAttribute('data-sort');
+                const list = document.getElementById('discussionList');
+                const items = Array.from(list.children);
+
+                // Update dropdown button text
+                document.querySelector('.dropdown-toggle').textContent = `Sort by: ${this.textContent}`;
+
+                items.sort((a, b) => {
+                    const timeA = parseInt(a.getAttribute('data-time') || 0);
+                    const timeB = parseInt(b.getAttribute('data-time') || 0);
+                    const repliesA = parseInt(a.getAttribute('data-replies') || 0);
+                    const repliesB = parseInt(b.getAttribute('data-replies') || 0);
+                    const viewsA = parseInt(a.getAttribute('data-views') || 0);
+                    const viewsB = parseInt(b.getAttribute('data-views') || 0);
+
+                    if (sortType === 'newest') return timeB - timeA;
+                    if (sortType === 'popular') return (repliesB + viewsB / 10) - (repliesA + viewsA / 10);
+                    if (sortType === 'unanswered') return repliesA - repliesB;
+                    return 0;
+                });
+
+                // Clear and re-append
+                list.innerHTML = '';
+                items.forEach(item => list.appendChild(item));
+            });
+        });
+
+        // Handle Search
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+
+        function performSearch() {
+            const query = searchInput.value.toLowerCase().trim();
+            const items = document.querySelectorAll('#discussionList .thread-item');
+            let resultsFound = false;
+
+            items.forEach(item => {
+                const title = item.querySelector('h5').textContent.toLowerCase();
+                const message = item.querySelector('p').textContent.toLowerCase();
+
+                if (title.includes(query) || message.includes(query)) {
+                    item.style.display = 'block';
+                    resultsFound = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Show "No Results" message if applicable
+            let noResultsMsg = document.getElementById('noResultsMessage');
+            if (!resultsFound) {
+                if (!noResultsMsg) {
+                    noResultsMsg = document.createElement('div');
+                    noResultsMsg.id = 'noResultsMessage';
+                    noResultsMsg.className = 'text-center py-5 animate__animated animate__fadeIn';
+                    noResultsMsg.innerHTML = `
+                                    <i class="fas fa-search-minus fa-3x text-muted mb-3"></i>
+                                    <h4 class="text-muted">No discussions found matching "${searchInput.value}"</h4>
+                                    <p class="text-muted">Try different keywords or check your spelling.</p>
+                                    <button class="btn btn-outline-custom mt-2" onclick="document.getElementById('searchInput').value=''; performSearch();">Clear Search</button>
+                                `;
+                    document.getElementById('discussionList').appendChild(noResultsMsg);
+                }
+            } else if (noResultsMsg) {
+                noResultsMsg.remove();
+            }
+        }
+
+        searchBtn.addEventListener('click', performSearch);
+        searchInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') performSearch();
+            if (searchInput.value === '') performSearch(); // Show all when cleared
+        });
+
+        // Handle Category Filtering
+        document.querySelectorAll('.category-item').forEach(item => {
+            item.addEventListener('click', function (e) {
+                e.preventDefault();
+                const category = this.getAttribute('data-category');
+                const items = document.querySelectorAll('#discussionList .thread-item');
+
+                // Update active state
+                document.querySelectorAll('.category-item').forEach(i => {
+                    i.classList.remove('active', 'fw-bold', 'text-main');
+                    i.classList.add('text-muted');
+                });
+                this.classList.add('active', 'fw-bold', 'text-main');
+                this.classList.remove('text-muted');
+
+                items.forEach(item => {
+                    const itemCategory = item.getAttribute('data-category');
+                    if (category === 'all' || itemCategory === category) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+    <script src="translations.js"></script>
+    <script src="i18n.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,56 @@
+@startuml
+skinparam componentStyle rectangle
+
+package "Client Layer" {
+  [index.html]
+  [login.html]
+  [signup.html]
+  [dashboard.html]
+  [profile.html]
+  [auth-utils.js]
+}
+
+package "Backend Layer" {
+  [server.js] as Server
+  [routes/auth.js] as AuthRoutes
+  [services/kindwiseClient.js] as KindwiseClient
+  [models/User.js] as UserModel
+  [database.js] as JsonStore
+}
+
+database "MongoDB" as Mongo
+database "farmers.json" as JsonFile
+queue "Session Store\n(express-session memory store)" as SessionStore
+collections "Crop Recommendation datasets\nCSV + cultivation JSON" as Dataset
+cloud "Plant.id API" as PlantId
+cloud "Kindwise Crop Health API" as Kindwise
+cloud "OpenRouter / LLM APIs" as LLM
+cloud "Open-Meteo API" as WeatherApi
+cloud "Google Identity" as GoogleAuth
+cloud "SMTP / Email Delivery" as Mailer
+
+[index.html] --> Server : HTTP
+[login.html] --> Server : /api/login\n/api/config/google
+[signup.html] --> Server : /api/signup
+[dashboard.html] --> Server : crop, weather,\nphoto, market, chat APIs
+[profile.html] --> Server : /api/user\n/api/user/selected-crops\n/api/remove-crop/:id
+[auth-utils.js] --> Server
+
+Server --> AuthRoutes : optional auth module
+Server --> KindwiseClient : image identification\nand crop health calls
+Server --> UserModel : find/save/update users
+Server --> JsonStore : JSON fallback operations
+Server --> SessionStore : session create/read
+Server --> Dataset : recommendation + quotation data
+Server --> Mongo
+JsonStore --> JsonFile
+
+KindwiseClient --> PlantId
+KindwiseClient --> Kindwise
+Server --> LLM : chat + fallback recommendation prompts
+Server --> WeatherApi
+Server --> GoogleAuth
+Server --> Mailer
+
+UserModel --> Mongo
+@enduml

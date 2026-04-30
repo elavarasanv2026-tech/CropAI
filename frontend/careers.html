@@ -1,0 +1,431 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Careers - CropAI</title>
+    <link rel="icon" type="image/png" href="images/cropai-favicon.png?v=20260428c">
+    <link rel="apple-touch-icon" href="images/cropai-apple-touch.png?v=20260428c">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #00ff88;
+            --primary-glow: rgba(0, 255, 136, 0.5);
+            --primary-dim: rgba(0, 255, 136, 0.1);
+            --secondary-color: #050a06;
+            --bg-body: #020402;
+            --card-bg: rgba(10, 20, 15, 0.6);
+            --nav-bg: rgba(2, 4, 3, 0.8);
+            --text-main: #e0f2e9;
+            --text-muted: #8aa395;
+            --border-color: rgba(0, 255, 136, 0.15);
+        }
+
+        [data-theme="light"] {
+            --primary-color: #008f4c;
+            --primary-glow: rgba(0, 143, 76, 0.3);
+            --primary-dim: rgba(0, 143, 76, 0.1);
+            --secondary-color: #f0fdf4;
+            --bg-body: #ced9d5;
+            --card-bg: rgba(245, 247, 246, 0.65);
+            --nav-bg: rgba(245, 247, 246, 0.9);
+            --text-main: #051f15;
+            --text-muted: #3a4f44;
+            --border-color: rgba(0, 143, 76, 0.15);
+        }
+
+        body {
+            background-color: var(--bg-body);
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        .navbar-custom {
+            background: var(--nav-bg);
+            
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.8rem 0;
+        }
+
+        .navbar-custom .nav-link {
+            font-weight: 600;
+            color: var(--text-main) !important;
+            transition: color 0.3s;
+        }
+
+        .navbar-custom .nav-link:hover {
+            color: var(--primary-color) !important;
+        }
+
+        .btn-custom {
+            background: linear-gradient(135deg, var(--primary-color), #00a85d);
+            border: none;
+            color: #000;
+            font-weight: 700;
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+        }
+
+        .header-section {
+            padding: 20px 0 20px;
+            text-align: center;
+        }
+
+        .job-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .job-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0, 255, 136, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .job-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 1rem;
+        }
+
+        .job-description {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .extended-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            margin-bottom: 0;
+        }
+
+        .extended-details.show {
+            max-height: 1000px;
+            opacity: 1;
+            margin-bottom: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .detail-item i {
+            color: var(--primary-color);
+            margin-top: 0.25rem;
+        }
+
+        .detail-text {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .view-details-btn {
+            background: transparent;
+            border: 1.5px solid currentColor;
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s;
+            cursor: pointer;
+            margin-top: auto;
+            align-self: flex-start;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .view-details-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px currentColor;
+        }
+
+        .view-details-btn i {
+            transition: transform 0.3s;
+        }
+
+        .view-details-btn.active i {
+            transform: rotate(-180deg);
+        }
+
+        .btn-success-outline {
+            color: #00ff88;
+        }
+
+        .btn-info-outline {
+            color: #0dcaf0;
+        }
+
+        .btn-warning-outline {
+            color: #ffc107;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-bottom: 1.5rem;
+            background: var(--primary-dim);
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .back-btn:hover {
+            color: var(--primary-color);
+            background: rgba(0, 255, 136, 0.15);
+            transform: translateX(-5px);
+            border-color: var(--primary-color);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Simple Header with Single Back Option -->
+    <div class="container-fluid py-1 px-4 d-flex justify-content-between align-items-center position-relative"
+        style="z-index: 1100;">
+        <a href="javascript:history.back()" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Go Back
+        </a>
+        <button class="btn back-btn" id="theme-toggle">
+            <i class="fas fa-moon" id="theme-icon"></i>
+        </button>
+    </div>
+
+    <!-- Header -->
+    <section class="header-section">
+        <div class="container">
+            <!-- Removed Redundant Button -->
+            <h1 class="display-4 fw-bold mb-2">Join Our Mission</h1>
+            <p class="lead text-muted mb-4">Help us revolutionize agriculture with AI and sustainable technology.</p>
+        </div>
+    </section>
+
+    <!-- Content -->
+    <div class="container mb-5">
+        <div class="row g-4">
+            <!-- Job 1 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="job-card">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge bg-success bg-opacity-10 text-success">Engineering</span>
+                        <span class="text-muted small">Remote</span>
+                    </div>
+                    <h3 class="job-title">Senior AI Engineer</h3>
+                    <p class="job-description">Lead the development of our crop recommendation models using computer
+                        vision and deep learning.</p>
+                    <div class="extended-details" id="job-1">
+                        <div class="detail-item">
+                            <i class="fas fa-check-circle"></i>
+                            <div class="detail-text">Build and deploy scalable ML models using PyTorch/TensorFlow.</div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-check-circle"></i>
+                            <div class="detail-text">Collaborate with IoT teams to integrate sensor data.</div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-check-circle"></i>
+                            <div class="detail-text">Experience with computer vision for plant disease detection.</div>
+                        </div>
+                        <div class="mt-4">
+                            <a href="mailto:careers@cropai.com" class="btn btn-sm btn-success rounded-pill px-4">Apply
+                                Now</a>
+                        </div>
+                    </div>
+                    <button class="view-details-btn btn-success-outline" onclick="toggleJobDetails(1, this)">
+                        <span>View Details</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Job 2 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="job-card">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge bg-info bg-opacity-10 text-info">Product</span>
+                        <span class="text-muted small">San Francisco</span>
+                    </div>
+                    <h3 class="job-title">Product Manager</h3>
+                    <p class="job-description">Define the roadmap for our next generation of farmer-centric mobile
+                        applications.</p>
+                    <div class="extended-details" id="job-2">
+                        <div class="detail-item">
+                            <i class="fas fa-check-circle"></i>
+                            <div class="detail-text">Conduct user research with farmers to identify pain points.</div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-check-circle"></i>
+                            <div class="detail-text">Work closely with engineering to ship features iteratively.</div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-check-circle"></i>
+                            <div class="detail-text">Analyze market trends in agritech and IoT.</div>
+                        </div>
+                        <div class="mt-4">
+                            <a href="mailto:careers@cropai.com"
+                                class="btn btn-sm btn-info text-white rounded-pill px-4">Apply Now</a>
+                        </div>
+                    </div>
+                    <button class="view-details-btn btn-info-outline" onclick="toggleJobDetails(2, this)">
+                        <span>View Details</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Job 3 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="job-card">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge bg-warning bg-opacity-10 text-warning">Marketing</span>
+                        <span class="text-muted small">Hybrid</span>
+                    </div>
+                    <h3 class="job-title">Growth Marketer</h3>
+                    <p class="job-description">Drive user acquisition and engagement through innovative digital
+                        marketing strategies.</p>
+                    <div class="extended-details" id="job-3">
+                        <div class="detail-item">
+                            <i class="fas fa-check-circle"></i>
+                            <div class="detail-text">Manage social media and content marketing campaigns.</div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-check-circle"></i>
+                            <div class="detail-text">Optimize conversion funnels for user signups.</div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-check-circle"></i>
+                            <div class="detail-text">Partner with community leads for local events.</div>
+                        </div>
+                        <div class="mt-4">
+                            <a href="mailto:careers@cropai.com"
+                                class="btn btn-sm btn-warning text-white rounded-pill px-4">Apply Now</a>
+                        </div>
+                    </div>
+                    <button class="view-details-btn btn-warning-outline" onclick="toggleJobDetails(3, this)">
+                        <span>View Details</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5 class="fw-bold mb-3">CropAI</h5>
+                    <p class="text-muted">Empowering farmers with intelligent crop recommendations.</p>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold mb-3">Product</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="index.html#features" class="footer-link">Features</a></li>
+                        <li class="mb-2"><a href="pricing.html" class="footer-link">Pricing</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold mb-3">Company</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="about-us.html" class="footer-link">About Us</a></li>
+                        <li class="mb-2"><a href="careers.html" class="footer-link"
+                                style="color: var(--primary-color)">Careers</a></li>
+                        <li class="mb-2"><a href="blog.html" class="footer-link">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold mb-3">Support</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="help-center.html" class="footer-link">Help Center</a></li>
+                        <li class="mb-2"><a href="community.html" class="footer-link">Community</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold mb-3">Legal</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="privacy.html" class="footer-link">Privacy</a></li>
+                        <li class="mb-2"><a href="terms.html" class="footer-link">Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-top border-secondary pt-4 text-center">
+                <p class="text-muted small mb-0">&copy; 2024 CropAI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const htmlElement = document.documentElement;
+
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            if (theme === 'light') {
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+            }
+        }
+
+        function toggleJobDetails(id, btn) {
+            const details = document.getElementById(`job-${id}`);
+            const isShowing = details.classList.contains('show');
+            const btnText = btn.querySelector('span');
+
+            if (!isShowing) {
+                details.classList.add('show');
+                btn.classList.add('active');
+                btnText.textContent = 'Hide Details';
+            } else {
+                details.classList.remove('show');
+                btn.classList.remove('active');
+                btnText.textContent = 'View Details';
+                btn.closest('.job-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    </script>
+    <script src="translations.js"></script>
+    <script src="i18n.js"></script>
+</body>
+
+</html>

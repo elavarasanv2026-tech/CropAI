@@ -1,0 +1,307 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI in Agriculture - CropAI Blog</title>
+    <link rel="icon" type="image/png" href="images/cropai-favicon.png?v=20260428c">
+    <link rel="apple-touch-icon" href="images/cropai-apple-touch.png?v=20260428c">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #00ff88;
+            --primary-glow: rgba(0, 255, 136, 0.5);
+            --primary-dim: rgba(0, 255, 136, 0.1);
+            --secondary-color: #050a06;
+            --bg-body: #020402;
+            --card-bg: rgba(10, 20, 15, 0.6);
+            --nav-bg: rgba(2, 4, 3, 0.8);
+            --text-main: #e0f2e9;
+            --text-muted: #8aa395;
+            --border-color: rgba(0, 255, 136, 0.15);
+        }
+
+        [data-theme="light"] {
+            --primary-color: #008f4c;
+            --primary-glow: rgba(0, 143, 76, 0.3);
+            --primary-dim: rgba(0, 143, 76, 0.1);
+            --secondary-color: #f0fdf4;
+            --bg-body: #ced9d5;
+            --card-bg: rgba(245, 247, 246, 0.65);
+            --nav-bg: rgba(245, 247, 246, 0.9);
+            --text-main: #051f15;
+            --text-muted: #3a4f44;
+            --border-color: rgba(0, 143, 76, 0.15);
+        }
+
+        body {
+            background-color: var(--bg-body);
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            background: var(--primary-dim);
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            color: var(--primary-color);
+            background: rgba(0, 255, 136, 0.15);
+            transform: translateX(-5px);
+            border-color: var(--primary-color);
+            text-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .article-header {
+            padding: 40px 0 20px;
+            text-align: center;
+        }
+
+        .article-featured-img {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .blog-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-main);
+        }
+
+        .blog-content h2 {
+            color: var(--primary-color);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        footer {
+            background: #000;
+            padding: 40px 0 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-link:hover {
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Simple Header with Single Back Option -->
+    <div class="container-fluid py-1 px-4 d-flex justify-content-between align-items-center position-relative"
+        style="z-index: 1100;">
+        <a href="javascript:history.back()" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Go Back
+        </a>
+        <button class="btn back-btn" id="theme-toggle">
+            <i class="fas fa-moon" id="theme-icon"></i>
+        </button>
+    </div>
+
+    <!-- Article Section -->
+    <div class="container" style="padding-top: 20px;">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="blog.html" class="text-muted text-decoration-none">Blog</a></li>
+                <li class="breadcrumb-item active" aria-current="page" style="color: var(--primary-color);">AI in
+                    Agriculture</li>
+            </ol>
+        </nav>
+
+        <div class="row g-5">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-3">AI in Agriculture: The Next Green Revolution</h1>
+                <div class="d-flex align-items-center gap-4 text-muted mb-4 small">
+                    <span><i class="far fa-calendar me-2"></i> Oct 24, 2024</span>
+                    <span><i class="far fa-user me-2"></i> Admin</span>
+                    <span><i class="far fa-folder me-2"></i> Technology</span>
+                </div>
+
+                <img src="https://images.unsplash.com/photo-1628352081506-83c43123ed6d?auto=format&fit=crop&q=80&w=1200"
+                    class="article-featured-img" alt="AI in Agriculture">
+
+                <div class="blog-content">
+                    <p class="lead text-muted mb-4">
+                        Artificial Intelligence is not just a buzzword anymore; it's a transformative force that is
+                        harvesting data to cultivate a new era of efficiency and sustainability in farming.
+                    </p>
+
+                    <h2>Precision Farming with AI</h2>
+                    <p>
+                        Through the use of smart sensors and satellite imagery, AI algorithms can analyze soil conditions,
+                        weather patterns, and crop health in real-time. This allows farmers to apply water, fertilizers,
+                        and pesticides with pinpoint accuracy, reducing waste and environmental impact.
+                    </p>
+
+                    <h2>Early Disease Detection</h2>
+                    <p>
+                        Computer vision models, like the ones powering CropAI, can identify early signs of plant
+                        diseases and pest infestations that are invisible to the naked eye. By alerting farmers
+                        immediately, we help save entire harvests.
+                    </p>
+
+                    <h2>The Future is Autonomous</h2>
+                    <p>
+                        From self-driving tractors to robotic harvesters, automation is addressing labor shortages and
+                        increasing operational efficiency. These machines work 24/7, optimized by AI to reduce fuel
+                        consumption and soil compaction.
+                    </p>
+
+                    <div class="mt-5 p-4 rounded-4" style="background: var(--primary-dim);">
+                        <h4 class="fw-bold mb-3" style="color: var(--primary-color);">Ready to modernize your farm?</h4>
+                        <p class="mb-3">Join thousands of farmers using CropAI to increase yields and sustainability.
+                        </p>
+                        <a href="signup.html" class="btn btn-custom">Get Started Free</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <div class="sidebar-card">
+                    <h5 class="fw-bold mb-3">Recent Posts</h5>
+                    <div class="d-flex flex-column gap-3">
+                        <a href="#" class="d-flex gap-3 text-decoration-none">
+                            <img src="https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&q=80&w=100"
+                                class="rounded" style="width: 60px; height: 60px; object-fit: cover;">
+                            <div>
+                                <h6 class="mb-1 text-main small fw-bold">Sustainable Irrigation Techniques</h6>
+                                <span class="text-muted small" style="font-size: 0.75rem;">Oct 18, 2024</span>
+                            </div>
+                        </a>
+                        <a href="#" class="d-flex gap-3 text-decoration-none">
+                            <img src="https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?auto=format&fit=crop&q=80&w=100"
+                                class="rounded" style="width: 60px; height: 60px; object-fit: cover;">
+                            <div>
+                                <h6 class="mb-1 text-main small fw-bold">Understanding Soil Health</h6>
+                                <span class="text-muted small" style="font-size: 0.75rem;">Oct 10, 2024</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="sidebar-card">
+                    <h5 class="fw-bold mb-3">Categories</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-secondary text-light border border-secondary">Technology</span>
+                        <span class="badge bg-secondary text-light border border-secondary">Sustainability</span>
+                        <span class="badge bg-secondary text-light border border-secondary">Farming Tips</span>
+                        <span class="badge bg-secondary text-light border border-secondary">Hardware</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5 class="fw-bold mb-3">CropAI</h5>
+                    <p class="text-muted">Empowering farmers with intelligent crop recommendations.</p>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold mb-3">Product</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="index.html#features" class="footer-link">Features</a></li>
+                        <li class="mb-2"><a href="pricing.html" class="footer-link">Pricing</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold mb-3">Company</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="about-us.html" class="footer-link">About Us</a></li>
+                        <li class="mb-2"><a href="careers.html" class="footer-link">Careers</a></li>
+                        <li class="mb-2"><a href="blog.html" class="footer-link"
+                                style="color: var(--primary-color)">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold mb-3">Support</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="help-center.html" class="footer-link">Help Center</a></li>
+                        <li class="mb-2"><a href="community.html" class="footer-link">Community</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold mb-3">Legal</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="privacy.html" class="footer-link">Privacy</a></li>
+                        <li class="mb-2"><a href="terms.html" class="footer-link">Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-top border-secondary pt-4 text-center">
+                <p class="text-muted small mb-0">&copy; 2024 CropAI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const htmlElement = document.documentElement;
+
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            if (theme === 'light') {
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+            }
+        }
+    </script>
+    <script src="translations.js"></script>
+    <script src="i18n.js"></script>
+</body>
+
+</html>

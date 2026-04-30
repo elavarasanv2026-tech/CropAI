@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - CropAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/png" href="images/cropai-favicon.png?v=20260428c">
+    <link rel="apple-touch-icon" href="images/cropai-apple-touch.png?v=20260428c">
+    <style>
+        :root {
+            /* Futuristic Jungle Palette - Consistent with Dashboard */
+            --primary-color: #00ff88;
+            --primary-glow: rgba(0, 255, 136, 0.5);
+            --primary-dim: rgba(0, 255, 136, 0.1);
+            --secondary-color: #050a06;
+            --accent-color: #00e5ff;
+            --cyber-purple: #bc13fe;
+
+            --text-main: #e0f2e9;
+            --text-muted: #8aa395;
+
+            --bg-body: #020402;
+            --container-bg: rgba(10, 20, 15, 0.5);
+            --border-color: rgba(0, 255, 136, 0.15);
+            --input-bg: rgba(0, 30, 20, 0.3);
+            --input-text: #e0f2e9;
+            --glass-bg: rgba(0, 255, 136, 0.05);
+
+            --neon-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+            --glass-border: rgba(0, 255, 136, 0.2);
+        }
+
+        /* --- SUCCESS MODAL STYLES --- */
+        .success-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 4, 2, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .success-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .success-modal-card {
+            background: #092e1a; /* Dark forest green */
+            border: 1px solid rgba(134, 239, 37, 0.15);
+            border-radius: 20px;
+            padding: 40px 30px;
+            width: 90%;
+            max-width: 420px;
+            text-align: center;
+            position: relative;
+            transform: scale(0.8) translateY(20px);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 
+                        0 0 50px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        [data-theme="light"] .success-modal-card {
+            background: #ffffff;
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .success-modal-overlay.active .success-modal-card {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-icon-wrapper {
+            margin: 0 auto 20px;
+        }
+
+        .modal-icon-wrapper i {
+            font-size: 48px;
+            color: #f3e8ff; /* Light purple tint like the envelope in screenshot */
+            text-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .success-modal-card h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        [data-theme="light"] .success-modal-card h2 { color: #022c22; }
+
+        .success-modal-card p {
+            color: #d1d5db; /* Light gray */
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 30px;
+        }
+
+        [data-theme="light"] .success-modal-card p { color: #555; }
+
+        .modal-btn {
+            background: #86ef25; /* Bright lime green */
+            color: #000000;
+            font-weight: 600;
+            padding: 12px 40px;
+            border-radius: 10px;
+            border: none;
+            width: 100%;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(134, 239, 37, 0.2);
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            background: #95f838;
+            box-shadow: 0 8px 25px rgba(134, 239, 37, 0.3);
+        }
+
+        .modal-btn:active {
+            transform: translateY(0);
+        }
+
+        [data-theme="light"] {
+            /* Premium Ethereal Day Palette */
+            --primary-dim: rgba(0, 143, 76, 0.1);
+            --secondary-color: #f0fdf4;
+            --bg-body: #ced9d5;
+            /* Premium Sage Grey */
+            --text-main: #051f15;
+            --container-bg: #f5f7f6;
+            --border-color: rgba(0, 143, 76, 0.15);
+            --input-bg: #ffffff;
+            --input-text: #022c22;
+            --glass-bg: #ffffff;
+            --glass-border: rgba(0, 143, 76, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            min-height: 100vh;
+            font-family: 'Outfit', sans-serif;
+            position: relative;
+            overflow-x: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 400;
+            -webkit-font-smoothing: antialiased;
+            color: var(--text-main);
+            padding: 20px 0;
+        }
+
+        /* Environmental Overlays */
+        .environmental-overlays { 
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 500;
+        }
+
+        .dark-vignette {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, transparent 30%, rgba(2, 4, 3, 0.7) 100%);
+        }
+
+        /* Animated Background Blobs */
+        .blob-container { 
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            overflow: hidden;
+            opacity: 0.4;
+            pointer-events: none;
+            will-change: transform;
+            transform: translateZ(0);
+        }
+
+        .blob {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            animation: moveBlob 20s infinite alternate;
+        }
+
+        .blob-1 {
+            background: rgba(0, 255, 136, 0.15);
+            top: -100px;
+            left: -100px;
+            animation-duration: 25s;
+        }
+
+        .blob-2 {
+            background: rgba(188, 19, 254, 0.1);
+            bottom: -150px;
+            right: -100px;
+            animation-duration: 30s;
+            animation-delay: -5s;
+        }
+
+        @keyframes moveBlob {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            33% { transform: translate(100px, 200px) scale(1.2) rotate(120deg); }
+            66% { transform: translate(-150px, 100px) scale(0.8) rotate(240deg); }
+            100% { transform: translate(0, 0) scale(1) rotate(360deg); }
+        }
+
+        /* Cursor Glow */
+        .cursor-glow { 
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.12) 0%, transparent 70%);
+            border-radius: 50%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate3d(-50%, -50%, 0);
+            mix-blend-mode: screen;
+            transition: width 0.3s, height 0.3s, background 0.3s;
+            will-change: transform;
+        }
+
+        .signup-container {
+            background: var(--container-bg);
+            border-radius: 32px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
+            backdrop-filter: saturate(160%);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            position: relative;
+            z-index: 10;
+            animation: containerEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            padding: 2rem !important;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        @keyframes containerEntrance {
+            from { opacity: 0; transform: translateY(40px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .form-label {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .form-control {
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 14px 18px;
+            background: var(--input-bg);
+            color: var(--input-text);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px var(--primary-glow);
+            background: rgba(0, 255, 136, 0.05);
+            color: var(--input-text);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), #00a85d);
+            border: none;
+            border-radius: 16px;
+            padding: 16px 35px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: #050a06 !important;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 255, 136, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(0, 255, 136, 0.3);
+            background: linear-gradient(135deg, #33ffa3, #00d174);
+        }
+
+        .mb-3 {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fieldFadeIn 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        @keyframes fieldFadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .field-1 { animation-delay: 0.1s; }
+        .field-2 { animation-delay: 0.15s; }
+        .field-3 { animation-delay: 0.2s; }
+        .field-4 { animation-delay: 0.25s; }
+        .field-5 { animation-delay: 0.3s; }
+        .field-6 { animation-delay: 0.35s; }
+        .field-7 { animation-delay: 0.4s; }
+        .field-8 { animation-delay: 0.45s; }
+        .field-9 { animation-delay: 0.5s; }
+
+        .form-title {
+            background: linear-gradient(135deg, #fff 0%, var(--primary-color) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 0.25rem !important;
+        }
+
+        .input-group-text {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-right: none;
+            border-radius: 16px 0 0 16px;
+            color: var(--primary-color);
+            transition: all 0.3s ease;
+            width: 50px;
+            justify-content: center;
+        }
+
+        .input-group .form-control {
+            border-left: none;
+            border-radius: 0 16px 16px 0;
+        }
+
+        .input-group .toggle-password {
+            border-left: none;
+            border-right: 1px solid var(--border-color);
+            border-radius: 0 16px 16px 0;
+            background: var(--input-bg);
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .input-group:focus-within .input-group-text {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .theme-toggle-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        #theme-toggle {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .password-strength {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .strength-weak { background: #ff4d4d; width: 25%; }
+        .strength-fair { background: #ffa64d; width: 50%; }
+        .strength-good { background: #ffff4d; width: 75%; }
+        .strength-strong { background: #00ff88; width: 100%; }
+    </style>
+</head>
+
+<body>
+    <!-- Email Verification Modal -->
+    <div class="success-modal-overlay" id="successModal">
+        <div class="success-modal-card">
+            <div class="modal-icon-wrapper">
+                <i class="fas fa-envelope"></i>
+            </div>
+            <h2>Account Created</h2>
+            <p>Your account was successfully created.<br>Please check your inbox to verify your email.</p>
+            <button class="modal-btn" onclick="closeSuccessModal()">Got it</button>
+            <div style="margin-top:16px; display:none;" id="resendSection">
+                <button id="resendBtn" onclick="resendVerification()" style="background:transparent;border:none;color:#9ca3af;font-size:14px;padding:10px 20px;text-decoration:underline;">Resend Verification Email</button>
+            </div>
+            <div id="resendMsg" style="margin-top:12px;font-size:14px;color:#9ca3af;"></div>
+        </div>
+    </div>
+
+    <!-- Environmental Overlays -->
+    <div class="environmental-overlays">
+        <div class="dark-vignette"></div>
+    </div>
+
+    <!-- Animated Blobs -->
+    <div class="blob-container">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- Cursor Glow -->
+    <div id="cursor-glow" class="cursor-glow"></div>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="signup-container p-4">
+                    <div class="theme-toggle-container">
+                        <div id="theme-toggle">
+                            <i class="fas fa-moon" id="theme-icon"></i>
+                        </div>
+                    </div>
+
+                    <div class="text-center mb-2">
+                        <div class="logo field-1">
+                            <img src="images/logo.svg" alt="CropAI Logo" style="width: 80px; height: 80px;">
+                        </div>
+                        <h2 class="form-title field-1">Create Account</h2>
+                        <p class="text-muted field-2 mb-0">Join our Smart Crop Recommendation System</p>
+                    </div>
+
+                    <div id="alertContainer" class="mb-3"></div>
+
+                    <form id="signupForm">
+                        <div class="mb-3 field-3">
+                            <label class="form-label">Full Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                <input type="text" class="form-control" name="name" required placeholder="John Doe">
+                            </div>
+                        </div>
+
+                        <div class="mb-3 field-4">
+                            <label class="form-label">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-at"></i></span>
+                                <input type="text" class="form-control" name="username" required placeholder="johndoe123">
+                            </div>
+                        </div>
+
+                        <div class="mb-3 field-5">
+                            <label class="form-label">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input type="email" class="form-control" name="email" required placeholder="john@example.com">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3 field-6">
+                                <label class="form-label">Phone Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                    <input type="tel" class="form-control" name="phone" placeholder="+91 98765 43210">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3 field-6">
+                                <label class="form-label">Location</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                    <input type="text" class="form-control" name="address" placeholder="Coimbatore">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 field-7">
+                            <label class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control" id="password" name="password" required placeholder="••••••••">
+                                <span class="input-group-text toggle-password" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </span>
+                            </div>
+                            <div id="passwordStrength" class="password-strength"></div>
+                            <small class="text-muted mt-2 d-block">Min 6 characters</small>
+                        </div>
+
+                        <div class="mb-4 field-8">
+                            <label class="form-label">Confirm Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-shield-alt"></i></span>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required placeholder="••••••••">
+                                <span class="input-group-text toggle-password" id="toggleConfirmPassword">
+                                    <i class="fas fa-eye"></i>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 field-9">
+                            <button type="submit" class="btn btn-primary">Create Account</button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <div id="googleButton" class="d-flex justify-content-center"></div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <p class="text-muted">Already have an account? <a href="login.html" class="text-decoration-none fw-semibold">Sign In</a></p>
+                        <div class="mt-3">
+                            <a href="javascript:history.back()" class="text-muted text-decoration-none small">
+                                <i class="fas fa-arrow-left me-1"></i>Go Back
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mock Google Account Picker -->
+    <div class="modal fade" id="googlePickerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+            <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); background: white;">
+                <div class="p-4 text-center">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_Logo.svg" alt="Google" style="width: 75px; margin-bottom: 20px;">
+                    <h4 style="color: #202124; font-weight: 500; margin-bottom: 8px;">Choose an account</h4>
+                    <p style="color: #5f6368; font-size: 0.95rem;">to continue to Smart CropAI</p>
+                    <div class="mt-4 text-start">
+                        <div class="d-flex align-items-center p-3 account-item" onclick="selectDemoAccount('user@gmail.com', 'Demo User')" style="cursor: pointer; border-bottom: 1px solid #f1f3f4;">
+                            <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: 600;">D</div>
+                            <div>
+                                <div style="color: #3c4043; font-weight: 600; font-size: 0.9rem;">Demo User</div>
+                                <div style="color: #70757a; font-size: 0.85rem;">user@gmail.com</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center p-3 account-item" onclick="promptCustomAccount()" style="cursor: pointer;">
+                            <div class="rounded-circle bg-light text-muted d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; border: 1px solid #dadce0;">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div style="color: #3c4043; font-weight: 500; font-size: 0.9rem;">Use another account</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="auth-utils.js?v=2"></script>
+    <script>
+        // Password toggles
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const pin = document.getElementById('password');
+            pin.type = pin.type === 'password' ? 'text' : 'password';
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+
+        document.getElementById('toggleConfirmPassword').addEventListener('click', function() {
+            const pin = document.getElementById('confirmPassword');
+            pin.type = pin.type === 'password' ? 'text' : 'password';
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+
+        // Strength UI
+        document.getElementById('password').addEventListener('input', function() {
+            const val = this.value;
+            const bar = document.getElementById('passwordStrength');
+            if(!val) { bar.className = 'password-strength'; return; }
+            let s = 0;
+            if(val.length >= 6) s++;
+            if(val.match(/[a-z]/) && val.match(/[A-Z]/)) s++;
+            if(val.match(/[0-9]/)) s++;
+            if(val.match(/[^a-zA-Z0-9]/)) s++;
+            bar.className = 'password-strength ' + (s <= 1 ? 'strength-weak' : s === 2 ? 'strength-fair' : s === 3 ? 'strength-good' : 'strength-strong');
+        });
+
+        async function fetchWithRetry(url, options = {}, retries = 2) {
+            for (let i = 0; i <= retries; i++) {
+                try {
+                    const reqUrl = (window.CropAIAuth && url.startsWith('/api/')) ? await window.CropAIAuth.resolveApiUrl(url) : url;
+                    const res = await fetch(reqUrl, options);
+                    return res;
+                } catch (e) { if (i === retries) throw e; await new Promise(r => setTimeout(r, 500 * (i + 1))); }
+            }
+        }
+
+        function showAlert(msg, type) {
+            const container = document.getElementById('alertContainer');
+            if(!container) return;
+            container.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">${msg}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`;
+            if(type === 'danger') setTimeout(() => { const a = container.querySelector('.alert'); if(a) bootstrap.Alert.getOrCreateInstance(a).close(); }, 5000);
+        }
+
+        function showSuccessModal() { document.getElementById('successModal').classList.add('active'); }
+        function closeSuccessModal() { window.location.href = 'login.html'; }
+
+        let _signupEmail = '';
+        async function resendVerification() {
+            const btn = document.getElementById('resendBtn');
+            const msg = document.getElementById('resendMsg');
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            try {
+                const res = await fetch('/api/resend-verification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: _signupEmail })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    msg.textContent = '✅ Sent! Please check your inbox.';
+                    msg.style.color = 'var(--primary-color)';
+                } else {
+                    msg.textContent = data.error || 'Failed to resend.';
+                    msg.style.color = '#ff5555';
+                    btn.disabled = false;
+                }
+            } catch(e) {
+                msg.textContent = 'Network error. Try again.';
+                msg.style.color = '#ff5555';
+                btn.disabled = false;
+            }
+        }
+
+        document.getElementById('signupForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(this));
+            if(data.password !== data.confirmPassword) return showAlert('Passwords do not match!', 'danger');
+            if(data.password.length < 6) return showAlert('Password too short!', 'danger');
+
+            const btn = this.querySelector('button[type="submit"]');
+            const old = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Wait...';
+
+            try {
+                const res = await fetchWithRetry('/api/signup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                const json = await res.json();
+                if(res.ok) {
+                    if(window.CropAIAuth) {
+                        window.CropAIAuth.setStoredCurrentUser(json.user);
+                        window.CropAIAuth.setStoredLoginIdentifier(data.email);
+                    }
+                    _signupEmail = data.email;
+                    showSuccessModal();
+                } else { showAlert(json.error || 'Failed', 'danger'); }
+            } catch(e) { showAlert('Connection error', 'danger'); } finally { btn.disabled = false; btn.innerHTML = old; }
+        });
+
+        let fbAuth = null;
+        async function initFirebase() {
+            try {
+                const res = await fetch('/api/config/firebase');
+                const cfg = await res.json();
+                if(cfg.apiKey && cfg.apiKey !== 'YOUR_FIREBASE_API_KEY') { firebase.initializeApp(cfg); fbAuth = firebase.auth(); }
+            } catch(e) {}
+        }
+
+        async function initGoogle() {
+            try {
+                const res = await fetch('/api/config/google');
+                const cfg = await res.json();
+                if(!cfg.clientId || cfg.clientId.includes('YOUR_')) return;
+                google.accounts.id.initialize({ client_id: cfg.clientId, callback: handleGoogle });
+                google.accounts.id.renderButton(document.getElementById('googleButton'), { theme: 'filled_blue', size: 'large', shape: 'pill', width: 350 });
+            } catch(e) {}
+        }
+
+        async function handleGoogle(resp) {
+            try {
+                const res = await fetch('/api/auth/google', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ idToken: resp.credential }) });
+                const json = await res.json();
+                if(res.ok) {
+                    if(window.CropAIAuth) window.CropAIAuth.setStoredCurrentUser(json.user);
+                    window.location.href = 'dashboard.html';
+                } else showAlert(json.error, 'danger');
+            } catch(e) {}
+        }
+
+        window.addEventListener('load', () => {
+            initFirebase(); initGoogle();
+            const glow = document.getElementById('cursor-glow');
+            document.addEventListener('mousemove', e => {
+                requestAnimationFrame(() => glow.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`);
+            });
+        });
+
+        const themeBtn = document.getElementById('theme-toggle');
+        themeBtn.addEventListener('click', () => {
+            const h = document.documentElement;
+            const next = h.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            h.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            document.getElementById('theme-icon').className = next === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+        });
+    </script>
+    <script src="translations.js"></script>
+    <script src="i18n.js"></script>
+</body>
+</html>

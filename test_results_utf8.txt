@@ -1,0 +1,27 @@
+﻿[dotenv@17.2.3] injecting env (13) from .env -- tip: ΓÜÖ∩╕Å  write to custom object with { processEnv: myObject }
+
+=== CropAI Test Suite ===
+Time: 23/3/2026, 6:48:29 pm
+PASS: GET / | status=200
+PASS: Login | user=Test User
+PASS: Login 401 | blocked correctly
+PASS: GET /api/user | name=Test User
+PASS: Soil analysis | score=75 status=Good
+PASS: Soil Tamil | nutrients in Tamil
+PASS: Crop Rec | count=3 source=Rule-Based Fallback
+   > Rice: High (92%)
+   > Maize: Medium (78%)
+   > Millet: High (85%)
+PASS: Chat AI | fallback=true reply="Rice needs clay or clay-loam soil with good water retention...."
+PASS: Climate | temp=28.5 humidity=69.4
+PASS: Sensors | temp=26.7 pH=7.0
+PASS: Firebase config | projectId=YOUR_PROJECT_ID
+PASS: Google config | clientId present=true
+INFO: Gemini 2.0-flash quota exceeded, trying 1.5-flash...
+FAIL: Gemini API | 1.5-flash error status=404 msg=models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+PASS: Upload no-file | correctly rejected
+PASS: Logout | success
+PASS: Unauth /api/user | 401 correct
+
+=== RESULTS: 15/16 passed, 1 failed ===
+

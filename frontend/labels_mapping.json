@@ -1,0 +1,116 @@
+{
+    "mappings": {
+        "bell pepper": "Chili/Pepper",
+        "chili": "Chili/Pepper",
+        "chilli": "Chili/Pepper",
+        "hot pepper": "Chili/Pepper",
+        "red pepper": "Chili/Pepper",
+        "habanero": "Chili/Pepper",
+        "jalapeno": "Chili/Pepper",
+        "pot": "Seedling/Crop",
+        "ear": "Grain Head (Rice/Maize)",
+        "spike": "Paddy/Rice Head",
+        "head": "Grain Spike",
+        "tassel": "Maize/Corn",
+        "grain": "Cereal Crop",
+        "cardoon": "Vegetable Crop",
+        "artichoke": "Vegetable Crop",
+        "corn": "Maize/Corn",
+        "maize": "Maize/Corn",
+        "buckeye": "General Seedling",
+        "rice": "Paddy/Rice",
+        "wheat": "Wheat",
+        "paddy": "Paddy/Rice",
+        "crocus": "Plantation",
+        "daisy": "Young Crop",
+        "flowerpot": "Nursery Seedling",
+        "zucchini": "Cucumber/Zucchini",
+        "cucumber": "Cucumber/Zucchini",
+        "broccoli": "Cabbage/Broccoli",
+        "cauliflower": "Cabbage/Broccoli",
+        "head of cabbage": "Cabbage Crop",
+        "lemon": "Citrus/Fruit",
+        "orange": "Citrus/Fruit",
+        "pineapple": "Tropical Fruit",
+        "banana": "Banana Plantation",
+        "coconut": "Coconut/Palm",
+        "pomegranate": "Fruit Crop",
+        "fig": "Fruit Tree",
+        "acorn": "Seed/Nut",
+        "stinkhorn": "Fungal Infection/Mushroom",
+        "hen-of-the-woods": "Fungal Growth",
+        "earthstar": "Fungal Growth",
+        "leaf": "Generic Foliage",
+        "vine": "Climbing Crop",
+        "hay": "Dry Fodder",
+        "conifer": "Evergreen Plant",
+        "sidewinder": "Irregular Foliage Pattern",
+        "spatula": "Broadleaf Seedling",
+        "mushroom": "Fungal Growth",
+        "fungus": "Fungal Growth",
+        "carbon": "Soil/Earth",
+        "greenhouse": "Controlled Environment",
+        "picket fence": "Fencing/Boundary"
+    },
+    "agricultural_categories": [
+        "Rice", "Wheat", "Maize", "Chili", "Tomato", "Potato", "Cabbage", "Cucumber"
+    ],
+    "crop_metadata": {
+        "Chili/Pepper": {
+            "scientific": "Capsicum annuum",
+            "watering": "Moderate; soil should be moist but not waterlogged.",
+            "sunlight": "Full sun (6-8 hours daily).",
+            "soil": "Well-drained sandy loam, pH 6.0-7.0.",
+            "organic": ["Neem oil spray for pests", "Compost tea for nutrients"],
+            "chemical": ["NPK 10-10-10 Fertilizer", "Imidacloprid for aphids"]
+        },
+        "Paddy/Rice": {
+            "scientific": "Oryza sativa",
+            "watering": "High; standing water during vegetative stage.",
+            "sunlight": "Full sun with high humidity.",
+            "soil": "Heavy clay or loamy soil that retains water.",
+            "organic": ["Azolla as bio-fertilizer", "Mechanical weeding"],
+            "chemical": ["Urea (Nitrogen source)", "Butachlor for weed control"]
+        },
+        "Maize/Corn": {
+            "scientific": "Zea mays",
+            "watering": "Frequent; especially during tasseling.",
+            "sunlight": "Full sun required.",
+            "soil": "Deep, fertile well-drained loams.",
+            "organic": ["Crop rotation", "Green manure"],
+            "chemical": ["Zinc Sulfate supplement", "Atrazine for weeds"]
+        },
+        "Wheat": {
+            "scientific": "Triticum aestivum",
+            "watering": "Moderate; critical at crown root stage.",
+            "sunlight": "Full sun during grain filling.",
+            "soil": "Loamy to sandy loam.",
+            "organic": ["Vermicompost", "Seaweed extract"],
+            "chemical": ["DAP (Diammonium Phosphate)", "Propiconazole for rust"]
+        },
+        "Tomato": {
+            "scientific": "Solanum lycopersicum",
+            "watering": "Deep and regular; avoid splashing leaves.",
+            "sunlight": "Sturdy direct sunlight.",
+            "soil": "Loamy, well-draining soil.",
+            "organic": ["Bacillus thuringiensis (Bt)", "Fish emulsion"],
+            "chemical": ["Calcium Nitrate for rot prevention", "Copper fungicide"]
+        },
+        "General Seedling": {
+            "scientific": "Cucurbita / Phaseolus / Vigna",
+            "watering": "Keep soil moist but not soggy.",
+            "sunlight": "Partial to full sunlight.",
+            "soil": "Loose, well-aerated potting mix.",
+            "organic": ["Liquid seaweed fertilizer", "Shield from direct midday sun"],
+            "chemical": ["Diluted balanced liquid fertilizer"]
+        },
+        "Irregular Foliage Pattern": {
+            "scientific": "Non-specific agricultural pattern",
+            "watering": "Variable depending on identified species.",
+            "sunlight": "Variable.",
+            "soil": "General garden soil.",
+            "organic": ["Monitor for pest damage"],
+            "chemical": ["Apply general fertilizer if growth is stunted"]
+        }
+    }
+}

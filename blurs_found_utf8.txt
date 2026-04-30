@@ -1,0 +1,74 @@
+﻿
+public\dashboard.html:1350:  
+          backdrop-filter: 
+blur(4px);
+public\dashboard.html:1606:  
+          backdrop-filter: 
+blur(5px);
+public\dashboard.html:1660:  
+          backdrop-filter: 
+blur(25px) saturate(150%);
+public\dashboard.html:1759:  
+          backdrop-filter: 
+blur(40px) saturate(180%);
+public\dashboard.html:2207:  
+                      <ul 
+class="dropdown-menu 
+dropdown-menu-end shadow-lg 
+border-opacity-10 
+backdrop-blur-md">
+public\dashboard.html:3236:  
+                             
+     style="background: 
+linear-gradient(90deg, 
+rgba(0, 255, 136, 0.1), 
+transparent); border: 1px 
+solid rgba(0, 255, 136, 
+0.2); backdrop-filter: 
+blur(10px);">
+public\dashboard.html:5726:  
+                  return 
+`${keyword || crop}, 
+${style}, natural blurred 
+farm background, highly 
+detailed, realistic`;
+public\dashboard.html:6434:  
+                  <div 
+class="d-flex flex-column 
+align-items-center 
+justify-content-center h-100 
+text-center p-3" 
+style="background: 
+linear-gradient(135deg, 
+rgba(0, 40, 30, 0.95), 
+rgba(0, 20, 10, 1)); 
+position: absolute; inset:0; 
+backdrop-filter: 
+blur(20px);">
+public\dashboard.html:6742:  
+                          
+<div 
+class="ai-suggestion-badge" 
+style="position: absolute; 
+top: 10px; left: 10px; 
+z-index: 5; background: 
+${badgeColor}; color: white; 
+padding: 4px 10px; 
+border-radius: 20px; 
+font-size: 0.7rem; 
+backdrop-filter: blur(4px);">
+public\dashboard.html:6906:  
+          /* Animation 
+disabled slightly, just 
+standard bump to avoid heavy 
+blur effect */
+public\dashboard.html:7703:  
+                             
+     <div class="card h-100 
+border-0 bg-white 
+bg-opacity-10 backdrop-blur">
+public\dashboard.html:8264:  
+          backdrop-filter: 
+blur(30px);
+
+

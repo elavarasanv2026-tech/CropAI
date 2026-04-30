@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - CropAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/png" href="images/cropai-favicon.png?v=20260428c">
+    <link rel="apple-touch-icon" href="images/cropai-apple-touch.png?v=20260428c">
+    <style>
+        :root {
+            /* Futuristic Jungle Palette - Consistent with Dashboard */
+            --primary-color: #00ff88;
+            --primary-glow: rgba(0, 255, 136, 0.5);
+            --primary-dim: rgba(0, 255, 136, 0.1);
+            --secondary-color: #050a06;
+            --accent-color: #00e5ff;
+            --cyber-purple: #bc13fe;
+
+            --text-main: #e0f2e9;
+            --text-muted: #8aa395;
+
+            --bg-body: #020402;
+            --container-bg: rgba(10, 20, 15, 0.5);
+            --border-color: rgba(0, 255, 136, 0.15);
+            --input-bg: rgba(0, 30, 20, 0.3);
+            --input-text: #e0f2e9;
+            --glass-bg: rgba(0, 255, 136, 0.05);
+
+            --neon-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+            --glass-border: rgba(0, 255, 136, 0.2);
+        }
+
+        [data-theme="light"] {
+            /* Premium Ethereal Day Palette */
+            --primary-dim: rgba(0, 143, 76, 0.1);
+            --secondary-color: #f0fdf4;
+            --bg-body: #ced9d5;
+            /* Premium Sage Grey */
+            --text-main: #051f15;
+            --container-bg: #f5f7f6;
+            --border-color: rgba(0, 143, 76, 0.15);
+            --input-bg: #ffffff;
+            --input-text: #022c22;
+            --glass-bg: #ffffff;
+            --glass-border: rgba(0, 143, 76, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            min-height: 100vh;
+            font-family: 'Outfit', sans-serif;
+            position: relative;
+            overflow-x: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 400;
+            -webkit-font-smoothing: antialiased;
+            color: var(--text-main);
+            padding: 16px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 100%;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .login-page-shell {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card-wrap {
+            width: 100%;
+            max-width: 550px;
+        }
+
+        /* Environmental Overlays */
+        .environmental-overlays { 
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 500;
+        }
+
+        .dark-vignette {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, transparent 30%, rgba(2, 4, 3, 0.7) 100%);
+        }
+
+
+
+        /* Animated Background Blobs */
+        .blob-container { 
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            overflow: hidden;
+            
+            opacity: 0.4;
+            pointer-events: none;
+            will-change: transform;
+            transform: translateZ(0);
+        }
+
+        .blob {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            
+            animation: moveBlob 20s infinite alternate;
+        }
+
+        .blob-1 {
+            background: rgba(0, 255, 136, 0.15);
+            top: -100px;
+            left: -100px;
+            animation-duration: 25s;
+        }
+
+        .blob-2 {
+            background: rgba(188, 19, 254, 0.1);
+            bottom: -150px;
+            right: -100px;
+            animation-duration: 30s;
+            animation-delay: -5s;
+        }
+
+        @keyframes moveBlob {
+            0% {
+                transform: translate(0, 0) scale(1);
+                rotate: 0deg;
+            }
+
+            33% {
+                transform: translate(100px, 200px) scale(1.2);
+                rotate: 120deg;
+            }
+
+            66% {
+                transform: translate(-150px, 100px) scale(0.8);
+                rotate: 240deg;
+            }
+
+            100% {
+                transform: translate(0, 0) scale(1);
+                rotate: 360deg;
+            }
+        }
+
+        /* Cursor Glow */
+        .cursor-glow { 
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.12) 0%, transparent 70%);
+            border-radius: 50%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate3d(-50%, -50%, 0);
+            mix-blend-mode: screen;
+            transition: width 0.3s, height 0.3s, background 0.3s;
+            will-change: transform;
+        }
+
+        .login-container,
+        .login-card {
+            background: var(--container-bg);
+            border-radius: 32px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
+            backdrop-filter: saturate(160%);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            position: relative;
+            z-index: 10;
+            animation: containerEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            width: 100%;
+            max-width: 550px;
+            margin: auto;
+            padding: 28px 34px !important;
+            overflow: hidden;
+        }
+
+        @keyframes containerEntrance {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .form-label {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .form-control {
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 14px 18px;
+            background: var(--input-bg);
+            color: var(--input-text);
+            width: 100%;
+            min-width: 0;
+            min-height: 64px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px var(--primary-glow);
+            background: rgba(0, 255, 136, 0.05);
+            color: var(--input-text);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), #00a85d);
+            border: none;
+            border-radius: 16px;
+            padding: 16px 35px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: #050a06 !important;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 255, 136, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(0, 255, 136, 0.3);
+            background: linear-gradient(135deg, #33ffa3, #00d174);
+        }
+
+        .btn-primary:active {
+            transform: translateY(-1px) scale(1);
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+
+        .input-group-text {
+            background: #f7fafc;
+            border: 2px solid #e9ecef;
+            border-right: none;
+            border-radius: 12px 0 0 12px;
+            color: #00ca72;
+            transition: all 0.3s ease;
+        }
+
+        .input-group .form-control {
+            border-left: none;
+            border-radius: 0 12px 12px 0;
+        }
+
+        .input-group:focus-within .input-group-text {
+            border-color: #00ca72;
+            background: rgba(0, 202, 114, 0.05);
+        }
+
+        .input-group:focus-within {
+            transform: translateY(-1px);
+        }
+
+        .logo {
+            color: #00ca72;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        /* Staggered Field Animations */
+        .mb-3,
+        .form-check,
+        .d-grid,
+        .social-login-section {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fieldFadeIn 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        @keyframes fieldFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .field-1 {
+            animation-delay: 0.1s;
+        }
+
+        .field-2 {
+            animation-delay: 0.15s;
+        }
+
+        .field-3 {
+            animation-delay: 0.2s;
+        }
+
+        .field-4 {
+            animation-delay: 0.25s;
+        }
+
+        .field-5 {
+            animation-delay: 0.3s;
+        }
+
+        .field-6 {
+            animation-delay: 0.35s;
+        }
+
+        .form-title {
+            background: linear-gradient(135deg, #fff 0%, var(--primary-color) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 0.25rem !important;
+        }
+
+        .input-group-text {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-right: none;
+            border-radius: 16px 0 0 16px;
+            color: var(--primary-color);
+            transition: all 0.3s ease;
+            width: 62px;
+            min-width: 62px;
+            min-height: 64px;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+        }
+
+        .input-group {
+            width: 100%;
+            flex-wrap: nowrap;
+            align-items: stretch;
+        }
+
+        .input-group .form-control {
+            border-left: none;
+            border-radius: 0 16px 16px 0;
+        }
+
+        .input-group #togglePassword {
+            border-left: none;
+            border-right: 1px solid var(--border-color);
+            border-radius: 0 16px 16px 0;
+            background: var(--input-bg);
+            color: var(--text-muted);
+            cursor: pointer;
+            width: 62px;
+            min-width: 62px;
+        }
+
+        .input-group > .form-control,
+        .input-group > .form-control:focus,
+        .input-group > .form-control:active {
+            box-shadow: none;
+        }
+
+        .input-group:focus-within {
+            border-radius: 16px;
+            box-shadow: 0 0 0 4px var(--primary-glow);
+            transform: translateY(-1px);
+        }
+
+        .input-group:focus-within .form-control,
+        .input-group:focus-within .input-group-text,
+        .input-group:focus-within #togglePassword {
+            border-color: var(--primary-color);
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .input-group:focus-within .input-group-text {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .theme-toggle-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        #theme-toggle {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        #theme-toggle:hover {
+            transform: rotate(15deg) scale(1.1);
+            border-color: var(--primary-color);
+            background: rgba(0, 255, 136, 0.1);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+        }
+
+        .remember-me {
+            font-size: 0.9rem;
+        }
+
+        .form-check {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 0;
+            min-height: 24px;
+        }
+
+        .form-check-input {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            flex-shrink: 0;
+            border-color: var(--border-color);
+            background-color: var(--input-bg);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .form-check-label {
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        /* Social Login Button - Single Google Option */
+        .google-signin-btn {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 14px;
+            border-radius: 16px;
+            width: 100%;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            
+        }
+
+        .google-signin-btn:hover {
+            background: rgba(219, 68, 55, 0.1);
+            border-color: #DB4437;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(219, 68, 55, 0.2);
+        }
+
+        .google-signin-btn i {
+            color: #DB4437;
+            font-size: 1.2rem;
+        }
+
+        .social-login-section {
+            width: 100%;
+        }
+
+        .google-button-row {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        #googleButton,
+        #googleSignInDiv,
+        .g_id_signin,
+        .google-btn {
+            width: 100% !important;
+            max-width: 420px;
+            display: flex !important;
+            justify-content: center;
+            align-items: center;
+            overflow: visible;
+            margin: 0 auto;
+        }
+
+        #googleButton > div,
+        #googleSignInDiv > div {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        #googleButton iframe,
+        #googleSignInDiv iframe,
+        .g_id_signin iframe {
+            display: block;
+            margin: 0 auto;
+            width: 100% !important;
+            max-width: 420px !important;
+        }
+
+        iframe[src*="google"] {
+            max-width: 420px !important;
+        }
+
+        .login-links-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .signup-row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+        }
+
+        @media (min-width: 992px) {
+            body {
+                padding: 24px;
+            }
+
+            .login-page-shell .row {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .login-card-wrap {
+                max-width: 560px;
+            }
+
+            .login-container,
+            .login-card {
+                max-width: 560px;
+                min-height: 760px;
+            }
+        }
+
+        .account-prompt {
+            width: 100%;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .back-link-wrap {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .login-card-wrap {
+                max-width: 100%;
+            }
+
+            .login-container,
+            .login-card {
+                max-width: 100%;
+                padding: 16px !important;
+                border-radius: 24px;
+            }
+
+            h1,
+            h2 {
+                text-align: center;
+            }
+
+            .form-group,
+            .mb-3 {
+                margin-bottom: 16px !important;
+            }
+
+            .login-links-row {
+                flex-wrap: wrap;
+                justify-content: space-between;
+                row-gap: 10px;
+            }
+
+            .login-links-row > * {
+                flex: 0 1 auto;
+            }
+
+            .account-prompt {
+                max-width: 260px;
+            }
+        }
+
+        /* Theme toggle button styling */
+        #theme-toggle {
+            color: var(--text-main);
+        }
+
+        #theme-toggle:hover {
+            color: var(--primary-color);
+        }
+
+        /* Mock Social Login Modal Styling */
+        .social-login-header {
+            background: #f0f2f5;
+            border-bottom: 1px solid #dddfe2;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .social-login-logo {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .social-login-body {
+            padding: 25px;
+            background: #fff;
+        }
+
+        .social-input {
+            width: 100%;
+            padding: 12px 14px;
+            margin-bottom: 15px;
+            border: 1px solid #dddfe2;
+            border-radius: 6px;
+            font-size: 16px;
+            color: #1d2129;
+            background: #fff;
+        }
+
+        .social-input:focus {
+            border-color: #1877f2;
+            box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+            outline: none;
+        }
+
+        .social-login-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bol;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background 0.2s;
+        }
+
+        .social-login-btn:hover {
+            filter: brightness(0.95);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Environmental Overlays -->
+    <div class="environmental-overlays">
+        <div class="dark-vignette"></div>
+
+    </div>
+
+    <!-- Animated Blobs -->
+    <div class="blob-container">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- Cursor Glow -->
+    <div id="cursor-glow" class="cursor-glow"></div>
+
+    <div class="container login-page-shell">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-6 col-lg-5 login-card-wrap">
+                <div class="login-container login-card p-4">
+                    <div class="theme-toggle-container">
+                        <div id="theme-toggle">
+                            <i class="fas fa-moon" id="theme-icon"></i>
+                        </div>
+                    </div>
+
+                    <div class="text-center mb-2">
+                        <div class="logo field-1">
+                            <img src="images/logo.svg" alt="CropAI Logo" style="width: 80px; height: 80px;">
+                        </div>
+                        <h2 class="form-title field-1" data-i18n="login.welcome_back">Welcome Back</h2>
+                        <p class="text-muted field-2 mb-0" data-i18n="login.subtitle">Sign in to your Smart Farm Dashboard</p>
+                    </div>
+
+                    <div id="alertContainer" class="mb-3"></div>
+
+                    <form id="loginForm">
+                        <div class="mb-3 field-3">
+                            <label class="form-label" data-i18n="login.email_username">Email / Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input type="text" class="form-control" name="identifier" required
+                                    placeholder="john@example.com" data-i18n-placeholder="login.identifier_placeholder">
+                            </div>
+                        </div>
+
+                        <div class="mb-3 field-4">
+                            <label class="form-label" data-i18n="login.password">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control" id="password" name="password" required
+                                    placeholder="••••••••">
+                                <span class="input-group-text" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="login-links-row mb-4 field-5">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="rememberMe">
+                                <label class="form-check-label small text-muted" for="rememberMe" data-i18n="login.remember_me">Remember me</label>
+                            </div>
+                            <a href="forgot-password.html"
+                                class="small text-primary text-decoration-none fw-semibold" data-i18n="login.forgot_password">Forgot Password?</a>
+                        </div>
+
+                        <div class="d-grid gap-2 field-5">
+                            <button type="submit" class="btn btn-primary" data-i18n="login.sign_in">Sign In</button>
+                        </div>
+                    </form>
+
+                    <div class="social-login-section field-6">
+                        <div class="google-button-row text-center mt-4 pt-3 border-top">
+                            <div id="googleButton"></div>
+                        </div>
+
+                        <div class="signup-row text-center mt-4 pt-4 border-top border-secondary border-opacity-25">
+                            <p class="mb-0 text-muted account-prompt"><span data-i18n="login.create_account_prompt">Don't have an account?</span>
+                                <a href="signup.html" class="text-primary text-decoration-none fw-semibold" data-i18n="login.create_account">Create
+                                    Account</a>
+                            </p>
+                            <div class="mt-3 back-link-wrap">
+                                <a href="javascript:history.back()" class="text-muted text-decoration-none small">
+                                    <i class="fas fa-arrow-left me-1"></i><span data-i18n="login.go_back">Go Back</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK (optional; for existing flow) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <!-- Google Identity Services (real Google sign-in flow) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="translations.js"></script>
+    <script src="i18n.js"></script>
+    <script src="auth-utils.js?v=2"></script>
+    <script>
+        // Password visibility toggle
+        document.getElementById('togglePassword').addEventListener('click', function () {
+            const password = document.getElementById('password');
+            const icon = this.querySelector('i');
+            if (password.type === 'password') {
+                password.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                password.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+
+        // Resilient fetch helper with timeout + retries
+        async function fetchWithRetry(url, options = {}, timeout = 8000, retries = 2, backoff = 500) {
+            if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                const err = new Error('offline');
+                err.code = 'OFFLINE';
+                throw err;
+            }
+            let attempt = 0;
+            while (true) {
+                attempt++;
+                const controller = new AbortController();
+                const signal = controller.signal;
+                options.signal = signal;
+                const timer = setTimeout(() => controller.abort(), timeout);
+                try {
+                    const requestUrl = (window.CropAIAuth && typeof url === 'string' && url.startsWith('/api/'))
+                        ? await window.CropAIAuth.resolveApiUrl(url)
+                        : url;
+                    const res = await fetch(requestUrl, options);
+                    clearTimeout(timer);
+                    if (!res.ok) throw res;
+                    return res;
+                } catch (err) {
+                    clearTimeout(timer);
+                    if (err.name === 'AbortError') {
+                        if (attempt > retries) throw new Error('timeout');
+                    } else if (err.code === 'OFFLINE') {
+                        throw err;
+                    } else if (err instanceof Response) {
+                        throw err;
+                    } else {
+                        if (attempt > retries) throw err;
+                    }
+                    await new Promise(r => setTimeout(r, backoff * Math.pow(2, attempt - 1)));
+                }
+            }
+        }
+
+        // Form submission
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Signing In...';
+
+            try {
+                const response = await fetchWithRetry('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                }, 8000, 2, 500);
+
+                const result = await response.json();
+                if (response.ok) {
+                    console.log('[Auth Login] login response payload=', result);
+                    console.debug('[Auth Login] raw login response user=', result.user);
+                    if (result.user) {
+                        if (window.CropAIAuth && window.CropAIAuth.setStoredCurrentUser) {
+                            window.CropAIAuth.setStoredCurrentUser(result.user);
+                        } else {
+                            localStorage.setItem('cropai_current_user', JSON.stringify(result.user));
+                        }
+                        try { sessionStorage.setItem('cropai_current_user', JSON.stringify(result.user)); } catch (e) {}
+                        notifyAuthUpdate(result.user);
+                    }
+                    if (data.identifier) {
+                        if (window.CropAIAuth && window.CropAIAuth.setStoredLoginIdentifier) {
+                            window.CropAIAuth.setStoredLoginIdentifier(data.identifier);
+                        } else {
+                            localStorage.setItem('cropai_login_identifier', String(data.identifier));
+                        }
+                        try { sessionStorage.setItem('cropai_login_identifier', String(data.identifier)); } catch (e) {}
+                    }
+                    showAlert(window.t ? window.t('login.success_redirect') : 'Login successful! Redirecting to dashboard...', 'success');
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
+                } else {
+                    // Check for 403 unverified email
+                    showAlert(result.error || (window.t ? window.t('login.failed') : 'Login failed!'), 'danger');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                if (error instanceof Response) {
+                    try {
+                        const errData = await error.json();
+                        if (error.status === 403) {
+                            showUnverifiedAlert(String(data.identifier || ''));
+                        } else {
+                            showAlert(errData.error || (window.t ? window.t('login.failed') : 'Login failed!'), 'danger');
+                        }
+                    } catch (e) {
+                        showAlert('Invalid server response.', 'danger');
+                    }
+                } else if (error && error.code === 'OFFLINE') {
+                    showAlert(window.t ? window.t('login.offline') : 'You appear to be offline. Check your internet connection.', 'danger');
+                } else if (error && error.message === 'timeout') {
+                    showAlert(window.t ? window.t('login.timeout') : 'Server timeout. Please try again later.', 'danger');
+                } else {
+                    showAlert(window.t ? window.t('login.server_unreachable') : 'Server not reachable. Please try again later.', 'danger');
+                }
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+
+        function showUnverifiedAlert(identifier) {
+            const con = document.getElementById('alertContainer');
+            if (!con) return;
+            const encoded = encodeURIComponent(identifier);
+            con.innerHTML = `
+                <div class="alert alert-warning alert-dismissible fade show">
+                    <strong>Email not verified.</strong> Please check your inbox and click the verification link before logging in.
+                    <br><span style="font-size:13px;">Didn't receive it?
+                        <a href="#" onclick="resendLoginVerification('${encoded}');return false;" style="font-weight:700;">Resend verification email</a>
+                    </span>
+                    <span id="resendLoginMsg" style="font-size:13px;margin-left:8px;"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>`;
+        }
+
+        async function resendLoginVerification(encodedId) {
+            const email = decodeURIComponent(encodedId);
+            const msg = document.getElementById('resendLoginMsg');
+            if (msg) { msg.textContent = 'Sending...'; }
+            try {
+                const res = await fetch('/api/resend-verification', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                let result = null;
+                try {
+                    result = await res.json();
+                } catch (e) {}
+                if (msg) {
+                    msg.textContent = res.ok
+                        ? '\u2705 Sent! Check your inbox.'
+                        : `\u274c ${result && (result.error || result.message) ? (result.error || result.message) : 'Failed.'}`;
+                    msg.style.color = res.ok ? '#00ff88' : '#ff5555';
+                }
+            } catch(e) { if (msg) { msg.textContent = 'Network error.'; msg.style.color = '#ff5555'; } }
+        }
+
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            if (!alertContainer) return;
+            const existingAlerts = alertContainer.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => alert.remove());
+            const alertHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            alertContainer.insertAdjacentHTML('beforeend', alertHTML);
+            if (type === 'danger') {
+                setTimeout(() => {
+                    const alerts = alertContainer.querySelectorAll('.alert');
+                    alerts.forEach(alert => {
+                        if (alert.offsetParent !== null) {
+                            const bsAlert = new bootstr
+
+                            bsAlert.close();
+                        }
+                    });
+                }, 5000);
+            }
+        }
+
+        const authBroadcastChannel = typeof BroadcastChannel !== 'undefined'
+            ? new BroadcastChannel('cropai-auth')
+            : null;
+
+        function notifyAuthUpdate(user) {
+            if (!authBroadcastChannel || !user) return;
+            authBroadcastChannel.postMessage({ type: 'login', user });
+        }
+
+        // Check URL for email form password reset redirects
+        window.addEventListener('load', async function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('resetSuccess') === '1') {
+                showAlert(window.t ? window.t('login.reset_success') : 'Password reset successfully! You can now log in.', 'success');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else if (urlParams.get('resetError')) {
+                const err = urlParams.get('resetError');
+                let msg = 'Failed to reset password.';
+                if (err === 'invalid') msg = 'Invalid or expired reset link. Please request a new one.';
+                if (err === 'missing') msg = 'Token and new password are required.';
+                if (err === 'length') msg = 'Password must be at least 6 characters.';
+                if (err === 'expired') msg = 'This reset link has expired. Please request a new one.';
+                if (err === 'mismatch') msg = 'Passwords do not match. Please try again.';
+                if (err === 'notfound') msg = 'User not found.';
+                showAlert(msg, 'danger');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            try {
+                if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+                const response = await fetchWithRetry('/api/user', { method: 'GET' }, 5000, 1, 200);
+                if (response && response.ok) {
+                    const result = await response.json();
+                    window.location.href = 'dashboard.html';
+                }
+            } catch (error) {
+                // User not logged in, stay on login page
+            }
+        });
+
+        // Initialize when page loads
+        window.addEventListener('load', function () {
+            // Cursor Glow Movement
+            const cursorGlow = document.getElementById('cursor-glow');
+            let cursorX = -100, cursorY = -100;
+            document.addEventListener('mousemove', (e) => {
+                cursorX = e.clientX;
+                cursorY = e.clientY;
+                requestAnimationFrame(() => {
+                    cursorGlow.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%)`;
+                });
+            });
+
+            // Add glow effect on interactive elements
+            const interactiveElements = document.querySelectorAll('a, button, input, .input-group-text');
+            interactiveElements.forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    cursorGlow.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%)`;
+                    cursorGlow.style.width = '550px';
+                    cursorGlow.style.height = '550px';
+                    cursorGlow.style.background = 'radial-gradient(circle, rgba(0, 255, 136, 0.22) 0%, transparent 70%)';
+                });
+                el.addEventListener('mouseleave', () => {
+                    cursorGlow.style.width = '400px';
+                    cursorGlow.style.height = '400px';
+                    cursorGlow.style.background = 'radial-gradient(circle, rgba(0, 255, 136, 0.12) 0%, transparent 70%)';
+                });
+            });
+        });
+
+        // Theme toggle logic
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const htmlElement = document.documentElement;
+
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            if (theme === 'light') {
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+            }
+        }
+
+        let firebaseApp = null;
+        let firebaseAuth = null;
+
+        // Initialize Firebase with config from server (optional; if configured)
+        async function initFirebase() {
+            try {
+                const response = window.CropAIAuth
+                    ? await window.CropAIAuth.apiFetch('/api/config/firebase')
+                    : await fetch('/api/config/firebase');
+                const config = await response.json();
+                
+                if (config.apiKey && config.apiKey !== 'YOUR_FIREBASE_API_KEY') {
+                    firebaseApp = firebase.initializeApp(config);
+                    firebaseAuth = firebase.auth();
+                    console.log('??🔥 Firebase Initialized');
+                } else {
+                    console.warn('⚠️ Firebase config not found or invalid in .env');
+                }
+            } catch (error) {
+                console.error('Failed to init Firebase:', error);
+            }
+        }
+
+        // Initialize Google Identity Services
+        async function initGoogle() {
+            try {
+                const resp = window.CropAIAuth
+                    ? await window.CropAIAuth.apiFetch('/api/config/google')
+                    : await fetch('/api/config/google');
+                const data = await resp.json();
+                const clientId = data.clientId;
+
+                if (!clientId || clientId === 'YOUR_GOOGLE_CLIENT_ID_HERE') {
+                    console.warn('⚠️ GOOGLE_CLIENT_ID not set in .env. Google sign-in disabled.');
+                    return;
+                }
+
+                google.accounts.id.initialize({
+                    client_id: clientId,
+                    callback: handleGoogleCredential,
+                    auto_select: false,
+                    ux_mode: 'popup'
+                });
+
+                const googleButtonHost = document.getElementById('googleButton');
+                const googleButtonWidth = Math.min(
+                    420,
+                    Math.max(280, Math.floor((googleButtonHost?.clientWidth || 420) - 4))
+                );
+
+                google.accounts.id.renderButton(googleButtonHost, {
+                    theme: 'filled_blue',
+                    size: 'large',
+                    text: 'signin_with',
+                    width: googleButtonWidth,
+                    shape: 'pill'
+                });
+
+                // Optional prompt for One Tap
+                // google.accounts.id.prompt();
+
+                console.log('✅ Google Identity Service initialized');
+            } catch (error) {
+                console.error('Failed to init Google Sign-in:', error);
+            }
+        }
+
+        async function handleGoogleCredential(response) {
+            if (!response || !response.credential) {
+                showAlert(window.t ? window.t('login.google_failed') : 'Google sign-in failed. No credential received.', 'danger');
+                return;
+            }
+
+            try {
+                showAlert(window.t ? window.t('login.google_verifying') : 'Verifying Google credentials...', 'info');
+
+                const serverResp = window.CropAIAuth
+                    ? await window.CropAIAuth.apiFetch('/api/auth/google', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idToken: response.credential })
+                    })
+                    : await fetch('/api/auth/google', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idToken: response.credential })
+                    });
+
+                const result = await serverResp.json();
+
+                if (serverResp.ok) {
+                    console.log('[Auth Login] google response payload=', result);
+                    console.debug('[Auth Login] raw google response user=', result.user);
+                    if (result.user) {
+                        if (window.CropAIAuth && window.CropAIAuth.setStoredCurrentUser) {
+                            window.CropAIAuth.setStoredCurrentUser(result.user);
+                        } else {
+                            localStorage.setItem('cropai_current_user', JSON.stringify(result.user));
+                        }
+                        try { sessionStorage.setItem('cropai_current_user', JSON.stringify(result.user)); } catch (e) {}
+                        notifyAuthUpdate(result.user);
+                    }
+                    if (result.user?.email) {
+                        if (window.CropAIAuth && window.CropAIAuth.setStoredLoginIdentifier) {
+                            window.CropAIAuth.setStoredLoginIdentifier(result.user.email);
+                        } else {
+                            localStorage.setItem('cropai_login_identifier', String(result.user.email));
+                        }
+                        try { sessionStorage.setItem('cropai_login_identifier', String(result.user.email)); } catch (e) {}
+                    }
+                    showAlert(`Signed in as ${result.user.name}`, 'success');
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 900);
+                } else {
+                    throw new Error(result.error || 'Google login failed');
+                }
+            } catch (error) {
+                console.error('Google auth error:', error);
+                showAlert(error.message || (window.t ? window.t('login.google_failed') : 'Google sign-in failed.'), 'danger');
+            }
+        }
+
+        window.addEventListener('load', () => {
+            initFirebase();
+            initGoogle();
+        });
+    </script>
+</body>
+
+</html>
+

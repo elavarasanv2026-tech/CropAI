@@ -1,0 +1,106 @@
+@startuml
+title CropAI System Architecture
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+left to right direction
+
+actor Farmer
+
+package "Presentation Layer" {
+  [Landing Page\nindex.html]
+  [Auth Pages\nlogin.html / signup.html / verify.html]
+  [Dashboard UI\ndashboard.html]
+  [Profile UI\nprofile.html]
+  [Support & Static Pages]
+}
+
+package "Application Layer" {
+  [Express Server\nserver.js] as Server
+  [Authentication & Session Module]
+  [Profile Management Module]
+  [Crop Recommendation Engine]
+  [Photo Analysis Pipeline]
+  [CropAI Assistant / Chat Module]
+  [Weather & Market Module]
+  [Mailer / Notification Logic]
+}
+
+package "Service Layer" {
+  [kindwiseClient.js]
+  [Google OAuth Verification]
+  [SMTP Transport]
+  [Image Processing\nmulter + sharp]
+}
+
+package "Data Layer" {
+  database [MongoDB]
+  database [JSON Fallback\nfarmers.json]
+  collections [Crop Recommendation Dataset\nCSV + cultivation catalog]
+  collections [Session State\nexpress-session memory store]
+  folder [Uploaded Images\npublic/uploads]
+}
+
+package "External Integrations" {
+  cloud [Plant.id API]
+  cloud [Kindwise Crop Health API]
+  cloud [OpenRouter / LLM APIs]
+  cloud [Open-Meteo API]
+  cloud [Google Identity]
+}
+
+Farmer --> [Landing Page\nindex.html]
+Farmer --> [Auth Pages\nlogin.html / signup.html / verify.html]
+Farmer --> [Dashboard UI\ndashboard.html]
+Farmer --> [Profile UI\nprofile.html]
+
+[Landing Page\nindex.html] --> Server
+[Auth Pages\nlogin.html / signup.html / verify.html] --> Server
+[Dashboard UI\ndashboard.html] --> Server
+[Profile UI\nprofile.html] --> Server
+[Support & Static Pages] --> Server
+
+Server --> [Authentication & Session Module]
+Server --> [Profile Management Module]
+Server --> [Crop Recommendation Engine]
+Server --> [Photo Analysis Pipeline]
+Server --> [CropAI Assistant / Chat Module]
+Server --> [Weather & Market Module]
+Server --> [Mailer / Notification Logic]
+
+[Authentication & Session Module] --> [Google OAuth Verification]
+[Authentication & Session Module] --> [Session State\nexpress-session memory store]
+[Authentication & Session Module] --> [MongoDB]
+[Authentication & Session Module] --> [JSON Fallback\nfarmers.json]
+
+[Profile Management Module] --> [MongoDB]
+[Profile Management Module] --> [JSON Fallback\nfarmers.json]
+[Profile Management Module] --> [Crop Recommendation Dataset\nCSV + cultivation catalog]
+
+[Crop Recommendation Engine] --> [Crop Recommendation Dataset\nCSV + cultivation catalog]
+[Crop Recommendation Engine] --> [OpenRouter / LLM APIs]
+
+[Photo Analysis Pipeline] --> [Image Processing\nmulter + sharp]
+[Photo Analysis Pipeline] --> [kindwiseClient.js]
+[Photo Analysis Pipeline] --> [Uploaded Images\npublic/uploads]
+
+[kindwiseClient.js] --> [Plant.id API]
+[kindwiseClient.js] --> [Kindwise Crop Health API]
+
+[CropAI Assistant / Chat Module] --> [OpenRouter / LLM APIs]
+[Weather & Market Module] --> [Open-Meteo API]
+[Authentication & Session Module] --> [Google Identity]
+[Mailer / Notification Logic] --> [SMTP Transport]
+
+[Google OAuth Verification] --> [Google Identity]
+[SMTP Transport] --> [Google Identity]
+
+note bottom of Server
+Central backend entry point that coordinates:
+- auth and sessions
+- profile persistence
+- recommendation generation
+- image analysis
+- chat assistant
+- weather and market APIs
+end note
+@enduml

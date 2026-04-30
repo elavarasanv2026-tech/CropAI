@@ -1,0 +1,45 @@
+{
+  "name": "iot-crop-recommendation",
+  "version": "1.0.0",
+  "description": "Smart crop recommendation system for farmers",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
+    "test": "echo \"Error: no test specified\" && exit 0"
+  },
+  "dependencies": {
+    "@google/genai": "^1.41.0",
+    "axios": "^1.13.6",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
+    "cheerio": "^1.2.0",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "dotenv": "^17.4.2",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "form-data": "^4.0.5",
+    "google-auth-library": "^9.6.3",
+    "jimp": "^1.6.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^8.23.0",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^8.0.5",
+    "openai": "^6.17.0",
+    "path": "^0.12.7",
+    "sharp": "^0.32.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "iot",
+    "crop",
+    "recommendation",
+    "farmers",
+    "agriculture"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

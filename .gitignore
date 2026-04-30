@@ -1,0 +1,26 @@
+node_modules/
+
+# Environment files
+.env
+.env.*
+!.env.example
+backend/.env
+
+# Logs
+*.log
+*_log.txt
+*_out.txt
+*_err.txt
+out.txt
+
+# Generated uploads and temp artifacts
+frontend/uploads/
+tmp-test/
+tmp/
+query
+CON
+temp_script_*.js
+
+# OS/editor files
+.DS_Store
+Thumbs.db

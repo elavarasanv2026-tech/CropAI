@@ -1,0 +1,3833 @@
+{
+  "apple": {
+    "soils": [
+      "loam",
+      "sandy loam",
+      "well drained"
+    ],
+    "climates": [
+      "temperate",
+      "cool"
+    ],
+    "seasons": [
+      "winter",
+      "rabi"
+    ],
+    "water": "medium",
+    "temp": [
+      16,
+      24
+    ],
+    "rain": [
+      100,
+      150
+    ],
+    "humidity": [
+      55,
+      75
+    ],
+    "ph": [
+      5.8,
+      6.8
+    ],
+    "N": [
+      70,
+      120
+    ],
+    "P": [
+      35,
+      70
+    ],
+    "K": [
+      120,
+      200
+    ],
+    "yield": [
+      6,
+      10
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 240000,
+    "baseMargin": 180,
+    "sustainability": 78,
+    "plantingSeason": "December-January",
+    "harvestingSeason": "August-October",
+    "imageKeyword": "apple orchard farm"
+  },
+  "banana": {
+    "soils": [
+      "loam",
+      "alluvial",
+      "clay loam"
+    ],
+    "climates": [
+      "tropical",
+      "humid"
+    ],
+    "seasons": [
+      "monsoon",
+      "kharif",
+      "summer"
+    ],
+    "water": "high",
+    "temp": [
+      24,
+      34
+    ],
+    "rain": [
+      120,
+      250
+    ],
+    "humidity": [
+      70,
+      90
+    ],
+    "ph": [
+      6,
+      7.5
+    ],
+    "N": [
+      90,
+      150
+    ],
+    "P": [
+      40,
+      80
+    ],
+    "K": [
+      150,
+      260
+    ],
+    "yield": [
+      14,
+      22
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 280000,
+    "baseMargin": 220,
+    "sustainability": 72,
+    "plantingSeason": "June-September",
+    "harvestingSeason": "11-13 months",
+    "imageKeyword": "banana plantation farm"
+  },
+  "blackgram": {
+    "soils": [
+      "loam",
+      "clay loam",
+      "alluvial"
+    ],
+    "climates": [
+      "tropical",
+      "subtropical"
+    ],
+    "seasons": [
+      "kharif",
+      "monsoon",
+      "summer"
+    ],
+    "water": "low",
+    "temp": [
+      25,
+      35
+    ],
+    "rain": [
+      60,
+      120
+    ],
+    "humidity": [
+      45,
+      70
+    ],
+    "ph": [
+      6,
+      7.8
+    ],
+    "N": [
+      20,
+      70
+    ],
+    "P": [
+      25,
+      60
+    ],
+    "K": [
+      20,
+      60
+    ],
+    "yield": [
+      4,
+      7
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 70000,
+    "baseMargin": 145,
+    "sustainability": 88,
+    "plantingSeason": "June-July",
+    "harvestingSeason": "September-October",
+    "imageKeyword": "black gram crop field"
+  },
+  "chickpea": {
+    "soils": [
+      "loam",
+      "sandy loam",
+      "black soil"
+    ],
+    "climates": [
+      "cool",
+      "semi arid",
+      "subtropical"
+    ],
+    "seasons": [
+      "winter",
+      "rabi"
+    ],
+    "water": "low",
+    "temp": [
+      18,
+      28
+    ],
+    "rain": [
+      45,
+      90
+    ],
+    "humidity": [
+      35,
+      60
+    ],
+    "ph": [
+      6,
+      8
+    ],
+    "N": [
+      20,
+      70
+    ],
+    "P": [
+      25,
+      65
+    ],
+    "K": [
+      20,
+      60
+    ],
+    "yield": [
+      5,
+      9
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 76000,
+    "baseMargin": 150,
+    "sustainability": 90,
+    "plantingSeason": "October-November",
+    "harvestingSeason": "February-March",
+    "imageKeyword": "chickpea farm field"
+  },
+  "coconut": {
+    "soils": [
+      "coastal",
+      "alluvial",
+      "loam",
+      "sandy loam"
+    ],
+    "climates": [
+      "tropical",
+      "humid"
+    ],
+    "seasons": [
+      "monsoon",
+      "summer"
+    ],
+    "water": "high",
+    "temp": [
+      24,
+      33
+    ],
+    "rain": [
+      130,
+      250
+    ],
+    "humidity": [
+      70,
+      90
+    ],
+    "ph": [
+      5.5,
+      7.5
+    ],
+    "N": [
+      70,
+      130
+    ],
+    "P": [
+      30,
+      70
+    ],
+    "K": [
+      120,
+      220
+    ],
+    "yield": [
+      4,
+      7
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 230000,
+    "baseMargin": 190,
+    "sustainability": 82,
+    "plantingSeason": "June-September",
+    "harvestingSeason": "Year-round",
+    "imageKeyword": "coconut plantation farm"
+  },
+  "coffee": {
+    "soils": [
+      "loam",
+      "forest",
+      "well drained",
+      "acidic"
+    ],
+    "climates": [
+      "tropical",
+      "humid",
+      "highland"
+    ],
+    "seasons": [
+      "monsoon",
+      "winter"
+    ],
+    "water": "medium",
+    "temp": [
+      18,
+      28
+    ],
+    "rain": [
+      120,
+      220
+    ],
+    "humidity": [
+      60,
+      85
+    ],
+    "ph": [
+      5,
+      6.5
+    ],
+    "N": [
+      70,
+      120
+    ],
+    "P": [
+      30,
+      60
+    ],
+    "K": [
+      80,
+      140
+    ],
+    "yield": [
+      550,
+      900
+    ],
+    "yieldUnit": "kg/acre",
+    "baseIncome": 210000,
+    "baseMargin": 185,
+    "sustainability": 83,
+    "plantingSeason": "June-August",
+    "harvestingSeason": "November-February",
+    "imageKeyword": "coffee plantation farm"
+  },
+  "cotton": {
+    "soils": [
+      "black soil",
+      "alluvial",
+      "loam"
+    ],
+    "climates": [
+      "hot",
+      "tropical",
+      "semi arid"
+    ],
+    "seasons": [
+      "kharif",
+      "summer",
+      "monsoon"
+    ],
+    "water": "medium",
+    "temp": [
+      22,
+      35
+    ],
+    "rain": [
+      50,
+      120
+    ],
+    "humidity": [
+      40,
+      65
+    ],
+    "ph": [
+      5.8,
+      8
+    ],
+    "N": [
+      70,
+      120
+    ],
+    "P": [
+      30,
+      65
+    ],
+    "K": [
+      40,
+      90
+    ],
+    "yield": [
+      7,
+      12
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 120000,
+    "baseMargin": 155,
+    "sustainability": 68,
+    "plantingSeason": "May-June",
+    "harvestingSeason": "October-December",
+    "imageKeyword": "cotton crop field"
+  },
+  "grapes": {
+    "soils": [
+      "loam",
+      "sandy loam",
+      "well drained"
+    ],
+    "climates": [
+      "warm",
+      "subtropical",
+      "semi arid"
+    ],
+    "seasons": [
+      "winter",
+      "summer"
+    ],
+    "water": "medium",
+    "temp": [
+      20,
+      32
+    ],
+    "rain": [
+      60,
+      110
+    ],
+    "humidity": [
+      45,
+      65
+    ],
+    "ph": [
+      6,
+      7.5
+    ],
+    "N": [
+      65,
+      110
+    ],
+    "P": [
+      30,
+      60
+    ],
+    "K": [
+      120,
+      200
+    ],
+    "yield": [
+      7,
+      11
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 260000,
+    "baseMargin": 205,
+    "sustainability": 76,
+    "plantingSeason": "December-January",
+    "harvestingSeason": "March-May",
+    "imageKeyword": "grape vineyard farm"
+  },
+  "jute": {
+    "soils": [
+      "alluvial",
+      "clay loam",
+      "loam"
+    ],
+    "climates": [
+      "humid",
+      "tropical",
+      "monsoon"
+    ],
+    "seasons": [
+      "kharif",
+      "monsoon"
+    ],
+    "water": "high",
+    "temp": [
+      24,
+      34
+    ],
+    "rain": [
+      140,
+      250
+    ],
+    "humidity": [
+      70,
+      90
+    ],
+    "ph": [
+      6,
+      7.5
+    ],
+    "N": [
+      60,
+      110
+    ],
+    "P": [
+      25,
+      55
+    ],
+    "K": [
+      35,
+      75
+    ],
+    "yield": [
+      8,
+      12
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 90000,
+    "baseMargin": 150,
+    "sustainability": 84,
+    "plantingSeason": "March-May",
+    "harvestingSeason": "July-September",
+    "imageKeyword": "jute crop field"
+  },
+  "kidneybeans": {
+    "soils": [
+      "loam",
+      "silt loam",
+      "well drained"
+    ],
+    "climates": [
+      "cool",
+      "temperate",
+      "subtropical"
+    ],
+    "seasons": [
+      "winter",
+      "rabi"
+    ],
+    "water": "medium",
+    "temp": [
+      18,
+      27
+    ],
+    "rain": [
+      60,
+      110
+    ],
+    "humidity": [
+      45,
+      65
+    ],
+    "ph": [
+      6,
+      7.3
+    ],
+    "N": [
+      20,
+      70
+    ],
+    "P": [
+      25,
+      60
+    ],
+    "K": [
+      25,
+      60
+    ],
+    "yield": [
+      4,
+      7
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 82000,
+    "baseMargin": 150,
+    "sustainability": 87,
+    "plantingSeason": "October-November",
+    "harvestingSeason": "January-February",
+    "imageKeyword": "kidney beans crop field"
+  },
+  "lentil": {
+    "soils": [
+      "loam",
+      "clay loam",
+      "alluvial"
+    ],
+    "climates": [
+      "cool",
+      "dry",
+      "subtropical"
+    ],
+    "seasons": [
+      "winter",
+      "rabi"
+    ],
+    "water": "low",
+    "temp": [
+      18,
+      27
+    ],
+    "rain": [
+      35,
+      80
+    ],
+    "humidity": [
+      35,
+      60
+    ],
+    "ph": [
+      6,
+      8
+    ],
+    "N": [
+      20,
+      60
+    ],
+    "P": [
+      25,
+      60
+    ],
+    "K": [
+      20,
+      55
+    ],
+    "yield": [
+      4,
+      6
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 76000,
+    "baseMargin": 148,
+    "sustainability": 89,
+    "plantingSeason": "October-November",
+    "harvestingSeason": "February-March",
+    "imageKeyword": "lentil crop field"
+  },
+  "maize": {
+    "soils": [
+      "loam",
+      "sandy loam",
+      "alluvial"
+    ],
+    "climates": [
+      "tropical",
+      "subtropical",
+      "warm"
+    ],
+    "seasons": [
+      "kharif",
+      "monsoon",
+      "summer"
+    ],
+    "water": "medium",
+    "temp": [
+      20,
+      32
+    ],
+    "rain": [
+      60,
+      130
+    ],
+    "humidity": [
+      50,
+      75
+    ],
+    "ph": [
+      5.8,
+      7.5
+    ],
+    "N": [
+      80,
+      140
+    ],
+    "P": [
+      35,
+      70
+    ],
+    "K": [
+      40,
+      85
+    ],
+    "yield": [
+      18,
+      28
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 95000,
+    "baseMargin": 145,
+    "sustainability": 79,
+    "plantingSeason": "June-July",
+    "harvestingSeason": "September-October",
+    "imageKeyword": "maize crop field"
+  },
+  "mango": {
+    "soils": [
+      "loam",
+      "alluvial",
+      "well drained"
+    ],
+    "climates": [
+      "tropical",
+      "subtropical",
+      "warm"
+    ],
+    "seasons": [
+      "summer",
+      "monsoon"
+    ],
+    "water": "medium",
+    "temp": [
+      24,
+      35
+    ],
+    "rain": [
+      75,
+      150
+    ],
+    "humidity": [
+      50,
+      75
+    ],
+    "ph": [
+      5.5,
+      7.5
+    ],
+    "N": [
+      60,
+      110
+    ],
+    "P": [
+      25,
+      55
+    ],
+    "K": [
+      80,
+      150
+    ],
+    "yield": [
+      5,
+      9
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 220000,
+    "baseMargin": 190,
+    "sustainability": 80,
+    "plantingSeason": "July-September",
+    "harvestingSeason": "April-June",
+    "imageKeyword": "mango orchard farm"
+  },
+  "mothbeans": {
+    "soils": [
+      "sandy",
+      "sandy loam",
+      "arid"
+    ],
+    "climates": [
+      "arid",
+      "dry",
+      "semi arid"
+    ],
+    "seasons": [
+      "kharif",
+      "summer"
+    ],
+    "water": "low",
+    "temp": [
+      24,
+      36
+    ],
+    "rain": [
+      25,
+      70
+    ],
+    "humidity": [
+      25,
+      55
+    ],
+    "ph": [
+      6,
+      8.5
+    ],
+    "N": [
+      15,
+      55
+    ],
+    "P": [
+      20,
+      50
+    ],
+    "K": [
+      15,
+      50
+    ],
+    "yield": [
+      3,
+      5
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 68000,
+    "baseMargin": 152,
+    "sustainability": 93,
+    "plantingSeason": "June-July",
+    "harvestingSeason": "September-October",
+    "imageKeyword": "moth beans crop field"
+  },
+  "mungbean": {
+    "soils": [
+      "loam",
+      "sandy loam",
+      "alluvial"
+    ],
+    "climates": [
+      "warm",
+      "subtropical",
+      "tropical"
+    ],
+    "seasons": [
+      "summer",
+      "kharif",
+      "monsoon"
+    ],
+    "water": "low",
+    "temp": [
+      24,
+      34
+    ],
+    "rain": [
+      40,
+      100
+    ],
+    "humidity": [
+      40,
+      65
+    ],
+    "ph": [
+      6,
+      7.5
+    ],
+    "N": [
+      20,
+      65
+    ],
+    "P": [
+      20,
+      55
+    ],
+    "K": [
+      20,
+      55
+    ],
+    "yield": [
+      4,
+      7
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 72000,
+    "baseMargin": 150,
+    "sustainability": 90,
+    "plantingSeason": "June-July",
+    "harvestingSeason": "September-October",
+    "imageKeyword": "mung bean crop field"
+  },
+  "muskmelon": {
+    "soils": [
+      "sandy loam",
+      "loam",
+      "well drained"
+    ],
+    "climates": [
+      "warm",
+      "dry",
+      "semi arid"
+    ],
+    "seasons": [
+      "summer"
+    ],
+    "water": "medium",
+    "temp": [
+      24,
+      34
+    ],
+    "rain": [
+      40,
+      90
+    ],
+    "humidity": [
+      35,
+      60
+    ],
+    "ph": [
+      6,
+      7.5
+    ],
+    "N": [
+      55,
+      100
+    ],
+    "P": [
+      25,
+      60
+    ],
+    "K": [
+      70,
+      130
+    ],
+    "yield": [
+      7,
+      11
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 170000,
+    "baseMargin": 175,
+    "sustainability": 74,
+    "plantingSeason": "January-March",
+    "harvestingSeason": "April-June",
+    "imageKeyword": "muskmelon farm field"
+  },
+  "orange": {
+    "soils": [
+      "loam",
+      "alluvial",
+      "well drained"
+    ],
+    "climates": [
+      "subtropical",
+      "warm",
+      "humid"
+    ],
+    "seasons": [
+      "winter",
+      "monsoon"
+    ],
+    "water": "medium",
+    "temp": [
+      18,
+      32
+    ],
+    "rain": [
+      80,
+      170
+    ],
+    "humidity": [
+      50,
+      75
+    ],
+    "ph": [
+      5.5,
+      7.5
+    ],
+    "N": [
+      60,
+      110
+    ],
+    "P": [
+      25,
+      55
+    ],
+    "K": [
+      80,
+      140
+    ],
+    "yield": [
+      6,
+      10
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 210000,
+    "baseMargin": 185,
+    "sustainability": 79,
+    "plantingSeason": "July-September",
+    "harvestingSeason": "November-February",
+    "imageKeyword": "orange orchard farm"
+  },
+  "papaya": {
+    "soils": [
+      "loam",
+      "alluvial",
+      "well drained"
+    ],
+    "climates": [
+      "tropical",
+      "humid",
+      "warm"
+    ],
+    "seasons": [
+      "summer",
+      "monsoon"
+    ],
+    "water": "medium",
+    "temp": [
+      22,
+      34
+    ],
+    "rain": [
+      90,
+      180
+    ],
+    "humidity": [
+      55,
+      80
+    ],
+    "ph": [
+      5.8,
+      7.2
+    ],
+    "N": [
+      70,
+      120
+    ],
+    "P": [
+      30,
+      60
+    ],
+    "K": [
+      100,
+      170
+    ],
+    "yield": [
+      10,
+      16
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 200000,
+    "baseMargin": 185,
+    "sustainability": 78,
+    "plantingSeason": "June-September",
+    "harvestingSeason": "8-10 months",
+    "imageKeyword": "papaya farm plantation"
+  },
+  "pigeonpeas": {
+    "soils": [
+      "loam",
+      "black soil",
+      "well drained"
+    ],
+    "climates": [
+      "semi arid",
+      "subtropical",
+      "warm"
+    ],
+    "seasons": [
+      "kharif",
+      "monsoon"
+    ],
+    "water": "low",
+    "temp": [
+      22,
+      34
+    ],
+    "rain": [
+      50,
+      110
+    ],
+    "humidity": [
+      35,
+      65
+    ],
+    "ph": [
+      5.5,
+      7.8
+    ],
+    "N": [
+      20,
+      65
+    ],
+    "P": [
+      25,
+      60
+    ],
+    "K": [
+      20,
+      60
+    ],
+    "yield": [
+      5,
+      8
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 78000,
+    "baseMargin": 152,
+    "sustainability": 91,
+    "plantingSeason": "June-July",
+    "harvestingSeason": "December-January",
+    "imageKeyword": "pigeon pea crop field"
+  },
+  "pomegranate": {
+    "soils": [
+      "sandy loam",
+      "loam",
+      "alluvial"
+    ],
+    "climates": [
+      "arid",
+      "dry",
+      "semi arid",
+      "warm"
+    ],
+    "seasons": [
+      "summer",
+      "monsoon"
+    ],
+    "water": "low",
+    "temp": [
+      22,
+      35
+    ],
+    "rain": [
+      30,
+      90
+    ],
+    "humidity": [
+      25,
+      55
+    ],
+    "ph": [
+      6,
+      7.8
+    ],
+    "N": [
+      55,
+      95
+    ],
+    "P": [
+      25,
+      55
+    ],
+    "K": [
+      80,
+      150
+    ],
+    "yield": [
+      5,
+      8
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 260000,
+    "baseMargin": 230,
+    "sustainability": 90,
+    "plantingSeason": "June-August",
+    "harvestingSeason": "December-February",
+    "imageKeyword": "pomegranate orchard farm"
+  },
+  "rice": {
+    "soils": [
+      "clay",
+      "clay loam",
+      "alluvial",
+      "loam"
+    ],
+    "climates": [
+      "humid",
+      "tropical",
+      "monsoon"
+    ],
+    "seasons": [
+      "kharif",
+      "monsoon"
+    ],
+    "water": "high",
+    "temp": [
+      22,
+      35
+    ],
+    "rain": [
+      120,
+      250
+    ],
+    "humidity": [
+      70,
+      90
+    ],
+    "ph": [
+      5.5,
+      7.2
+    ],
+    "N": [
+      80,
+      140
+    ],
+    "P": [
+      30,
+      70
+    ],
+    "K": [
+      30,
+      70
+    ],
+    "yield": [
+      18,
+      28
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 105000,
+    "baseMargin": 150,
+    "sustainability": 83,
+    "plantingSeason": "June-July",
+    "harvestingSeason": "October-November",
+    "imageKeyword": "rice paddy field"
+  },
+  "watermelon": {
+    "soils": [
+      "sandy loam",
+      "alluvial",
+      "well drained"
+    ],
+    "climates": [
+      "hot",
+      "dry",
+      "warm"
+    ],
+    "seasons": [
+      "summer"
+    ],
+    "water": "medium",
+    "temp": [
+      24,
+      36
+    ],
+    "rain": [
+      40,
+      90
+    ],
+    "humidity": [
+      35,
+      60
+    ],
+    "ph": [
+      6,
+      7.5
+    ],
+    "N": [
+      60,
+      110
+    ],
+    "P": [
+      30,
+      60
+    ],
+    "K": [
+      90,
+      160
+    ],
+    "yield": [
+      8,
+      14
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 180000,
+    "baseMargin": 180,
+    "sustainability": 73,
+    "plantingSeason": "January-March",
+    "harvestingSeason": "April-June",
+    "imageKeyword": "watermelon farm field"
+  },
+  "ragi": {
+    "displayName": "Ragi",
+    "category": "food crop",
+    "soils": [
+      "red soil",
+      "laterite",
+      "loam"
+    ],
+    "climates": [
+      "dry",
+      "semi arid",
+      "warm"
+    ],
+    "seasons": [
+      "kharif",
+      "monsoon"
+    ],
+    "water": "low",
+    "moisture": [
+      25,
+      45
+    ],
+    "temp": [
+      22,
+      32
+    ],
+    "rain": [
+      50,
+      110
+    ],
+    "humidity": [
+      35,
+      60
+    ],
+    "ph": [
+      5,
+      7.5
+    ],
+    "N": [
+      25,
+      65
+    ],
+    "P": [
+      20,
+      50
+    ],
+    "K": [
+      20,
+      55
+    ],
+    "yield": [
+      7,
+      11
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 76000,
+    "baseMargin": 152,
+    "sustainability": 95,
+    "plantingSeason": "June-July",
+    "harvestingSeason": "October-November",
+    "imageKeyword": "ragi crop field",
+    "regions": [
+      "Dharmapuri",
+      "Krishnagiri",
+      "Salem"
+    ]
+  },
+  "pearlmillet": {
+    "displayName": "Cumbu / Pearl Millet",
+    "category": "food crop",
+    "soils": [
+      "sandy",
+      "sandy loam",
+      "red soil"
+    ],
+    "climates": [
+      "dry",
+      "semi arid",
+      "hot"
+    ],
+    "seasons": [
+      "kharif",
+      "summer"
+    ],
+    "water": "low",
+    "moisture": [
+      20,
+      40
+    ],
+    "temp": [
+      24,
+      38
+    ],
+    "rain": [
+      30,
+      80
+    ],
+    "humidity": [
+      25,
+      50
+    ],
+    "ph": [
+      6,
+      8.5
+    ],
+    "N": [
+      20,
+      55
+    ],
+    "P": [
+      15,
+      45
+    ],
+    "K": [
+      15,
+      45
+    ],
+    "yield": [
+      6,
+      10
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 70000,
+    "baseMargin": 150,
+    "sustainability": 96,
+    "plantingSeason": "June-July",
+    "harvestingSeason": "September-October",
+    "imageKeyword": "pearl millet crop field",
+    "regions": [
+      "Ramanathapuram",
+      "Virudhunagar",
+      "Thoothukudi"
+    ]
+  },
+  "foxtailmillet": {
+    "displayName": "Thinai",
+    "category": "food crop",
+    "soils": [
+      "red soil",
+      "sandy loam",
+      "loam"
+    ],
+    "climates": [
+      "dry",
+      "warm",
+      "semi arid"
+    ],
+    "seasons": [
+      "kharif",
+      "summer"
+    ],
+    "water": "low",
+    "moisture": [
+      20,
+      45
+    ],
+    "temp": [
+      22,
+      34
+    ],
+    "rain": [
+      40,
+      90
+    ],
+    "humidity": [
+      30,
+      55
+    ],
+    "ph": [
+      5.5,
+      7.5
+    ],
+    "N": [
+      20,
+      55
+    ],
+    "P": [
+      18,
+      45
+    ],
+    "K": [
+      18,
+      45
+    ],
+    "yield": [
+      5,
+      8
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 72000,
+    "baseMargin": 155,
+    "sustainability": 95,
+    "plantingSeason": "June-July",
+    "harvestingSeason": "September-October",
+    "imageKeyword": "foxtail millet farm field"
+  },
+  "littlemillet": {
+    "displayName": "Samai",
+    "category": "food crop",
+    "soils": [
+      "red soil",
+      "loam",
+      "laterite"
+    ],
+    "climates": [
+      "warm",
+      "semi arid"
+    ],
+    "seasons": [
+      "kharif",
+      "monsoon"
+    ],
+    "water": "low",
+    "moisture": [
+      25,
+      45
+    ],
+    "temp": [
+      22,
+      32
+    ],
+    "rain": [
+      50,
+      100
+    ],
+    "humidity": [
+      35,
+      60
+    ],
+    "ph": [
+      5.5,
+      7.5
+    ],
+    "N": [
+      20,
+      55
+    ],
+    "P": [
+      18,
+      45
+    ],
+    "K": [
+      18,
+      45
+    ],
+    "yield": [
+      5,
+      8
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 72000,
+    "baseMargin": 154,
+    "sustainability": 94,
+    "plantingSeason": "June-July",
+    "harvestingSeason": "September-October",
+    "imageKeyword": "little millet farm field"
+  },
+  "kodomillet": {
+    "displayName": "Varagu",
+    "category": "food crop",
+    "soils": [
+      "red soil",
+      "gravelly loam",
+      "laterite"
+    ],
+    "climates": [
+      "dry",
+      "semi arid"
+    ],
+    "seasons": [
+      "kharif"
+    ],
+    "water": "low",
+    "moisture": [
+      20,
+      40
+    ],
+    "temp": [
+      22,
+      34
+    ],
+    "rain": [
+      45,
+      95
+    ],
+    "humidity": [
+      30,
+      55
+    ],
+    "ph": [
+      5.5,
+      7.5
+    ],
+    "N": [
+      20,
+      55
+    ],
+    "P": [
+      18,
+      45
+    ],
+    "K": [
+      18,
+      45
+    ],
+    "yield": [
+      5,
+      8
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 71000,
+    "baseMargin": 154,
+    "sustainability": 94,
+    "plantingSeason": "June-July",
+    "harvestingSeason": "October-November",
+    "imageKeyword": "kodo millet farm field"
+  },
+  "sorghum": {
+    "displayName": "Cholam / Sorghum",
+    "category": "food crop",
+    "soils": [
+      "black soil",
+      "loam",
+      "red soil"
+    ],
+    "climates": [
+      "dry",
+      "semi arid",
+      "hot"
+    ],
+    "seasons": [
+      "kharif",
+      "summer",
+      "rabi"
+    ],
+    "water": "low",
+    "moisture": [
+      20,
+      45
+    ],
+    "temp": [
+      24,
+      36
+    ],
+    "rain": [
+      40,
+      100
+    ],
+    "humidity": [
+      25,
+      55
+    ],
+    "ph": [
+      6,
+      8
+    ],
+    "N": [
+      25,
+      65
+    ],
+    "P": [
+      20,
+      50
+    ],
+    "K": [
+      20,
+      50
+    ],
+    "yield": [
+      8,
+      13
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 76000,
+    "baseMargin": 150,
+    "sustainability": 93,
+    "plantingSeason": "June-July",
+    "harvestingSeason": "October-November",
+    "imageKeyword": "sorghum crop field",
+    "regions": [
+      "Erode",
+      "Namakkal",
+      "Karur"
+    ]
+  },
+  "wheat": {
+    "displayName": "Wheat",
+    "category": "food crop",
+    "soils": [
+      "alluvial",
+      "loam",
+      "clay loam"
+    ],
+    "climates": [
+      "cool",
+      "temperate"
+    ],
+    "seasons": [
+      "winter",
+      "rabi"
+    ],
+    "water": "medium",
+    "moisture": [
+      35,
+      60
+    ],
+    "temp": [
+      15,
+      25
+    ],
+    "rain": [
+      50,
+      100
+    ],
+    "humidity": [
+      40,
+      65
+    ],
+    "ph": [
+      6,
+      7.8
+    ],
+    "N": [
+      60,
+      110
+    ],
+    "P": [
+      30,
+      60
+    ],
+    "K": [
+      30,
+      60
+    ],
+    "yield": [
+      10,
+      16
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 86000,
+    "baseMargin": 145,
+    "sustainability": 76,
+    "plantingSeason": "October-November",
+    "harvestingSeason": "February-March",
+    "imageKeyword": "wheat crop field",
+    "regions": [
+      "The Nilgiris",
+      "Dindigul"
+    ]
+  },
+  "cowpea": {
+    "displayName": "Cowpea",
+    "category": "pulse",
+    "soils": [
+      "sandy loam",
+      "loam",
+      "red soil"
+    ],
+    "climates": [
+      "warm",
+      "semi arid",
+      "tropical"
+    ],
+    "seasons": [
+      "kharif",
+      "summer"
+    ],
+    "water": "low",
+    "moisture": [
+      20,
+      45
+    ],
+    "temp": [
+      22,
+      34
+    ],
+    "rain": [
+      40,
+      90
+    ],
+    "humidity": [
+      30,
+      60
+    ],
+    "ph": [
+      5.5,
+      7.5
+    ],
+    "N": [
+      20,
+      55
+    ],
+    "P": [
+      20,
+      50
+    ],
+    "K": [
+      20,
+      50
+    ],
+    "yield": [
+      4,
+      7
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 69000,
+    "baseMargin": 150,
+    "sustainability": 91,
+    "plantingSeason": "June-July",
+    "harvestingSeason": "September-October",
+    "imageKeyword": "cowpea crop field"
+  },
+  "horsegram": {
+    "displayName": "Horse Gram",
+    "category": "pulse",
+    "soils": [
+      "red soil",
+      "laterite",
+      "gravelly"
+    ],
+    "climates": [
+      "dry",
+      "semi arid"
+    ],
+    "seasons": [
+      "kharif",
+      "rabi"
+    ],
+    "water": "low",
+    "moisture": [
+      18,
+      40
+    ],
+    "temp": [
+      22,
+      34
+    ],
+    "rain": [
+      30,
+      80
+    ],
+    "humidity": [
+      25,
+      55
+    ],
+    "ph": [
+      5.5,
+      7.5
+    ],
+    "N": [
+      15,
+      45
+    ],
+    "P": [
+      15,
+      40
+    ],
+    "K": [
+      15,
+      40
+    ],
+    "yield": [
+      3,
+      5
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 66000,
+    "baseMargin": 152,
+    "sustainability": 96,
+    "plantingSeason": "August-September",
+    "harvestingSeason": "December-January",
+    "imageKeyword": "horse gram crop field"
+  },
+  "groundnut": {
+    "displayName": "Groundnut",
+    "category": "oilseed",
+    "soils": [
+      "sandy loam",
+      "red soil",
+      "well drained"
+    ],
+    "climates": [
+      "warm",
+      "semi arid",
+      "dry"
+    ],
+    "seasons": [
+      "kharif",
+      "summer"
+    ],
+    "water": "low",
+    "moisture": [
+      20,
+      45
+    ],
+    "temp": [
+      24,
+      34
+    ],
+    "rain": [
+      45,
+      100
+    ],
+    "humidity": [
+      30,
+      60
+    ],
+    "ph": [
+      5.8,
+      7.5
+    ],
+    "N": [
+      20,
+      55
+    ],
+    "P": [
+      25,
+      60
+    ],
+    "K": [
+      25,
+      60
+    ],
+    "yield": [
+      7,
+      12
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 92000,
+    "baseMargin": 162,
+    "sustainability": 88,
+    "plantingSeason": "June-July",
+    "harvestingSeason": "September-October",
+    "imageKeyword": "groundnut crop field",
+    "regions": [
+      "Villupuram",
+      "Cuddalore",
+      "Vellore"
+    ]
+  },
+  "sesame": {
+    "displayName": "Sesame",
+    "category": "oilseed",
+    "soils": [
+      "sandy loam",
+      "red soil",
+      "alluvial"
+    ],
+    "climates": [
+      "warm",
+      "dry",
+      "semi arid"
+    ],
+    "seasons": [
+      "summer",
+      "kharif"
+    ],
+    "water": "low",
+    "moisture": [
+      18,
+      40
+    ],
+    "temp": [
+      24,
+      36
+    ],
+    "rain": [
+      35,
+      85
+    ],
+    "humidity": [
+      25,
+      50
+    ],
+    "ph": [
+      5.5,
+      7.5
+    ],
+    "N": [
+      20,
+      50
+    ],
+    "P": [
+      20,
+      50
+    ],
+    "K": [
+      20,
+      45
+    ],
+    "yield": [
+      3,
+      5
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 76000,
+    "baseMargin": 158,
+    "sustainability": 92,
+    "plantingSeason": "February-March",
+    "harvestingSeason": "May-June",
+    "imageKeyword": "sesame crop field"
+  },
+  "sunflower": {
+    "displayName": "Sunflower",
+    "category": "oilseed",
+    "soils": [
+      "loam",
+      "black soil",
+      "alluvial"
+    ],
+    "climates": [
+      "warm",
+      "dry",
+      "semi arid"
+    ],
+    "seasons": [
+      "summer",
+      "rabi"
+    ],
+    "water": "medium",
+    "moisture": [
+      30,
+      55
+    ],
+    "temp": [
+      20,
+      32
+    ],
+    "rain": [
+      45,
+      90
+    ],
+    "humidity": [
+      30,
+      55
+    ],
+    "ph": [
+      6,
+      7.8
+    ],
+    "N": [
+      45,
+      85
+    ],
+    "P": [
+      25,
+      55
+    ],
+    "K": [
+      30,
+      60
+    ],
+    "yield": [
+      5,
+      8
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 82000,
+    "baseMargin": 150,
+    "sustainability": 82,
+    "plantingSeason": "January-February",
+    "harvestingSeason": "April-May",
+    "imageKeyword": "sunflower crop field"
+  },
+  "castor": {
+    "displayName": "Castor",
+    "category": "oilseed",
+    "soils": [
+      "red soil",
+      "sandy loam",
+      "black soil"
+    ],
+    "climates": [
+      "dry",
+      "semi arid",
+      "hot"
+    ],
+    "seasons": [
+      "kharif"
+    ],
+    "water": "low",
+    "moisture": [
+      18,
+      40
+    ],
+    "temp": [
+      24,
+      36
+    ],
+    "rain": [
+      40,
+      90
+    ],
+    "humidity": [
+      25,
+      50
+    ],
+    "ph": [
+      5.5,
+      8
+    ],
+    "N": [
+      20,
+      50
+    ],
+    "P": [
+      20,
+      45
+    ],
+    "K": [
+      20,
+      50
+    ],
+    "yield": [
+      4,
+      7
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 74000,
+    "baseMargin": 150,
+    "sustainability": 90,
+    "plantingSeason": "June-July",
+    "harvestingSeason": "December-January",
+    "imageKeyword": "castor crop field"
+  },
+  "sugarcane": {
+    "displayName": "Sugarcane",
+    "category": "commercial crop",
+    "soils": [
+      "alluvial",
+      "clay loam",
+      "loam"
+    ],
+    "climates": [
+      "humid",
+      "tropical",
+      "warm"
+    ],
+    "seasons": [
+      "monsoon",
+      "summer"
+    ],
+    "water": "high",
+    "moisture": [
+      55,
+      80
+    ],
+    "temp": [
+      24,
+      35
+    ],
+    "rain": [
+      100,
+      180
+    ],
+    "humidity": [
+      60,
+      85
+    ],
+    "ph": [
+      6,
+      8
+    ],
+    "N": [
+      90,
+      160
+    ],
+    "P": [
+      40,
+      80
+    ],
+    "K": [
+      60,
+      120
+    ],
+    "yield": [
+      28,
+      42
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 210000,
+    "baseMargin": 165,
+    "sustainability": 70,
+    "plantingSeason": "January-March",
+    "harvestingSeason": "10-12 months",
+    "imageKeyword": "sugarcane field"
+  },
+  "tapioca": {
+    "displayName": "Tapioca",
+    "category": "commercial crop",
+    "soils": [
+      "red soil",
+      "sandy loam",
+      "laterite"
+    ],
+    "climates": [
+      "tropical",
+      "warm"
+    ],
+    "seasons": [
+      "monsoon",
+      "summer"
+    ],
+    "water": "medium",
+    "moisture": [
+      35,
+      60
+    ],
+    "temp": [
+      24,
+      34
+    ],
+    "rain": [
+      70,
+      140
+    ],
+    "humidity": [
+      45,
+      75
+    ],
+    "ph": [
+      5.5,
+      7.5
+    ],
+    "N": [
+      50,
+      100
+    ],
+    "P": [
+      25,
+      55
+    ],
+    "K": [
+      70,
+      130
+    ],
+    "yield": [
+      10,
+      18
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 150000,
+    "baseMargin": 165,
+    "sustainability": 80,
+    "plantingSeason": "June-August",
+    "harvestingSeason": "8-10 months",
+    "imageKeyword": "tapioca field",
+    "regions": [
+      "Salem",
+      "Namakkal",
+      "Erode"
+    ]
+  },
+  "turmeric": {
+    "displayName": "Turmeric",
+    "category": "spice",
+    "soils": [
+      "loam",
+      "alluvial",
+      "well drained"
+    ],
+    "climates": [
+      "humid",
+      "tropical"
+    ],
+    "seasons": [
+      "monsoon"
+    ],
+    "water": "medium",
+    "moisture": [
+      40,
+      65
+    ],
+    "temp": [
+      20,
+      32
+    ],
+    "rain": [
+      90,
+      160
+    ],
+    "humidity": [
+      55,
+      80
+    ],
+    "ph": [
+      5.5,
+      7.5
+    ],
+    "N": [
+      55,
+      105
+    ],
+    "P": [
+      25,
+      55
+    ],
+    "K": [
+      70,
+      130
+    ],
+    "yield": [
+      14,
+      22
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 190000,
+    "baseMargin": 185,
+    "sustainability": 84,
+    "plantingSeason": "May-June",
+    "harvestingSeason": "January-February",
+    "imageKeyword": "turmeric crop field",
+    "regions": [
+      "Erode",
+      "Salem",
+      "Coimbatore"
+    ]
+  },
+  "betelvine": {
+    "displayName": "Betel Vine",
+    "category": "commercial crop",
+    "soils": [
+      "alluvial",
+      "loam",
+      "well drained"
+    ],
+    "climates": [
+      "humid",
+      "tropical"
+    ],
+    "seasons": [
+      "monsoon",
+      "summer"
+    ],
+    "water": "high",
+    "moisture": [
+      60,
+      85
+    ],
+    "temp": [
+      24,
+      34
+    ],
+    "rain": [
+      120,
+      220
+    ],
+    "humidity": [
+      70,
+      90
+    ],
+    "ph": [
+      5.5,
+      7
+    ],
+    "N": [
+      60,
+      110
+    ],
+    "P": [
+      25,
+      55
+    ],
+    "K": [
+      50,
+      100
+    ],
+    "yield": [
+      8,
+      12
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 240000,
+    "baseMargin": 210,
+    "sustainability": 72,
+    "plantingSeason": "June-September",
+    "harvestingSeason": "Year-round picking",
+    "imageKeyword": "betel vine cultivation",
+    "regions": [
+      "Karur",
+      "Trichy",
+      "Thanjavur"
+    ]
+  },
+  "chilli": {
+    "displayName": "Chilli",
+    "category": "spice",
+    "soils": [
+      "sandy loam",
+      "loam",
+      "black soil"
+    ],
+    "climates": [
+      "warm",
+      "dry",
+      "semi arid"
+    ],
+    "seasons": [
+      "kharif",
+      "summer",
+      "rabi"
+    ],
+    "water": "medium",
+    "moisture": [
+      30,
+      55
+    ],
+    "temp": [
+      20,
+      32
+    ],
+    "rain": [
+      50,
+      100
+    ],
+    "humidity": [
+      40,
+      65
+    ],
+    "ph": [
+      6,
+      7.5
+    ],
+    "N": [
+      50,
+      95
+    ],
+    "P": [
+      25,
+      55
+    ],
+    "K": [
+      50,
+      95
+    ],
+    "yield": [
+      7,
+      11
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 170000,
+    "baseMargin": 195,
+    "sustainability": 78,
+    "plantingSeason": "June-July",
+    "harvestingSeason": "November-January",
+    "imageKeyword": "chilli crop field",
+    "regions": [
+      "Virudhunagar",
+      "Ramanathapuram"
+    ]
+  },
+  "coriander": {
+    "displayName": "Coriander",
+    "category": "spice",
+    "soils": [
+      "loam",
+      "alluvial",
+      "well drained"
+    ],
+    "climates": [
+      "cool",
+      "dry",
+      "warm"
+    ],
+    "seasons": [
+      "winter",
+      "rabi"
+    ],
+    "water": "medium",
+    "moisture": [
+      30,
+      55
+    ],
+    "temp": [
+      18,
+      28
+    ],
+    "rain": [
+      40,
+      90
+    ],
+    "humidity": [
+      35,
+      60
+    ],
+    "ph": [
+      6,
+      7.8
+    ],
+    "N": [
+      35,
+      75
+    ],
+    "P": [
+      20,
+      50
+    ],
+    "K": [
+      25,
+      50
+    ],
+    "yield": [
+      4,
+      7
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 88000,
+    "baseMargin": 160,
+    "sustainability": 82,
+    "plantingSeason": "October-November",
+    "harvestingSeason": "January-February",
+    "imageKeyword": "coriander crop field"
+  },
+  "cumin": {
+    "displayName": "Cumin",
+    "category": "spice",
+    "soils": [
+      "sandy loam",
+      "loam"
+    ],
+    "climates": [
+      "dry",
+      "cool"
+    ],
+    "seasons": [
+      "winter",
+      "rabi"
+    ],
+    "water": "low",
+    "moisture": [
+      20,
+      40
+    ],
+    "temp": [
+      15,
+      27
+    ],
+    "rain": [
+      20,
+      60
+    ],
+    "humidity": [
+      20,
+      45
+    ],
+    "ph": [
+      6.5,
+      8
+    ],
+    "N": [
+      25,
+      55
+    ],
+    "P": [
+      20,
+      45
+    ],
+    "K": [
+      20,
+      45
+    ],
+    "yield": [
+      2,
+      4
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 98000,
+    "baseMargin": 175,
+    "sustainability": 80,
+    "plantingSeason": "November-December",
+    "harvestingSeason": "February-March",
+    "imageKeyword": "cumin crop field",
+    "regions": [
+      "Dindigul",
+      "Madurai"
+    ]
+  },
+  "onion": {
+    "displayName": "Onion",
+    "category": "spice",
+    "soils": [
+      "loam",
+      "sandy loam",
+      "alluvial"
+    ],
+    "climates": [
+      "warm",
+      "dry"
+    ],
+    "seasons": [
+      "rabi",
+      "summer"
+    ],
+    "water": "medium",
+    "moisture": [
+      30,
+      55
+    ],
+    "temp": [
+      18,
+      30
+    ],
+    "rain": [
+      40,
+      90
+    ],
+    "humidity": [
+      40,
+      65
+    ],
+    "ph": [
+      6,
+      7.5
+    ],
+    "N": [
+      50,
+      95
+    ],
+    "P": [
+      25,
+      55
+    ],
+    "K": [
+      40,
+      85
+    ],
+    "yield": [
+      50,
+      90
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 160000,
+    "baseMargin": 170,
+    "sustainability": 76,
+    "plantingSeason": "October-November",
+    "harvestingSeason": "February-March",
+    "imageKeyword": "onion farm field",
+    "regions": [
+      "Perambalur",
+      "Namakkal"
+    ]
+  },
+  "garlic": {
+    "displayName": "Garlic",
+    "category": "spice",
+    "soils": [
+      "loam",
+      "sandy loam",
+      "well drained"
+    ],
+    "climates": [
+      "cool",
+      "dry"
+    ],
+    "seasons": [
+      "winter",
+      "rabi"
+    ],
+    "water": "medium",
+    "moisture": [
+      30,
+      55
+    ],
+    "temp": [
+      16,
+      28
+    ],
+    "rain": [
+      35,
+      80
+    ],
+    "humidity": [
+      35,
+      60
+    ],
+    "ph": [
+      6,
+      7.5
+    ],
+    "N": [
+      45,
+      85
+    ],
+    "P": [
+      25,
+      55
+    ],
+    "K": [
+      40,
+      80
+    ],
+    "yield": [
+      18,
+      30
+    ],
+    "yieldUnit": "q/acre",
+    "baseIncome": 155000,
+    "baseMargin": 175,
+    "sustainability": 77,
+    "plantingSeason": "October-November",
+    "harvestingSeason": "February-March",
+    "imageKeyword": "garlic crop field"
+  },
+  "guava": {
+    "displayName": "Guava",
+    "category": "perennial fruit",
+    "soils": [
+      "loam",
+      "alluvial",
+      "well drained"
+    ],
+    "climates": [
+      "tropical",
+      "subtropical"
+    ],
+    "seasons": [
+      "monsoon",
+      "summer"
+    ],
+    "water": "medium",
+    "moisture": [
+      35,
+      60
+    ],
+    "temp": [
+      20,
+      34
+    ],
+    "rain": [
+      60,
+      140
+    ],
+    "humidity": [
+      45,
+      75
+    ],
+    "ph": [
+      5.5,
+      7.5
+    ],
+    "N": [
+      50,
+      95
+    ],
+    "P": [
+      25,
+      50
+    ],
+    "K": [
+      60,
+      110
+    ],
+    "yield": [
+      6,
+      10
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 190000,
+    "baseMargin": 180,
+    "sustainability": 82,
+    "plantingSeason": "June-September",
+    "harvestingSeason": "8-10 months / seasonal flush",
+    "imageKeyword": "guava orchard farm"
+  },
+  "sapota": {
+    "displayName": "Sapota",
+    "category": "perennial fruit",
+    "soils": [
+      "alluvial",
+      "loam",
+      "red soil"
+    ],
+    "climates": [
+      "tropical",
+      "warm"
+    ],
+    "seasons": [
+      "summer",
+      "monsoon"
+    ],
+    "water": "medium",
+    "moisture": [
+      35,
+      60
+    ],
+    "temp": [
+      22,
+      34
+    ],
+    "rain": [
+      70,
+      150
+    ],
+    "humidity": [
+      45,
+      75
+    ],
+    "ph": [
+      6,
+      8
+    ],
+    "N": [
+      55,
+      100
+    ],
+    "P": [
+      25,
+      50
+    ],
+    "K": [
+      60,
+      110
+    ],
+    "yield": [
+      6,
+      10
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 210000,
+    "baseMargin": 185,
+    "sustainability": 80,
+    "plantingSeason": "June-September",
+    "harvestingSeason": "Year-round flush",
+    "imageKeyword": "sapota orchard farm"
+  },
+  "amla": {
+    "displayName": "Amla",
+    "category": "perennial fruit",
+    "soils": [
+      "light loam",
+      "alluvial",
+      "red soil"
+    ],
+    "climates": [
+      "dry",
+      "subtropical",
+      "warm"
+    ],
+    "seasons": [
+      "monsoon"
+    ],
+    "water": "low",
+    "moisture": [
+      20,
+      45
+    ],
+    "temp": [
+      20,
+      34
+    ],
+    "rain": [
+      40,
+      110
+    ],
+    "humidity": [
+      30,
+      60
+    ],
+    "ph": [
+      6,
+      8.5
+    ],
+    "N": [
+      30,
+      70
+    ],
+    "P": [
+      20,
+      45
+    ],
+    "K": [
+      25,
+      50
+    ],
+    "yield": [
+      5,
+      8
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 160000,
+    "baseMargin": 170,
+    "sustainability": 90,
+    "plantingSeason": "July-September",
+    "harvestingSeason": "November-February",
+    "imageKeyword": "amla orchard farm"
+  },
+  "jackfruit": {
+    "displayName": "Jackfruit",
+    "category": "perennial fruit",
+    "soils": [
+      "loam",
+      "alluvial",
+      "well drained"
+    ],
+    "climates": [
+      "humid",
+      "tropical"
+    ],
+    "seasons": [
+      "monsoon"
+    ],
+    "water": "medium",
+    "moisture": [
+      40,
+      65
+    ],
+    "temp": [
+      24,
+      34
+    ],
+    "rain": [
+      100,
+      200
+    ],
+    "humidity": [
+      60,
+      85
+    ],
+    "ph": [
+      5.5,
+      7.5
+    ],
+    "N": [
+      50,
+      90
+    ],
+    "P": [
+      20,
+      50
+    ],
+    "K": [
+      60,
+      110
+    ],
+    "yield": [
+      7,
+      11
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 180000,
+    "baseMargin": 175,
+    "sustainability": 83,
+    "plantingSeason": "June-September",
+    "harvestingSeason": "March-June",
+    "imageKeyword": "jackfruit orchard farm"
+  },
+  "tomato": {
+    "displayName": "Tomato",
+    "category": "vegetable",
+    "soils": [
+      "sandy loam",
+      "loam",
+      "well drained"
+    ],
+    "climates": [
+      "warm",
+      "subtropical"
+    ],
+    "seasons": [
+      "winter",
+      "summer",
+      "monsoon"
+    ],
+    "water": "medium",
+    "moisture": [
+      35,
+      60
+    ],
+    "temp": [
+      18,
+      30
+    ],
+    "rain": [
+      45,
+      100
+    ],
+    "humidity": [
+      45,
+      70
+    ],
+    "ph": [
+      6,
+      7
+    ],
+    "N": [
+      55,
+      100
+    ],
+    "P": [
+      25,
+      55
+    ],
+    "K": [
+      55,
+      100
+    ],
+    "yield": [
+      8,
+      14
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 165000,
+    "baseMargin": 180,
+    "sustainability": 76,
+    "plantingSeason": "October-November / June-July",
+    "harvestingSeason": "70-90 days",
+    "imageKeyword": "tomato farm field"
+  },
+  "brinjal": {
+    "displayName": "Brinjal",
+    "category": "vegetable",
+    "soils": [
+      "loam",
+      "sandy loam",
+      "alluvial"
+    ],
+    "climates": [
+      "warm",
+      "humid"
+    ],
+    "seasons": [
+      "summer",
+      "monsoon",
+      "winter"
+    ],
+    "water": "medium",
+    "moisture": [
+      35,
+      60
+    ],
+    "temp": [
+      22,
+      32
+    ],
+    "rain": [
+      50,
+      110
+    ],
+    "humidity": [
+      45,
+      70
+    ],
+    "ph": [
+      5.5,
+      7.5
+    ],
+    "N": [
+      55,
+      100
+    ],
+    "P": [
+      25,
+      55
+    ],
+    "K": [
+      50,
+      95
+    ],
+    "yield": [
+      8,
+      14
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 150000,
+    "baseMargin": 175,
+    "sustainability": 75,
+    "plantingSeason": "June-July / October-November",
+    "harvestingSeason": "75-100 days",
+    "imageKeyword": "brinjal farm field"
+  },
+  "okra": {
+    "displayName": "Bhindi / Okra",
+    "category": "vegetable",
+    "soils": [
+      "sandy loam",
+      "loam",
+      "well drained"
+    ],
+    "climates": [
+      "hot",
+      "warm"
+    ],
+    "seasons": [
+      "summer",
+      "kharif"
+    ],
+    "water": "medium",
+    "moisture": [
+      30,
+      55
+    ],
+    "temp": [
+      24,
+      36
+    ],
+    "rain": [
+      45,
+      100
+    ],
+    "humidity": [
+      40,
+      65
+    ],
+    "ph": [
+      6,
+      7.5
+    ],
+    "N": [
+      45,
+      85
+    ],
+    "P": [
+      20,
+      50
+    ],
+    "K": [
+      35,
+      75
+    ],
+    "yield": [
+      5,
+      9
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 140000,
+    "baseMargin": 172,
+    "sustainability": 78,
+    "plantingSeason": "February-March / June-July",
+    "harvestingSeason": "55-75 days",
+    "imageKeyword": "okra farm field"
+  },
+  "drumstick": {
+    "displayName": "Drumstick",
+    "category": "vegetable",
+    "soils": [
+      "red soil",
+      "sandy loam",
+      "loam"
+    ],
+    "climates": [
+      "hot",
+      "dry",
+      "tropical"
+    ],
+    "seasons": [
+      "summer",
+      "monsoon"
+    ],
+    "water": "low",
+    "moisture": [
+      20,
+      45
+    ],
+    "temp": [
+      24,
+      36
+    ],
+    "rain": [
+      35,
+      90
+    ],
+    "humidity": [
+      30,
+      55
+    ],
+    "ph": [
+      6,
+      8
+    ],
+    "N": [
+      35,
+      75
+    ],
+    "P": [
+      20,
+      45
+    ],
+    "K": [
+      30,
+      60
+    ],
+    "yield": [
+      6,
+      10
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 170000,
+    "baseMargin": 180,
+    "sustainability": 88,
+    "plantingSeason": "June-August",
+    "harvestingSeason": "6-8 months",
+    "imageKeyword": "drumstick farm field"
+  },
+  "cabbage": {
+    "displayName": "Cabbage",
+    "category": "vegetable",
+    "soils": [
+      "loam",
+      "silt loam",
+      "well drained"
+    ],
+    "climates": [
+      "cool",
+      "temperate",
+      "hill"
+    ],
+    "seasons": [
+      "winter",
+      "rabi"
+    ],
+    "water": "medium",
+    "moisture": [
+      40,
+      65
+    ],
+    "temp": [
+      15,
+      24
+    ],
+    "rain": [
+      60,
+      110
+    ],
+    "humidity": [
+      55,
+      80
+    ],
+    "ph": [
+      6,
+      7.5
+    ],
+    "N": [
+      60,
+      110
+    ],
+    "P": [
+      30,
+      60
+    ],
+    "K": [
+      50,
+      90
+    ],
+    "yield": [
+      10,
+      16
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 155000,
+    "baseMargin": 170,
+    "sustainability": 74,
+    "plantingSeason": "September-November",
+    "harvestingSeason": "75-100 days",
+    "imageKeyword": "cabbage farm field",
+    "regions": [
+      "The Nilgiris",
+      "Kodaikanal"
+    ]
+  },
+  "cauliflower": {
+    "displayName": "Cauliflower",
+    "category": "vegetable",
+    "soils": [
+      "loam",
+      "silt loam",
+      "well drained"
+    ],
+    "climates": [
+      "cool",
+      "temperate",
+      "hill"
+    ],
+    "seasons": [
+      "winter",
+      "rabi"
+    ],
+    "water": "medium",
+    "moisture": [
+      40,
+      65
+    ],
+    "temp": [
+      15,
+      24
+    ],
+    "rain": [
+      60,
+      110
+    ],
+    "humidity": [
+      55,
+      80
+    ],
+    "ph": [
+      6,
+      7.5
+    ],
+    "N": [
+      60,
+      110
+    ],
+    "P": [
+      30,
+      60
+    ],
+    "K": [
+      50,
+      90
+    ],
+    "yield": [
+      8,
+      14
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 160000,
+    "baseMargin": 172,
+    "sustainability": 74,
+    "plantingSeason": "September-November",
+    "harvestingSeason": "80-110 days",
+    "imageKeyword": "cauliflower farm field",
+    "regions": [
+      "The Nilgiris",
+      "Kodaikanal"
+    ]
+  },
+  "gourds": {
+    "displayName": "Gourds",
+    "category": "vegetable",
+    "soils": [
+      "sandy loam",
+      "loam",
+      "alluvial"
+    ],
+    "climates": [
+      "warm",
+      "humid"
+    ],
+    "seasons": [
+      "summer",
+      "monsoon"
+    ],
+    "water": "medium",
+    "moisture": [
+      35,
+      60
+    ],
+    "temp": [
+      22,
+      34
+    ],
+    "rain": [
+      50,
+      110
+    ],
+    "humidity": [
+      45,
+      75
+    ],
+    "ph": [
+      6,
+      7.5
+    ],
+    "N": [
+      45,
+      90
+    ],
+    "P": [
+      20,
+      50
+    ],
+    "K": [
+      40,
+      85
+    ],
+    "yield": [
+      8,
+      14
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 145000,
+    "baseMargin": 170,
+    "sustainability": 77,
+    "plantingSeason": "January-March / June-July",
+    "harvestingSeason": "60-90 days",
+    "imageKeyword": "gourd vegetable farm"
+  },
+  "beans": {
+    "displayName": "Beans",
+    "category": "vegetable",
+    "soils": [
+      "loam",
+      "sandy loam",
+      "well drained"
+    ],
+    "climates": [
+      "cool",
+      "warm",
+      "hill"
+    ],
+    "seasons": [
+      "winter",
+      "summer"
+    ],
+    "water": "medium",
+    "moisture": [
+      35,
+      60
+    ],
+    "temp": [
+      18,
+      28
+    ],
+    "rain": [
+      50,
+      100
+    ],
+    "humidity": [
+      45,
+      70
+    ],
+    "ph": [
+      6,
+      7.5
+    ],
+    "N": [
+      35,
+      80
+    ],
+    "P": [
+      20,
+      50
+    ],
+    "K": [
+      30,
+      60
+    ],
+    "yield": [
+      5,
+      9
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 135000,
+    "baseMargin": 168,
+    "sustainability": 80,
+    "plantingSeason": "October-November / February-March",
+    "harvestingSeason": "60-80 days",
+    "imageKeyword": "beans crop field"
+  },
+  "tea": {
+    "displayName": "Tea",
+    "category": "plantation",
+    "soils": [
+      "acidic",
+      "forest",
+      "well drained"
+    ],
+    "climates": [
+      "cool",
+      "humid",
+      "hill"
+    ],
+    "seasons": [
+      "monsoon",
+      "winter"
+    ],
+    "water": "high",
+    "moisture": [
+      55,
+      80
+    ],
+    "temp": [
+      16,
+      28
+    ],
+    "rain": [
+      140,
+      260
+    ],
+    "humidity": [
+      70,
+      90
+    ],
+    "ph": [
+      4.5,
+      5.8
+    ],
+    "N": [
+      70,
+      120
+    ],
+    "P": [
+      25,
+      55
+    ],
+    "K": [
+      80,
+      140
+    ],
+    "yield": [
+      500,
+      900
+    ],
+    "yieldUnit": "kg/acre",
+    "baseIncome": 220000,
+    "baseMargin": 178,
+    "sustainability": 82,
+    "plantingSeason": "June-September",
+    "harvestingSeason": "Continuous plucking",
+    "imageKeyword": "tea plantation",
+    "regions": [
+      "The Nilgiris"
+    ]
+  },
+  "cardamom": {
+    "displayName": "Cardamom",
+    "category": "spice plantation",
+    "soils": [
+      "forest",
+      "loam",
+      "well drained"
+    ],
+    "climates": [
+      "humid",
+      "hill",
+      "tropical"
+    ],
+    "seasons": [
+      "monsoon"
+    ],
+    "water": "high",
+    "moisture": [
+      55,
+      80
+    ],
+    "temp": [
+      18,
+      28
+    ],
+    "rain": [
+      140,
+      260
+    ],
+    "humidity": [
+      75,
+      92
+    ],
+    "ph": [
+      5.5,
+      6.8
+    ],
+    "N": [
+      60,
+      110
+    ],
+    "P": [
+      25,
+      50
+    ],
+    "K": [
+      60,
+      110
+    ],
+    "yield": [
+      120,
+      220
+    ],
+    "yieldUnit": "kg/acre",
+    "baseIncome": 280000,
+    "baseMargin": 210,
+    "sustainability": 76,
+    "plantingSeason": "June-August",
+    "harvestingSeason": "Second year onward",
+    "imageKeyword": "cardamom plantation",
+    "regions": [
+      "The Nilgiris",
+      "Theni"
+    ]
+  },
+  "pepper": {
+    "displayName": "Pepper",
+    "category": "spice plantation",
+    "soils": [
+      "forest",
+      "loam",
+      "well drained"
+    ],
+    "climates": [
+      "humid",
+      "tropical",
+      "hill"
+    ],
+    "seasons": [
+      "monsoon"
+    ],
+    "water": "high",
+    "moisture": [
+      50,
+      75
+    ],
+    "temp": [
+      20,
+      32
+    ],
+    "rain": [
+      120,
+      240
+    ],
+    "humidity": [
+      70,
+      90
+    ],
+    "ph": [
+      5.5,
+      6.8
+    ],
+    "N": [
+      55,
+      100
+    ],
+    "P": [
+      20,
+      45
+    ],
+    "K": [
+      60,
+      110
+    ],
+    "yield": [
+      180,
+      320
+    ],
+    "yieldUnit": "kg/acre",
+    "baseIncome": 240000,
+    "baseMargin": 195,
+    "sustainability": 80,
+    "plantingSeason": "June-September",
+    "harvestingSeason": "December-February",
+    "imageKeyword": "pepper plantation",
+    "regions": [
+      "The Nilgiris",
+      "Kanyakumari"
+    ]
+  },
+  "arecanut": {
+    "displayName": "Arecanut",
+    "category": "plantation",
+    "soils": [
+      "alluvial",
+      "loam",
+      "coastal"
+    ],
+    "climates": [
+      "humid",
+      "tropical"
+    ],
+    "seasons": [
+      "monsoon"
+    ],
+    "water": "high",
+    "moisture": [
+      55,
+      80
+    ],
+    "temp": [
+      20,
+      34
+    ],
+    "rain": [
+      120,
+      240
+    ],
+    "humidity": [
+      70,
+      90
+    ],
+    "ph": [
+      5.5,
+      7
+    ],
+    "N": [
+      60,
+      110
+    ],
+    "P": [
+      25,
+      50
+    ],
+    "K": [
+      70,
+      130
+    ],
+    "yield": [
+      600,
+      1000
+    ],
+    "yieldUnit": "kg/acre",
+    "baseIncome": 220000,
+    "baseMargin": 185,
+    "sustainability": 79,
+    "plantingSeason": "June-September",
+    "harvestingSeason": "4-5 years onward",
+    "imageKeyword": "arecanut plantation",
+    "regions": [
+      "Kanyakumari",
+      "The Nilgiris"
+    ]
+  },
+  "jasmine": {
+    "displayName": "Jasmine",
+    "category": "flower crop",
+    "soils": [
+      "red soil",
+      "loam",
+      "well drained"
+    ],
+    "climates": [
+      "warm",
+      "dry",
+      "tropical"
+    ],
+    "seasons": [
+      "summer",
+      "monsoon"
+    ],
+    "water": "medium",
+    "moisture": [
+      30,
+      55
+    ],
+    "temp": [
+      22,
+      34
+    ],
+    "rain": [
+      50,
+      110
+    ],
+    "humidity": [
+      45,
+      70
+    ],
+    "ph": [
+      6,
+      7.5
+    ],
+    "N": [
+      45,
+      85
+    ],
+    "P": [
+      20,
+      45
+    ],
+    "K": [
+      35,
+      75
+    ],
+    "yield": [
+      1800,
+      2600
+    ],
+    "yieldUnit": "kg/acre",
+    "baseIncome": 260000,
+    "baseMargin": 205,
+    "sustainability": 78,
+    "plantingSeason": "June-September",
+    "harvestingSeason": "Year-round flowering",
+    "imageKeyword": "jasmine flower farm",
+    "regions": [
+      "Madurai",
+      "Dindigul"
+    ]
+  },
+  "marigold": {
+    "displayName": "Marigold",
+    "category": "flower crop",
+    "soils": [
+      "loam",
+      "sandy loam",
+      "well drained"
+    ],
+    "climates": [
+      "warm",
+      "subtropical"
+    ],
+    "seasons": [
+      "summer",
+      "winter"
+    ],
+    "water": "medium",
+    "moisture": [
+      30,
+      55
+    ],
+    "temp": [
+      18,
+      30
+    ],
+    "rain": [
+      45,
+      100
+    ],
+    "humidity": [
+      40,
+      70
+    ],
+    "ph": [
+      6,
+      7.5
+    ],
+    "N": [
+      40,
+      80
+    ],
+    "P": [
+      20,
+      45
+    ],
+    "K": [
+      35,
+      70
+    ],
+    "yield": [
+      4,
+      7
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 150000,
+    "baseMargin": 178,
+    "sustainability": 76,
+    "plantingSeason": "June-July / October-November",
+    "harvestingSeason": "60-75 days",
+    "imageKeyword": "marigold flower farm"
+  },
+  "rose": {
+    "displayName": "Rose",
+    "category": "flower crop",
+    "soils": [
+      "loam",
+      "sandy loam",
+      "well drained"
+    ],
+    "climates": [
+      "mild",
+      "subtropical",
+      "hill"
+    ],
+    "seasons": [
+      "winter",
+      "summer"
+    ],
+    "water": "medium",
+    "moisture": [
+      35,
+      60
+    ],
+    "temp": [
+      18,
+      30
+    ],
+    "rain": [
+      50,
+      110
+    ],
+    "humidity": [
+      45,
+      75
+    ],
+    "ph": [
+      6,
+      7.5
+    ],
+    "N": [
+      45,
+      85
+    ],
+    "P": [
+      20,
+      45
+    ],
+    "K": [
+      40,
+      75
+    ],
+    "yield": [
+      3,
+      5
+    ],
+    "yieldUnit": "tons/acre",
+    "baseIncome": 190000,
+    "baseMargin": 185,
+    "sustainability": 74,
+    "plantingSeason": "June-September",
+    "harvestingSeason": "Continuous flowering",
+    "imageKeyword": "rose flower farm"
+  }
+}

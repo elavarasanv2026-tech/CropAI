@@ -1,0 +1,476 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Center - CropAI</title>
+    <link rel="icon" type="image/png" href="images/cropai-favicon.png?v=20260428c">
+    <link rel="apple-touch-icon" href="images/cropai-apple-touch.png?v=20260428c">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #00ff88;
+            --primary-glow: rgba(0, 255, 136, 0.5);
+            --primary-dim: rgba(0, 255, 136, 0.1);
+            --secondary-color: #050a06;
+            --accent-color: #00e5ff;
+            --success-color: #00ff88;
+            --info-color: #3b82f6;
+            --warning-color: #ffb700;
+            --danger-color: #ff3366;
+            --text-main: #e0f2e9;
+            --text-muted: #8aa395;
+            --bg-body: #020402;
+            --glass-bg: rgba(0, 255, 136, 0.05);
+            --glass-border: rgba(0, 255, 136, 0.15);
+            --nav-bg: rgba(2, 4, 3, 0.85);
+            --card-text: #8aa395;
+            --neon-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+            --bg-light: #0b0d0f;
+        }
+
+        [data-theme="light"] {
+            --primary-dim: rgba(0, 143, 76, 0.1);
+            --secondary-color: #f0fdf4;
+            --bg-body: #ced9d5;
+            --text-main: #051f15;
+            --text-muted: #3a4f44;
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(0, 143, 76, 0.2);
+            --nav-bg: rgba(245, 247, 246, 0.85);
+            --card-text: #334155;
+            --neon-shadow: 0 4px 25px rgba(0, 143, 76, 0.1);
+            --bg-light: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.7;
+            color: var(--text-main);
+            overflow-x: hidden;
+            background-color: var(--bg-body);
+            background-image:
+                radial-gradient(circle at 10% 20%, var(--primary-dim) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 40%);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            background: var(--primary-dim);
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            color: var(--primary-color);
+            background: rgba(0, 255, 136, 0.15);
+            transform: translateX(-5px);
+            border-color: var(--primary-color);
+            text-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .help-category-card {
+            background: var(--bg-light);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            height: 100%;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .help-category-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-color);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .help-category-card i {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .help-article-list {
+            margin-top: 20px;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .help-article-list li {
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+        }
+
+        .help-article-list a {
+            color: var(--text-main);
+            text-decoration: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: color 0.2s ease;
+        }
+
+        .help-article-list a:hover {
+            color: var(--primary-color);
+        }
+
+        .help-article-list a::after {
+            content: '\f054';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+
+        /* Footer Styles */
+        .footer {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 60px 0 25px;
+            position: relative;
+        }
+
+        .footer a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: white;
+        }
+
+        .footer .text-muted {
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+
+        .btn-custom {
+            background: var(--primary-color);
+            color: #0b0d0f;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 30px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 30px rgba(0, 202, 114, 0.3);
+        }
+
+        .btn-custom:hover {
+            background: #00e676;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 202, 114, 0.4);
+            color: #0b0d0f;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Simple Header with Single Back Option -->
+    <div class="container-fluid py-1 px-4 d-flex justify-content-between align-items-center position-relative"
+        style="z-index: 1100;">
+        <a href="javascript:history.back()" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Go Back
+        </a>
+        <button class="btn back-btn" id="theme-toggle">
+            <i class="fas fa-moon" id="theme-icon"></i>
+        </button>
+    </div>
+
+    <header class="page-header" style="padding: 20px 0 20px;">
+        <div class="container">
+            <h1 class="display-3 fw-bold text-white mb-4">CropAI Support Center</h1>
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="input-group">
+                        <input type="text" id="searchInput" class="form-control form-control-lg bg-white border-0"
+                            placeholder="Search for solutions...">
+                        <button class="btn btn-primary px-4" type="button"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="help-section">
+        <div class="container">
+            <div class="row g-4 mb-5" id="helpCategories">
+                <div class="col-lg-4 col-md-6 category-col">
+                    <div class="help-category-card">
+                        <i class="fas fa-rocket"></i>
+                        <h5>Getting Started</h5>
+                        <p class="text-muted small">Learn the basics of setting up your account and sensors.</p>
+                        <ul class="help-article-list text-start">
+                            <li><a href="#" class="help-link" data-title="Setting up your first sensor"
+                                    data-content="To set up your first sensor, create an account, go to the dashboard, click 'Add Device', and enter the serial number found on the back of your sensor unit. Follow the on-screen pairing instructions.">Setting
+                                    up your first sensor</a></li>
+                            <li><a href="#" class="help-link" data-title="Creating your farm profile"
+                                    data-content="Navigate to Profile > Farm Details. Enter your farm's location, size, and primary crop types. This information helps our AI provide more accurate recommendations.">Creating
+                                    your farm profile</a></li>
+                            <li><a href="#" class="help-link" data-title="Understanding dashboard metrics"
+                                    data-content="The dashboard shows real-time data from your sensors. 'Moisture' indicates soil water content, 'Temp' is ambient temperature, and 'Health' is an AI-derived score of overall crop well-being.">Understanding
+                                    dashboard metrics</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 category-col">
+                    <div class="help-category-card">
+                        <i class="fas fa-shield-alt"></i>
+                        <h5>Account & Billing</h5>
+                        <p class="text-muted small">Manage your subscription, payments and security.</p>
+                        <ul class="help-article-list text-start">
+                            <li><a href="#" class="help-link" data-title="Managing payment methods"
+                                    data-content="Go to Settings > Billing. Here you can add, remove, or update your credit card information. We support all major credit cards and PayPal.">Managing
+                                    payment methods</a></li>
+                            <li><a href="#" class="help-link" data-title="Changing your password"
+                                    data-content="To change your password, go to Profile > Security. Enter your current password and your new desired password, then click 'Update'.">Changing
+                                    your password</a></li>
+                            <li><a href="#" class="help-link" data-title="Viewing past invoices"
+                                    data-content="All your past invoices are available in the Billing section. You can download them as PDF files for your records.">Viewing
+                                    past invoices</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 category-col">
+                    <div class="help-category-card">
+                        <i class="fas fa-cogs"></i>
+                        <h5>Troubleshooting</h5>
+                        <p class="text-muted small">Solutions to common hardware and software issues.</p>
+                        <ul class="help-article-list text-start">
+                            <li><a href="#" class="help-link" data-title="Sensor connection issues"
+                                    data-content="If your sensor disconnects, try resetting it by holding the power button for 5 seconds. Ensure it is within range of your Wi-Fi network.">Sensor
+                                    connection issues</a></li>
+                            <li><a href="#" class="help-link" data-title="Data sync problems"
+                                    data-content="Data usually effects every 15 minutes. If data isn't updating, check your internet connection and ensure the sensor has battery power.">Data
+                                    sync problems</a></li>
+                            <li><a href="#" class="help-link" data-title="Resetting your device"
+                                    data-content="To factory reset your device, locate the small pinhole reset button on the back. Insert a paperclip and hold for 10 seconds until the LED flashes red.">Resetting
+                                    your device</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12 text-center">
+                    <div class="help-search-card text-center">
+                        <h4 class="fw-bold mb-3">Still need help?</h4>
+                        <p class="text-muted mb-4">Our support team is available 24/7 to assist you with any questions.
+                        </p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="contact-us.html" class="btn btn-custom px-4">Contact Support</a>
+                            <a href="community.html" class="btn btn-outline-light px-4">Community Forum</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-seedling text-success me-2"></i>
+                        CropAI
+                    </h5>
+                    <p class="text-muted">
+                        Empowering farmers with smart technology and data-driven insights for sustainable agriculture.
+                    </p>
+                </div>
+                <!-- Reuse Footer Columns -->
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Product</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="dashboard.html" class="text-muted text-decoration-none">Dashboard</a></li>
+                        <li><a href="#" class="text-muted text-decoration-none">Sensors</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Support</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="support.html" class="text-muted text-decoration-none">Support Center</a></li>
+                        <li><a href="community.html" class="text-muted text-decoration-none">Community</a></li>
+                        <li><a href="contact-us.html" class="text-muted text-decoration-none">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Company</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="about.html" class="text-muted text-decoration-none">About</a></li>
+                        <li><a href="blog.html" class="text-muted text-decoration-none">Blog</a></li>
+                        <li><a href="careers.html" class="text-muted text-decoration-none">Careers</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-top border-secondary pt-4 mt-4">
+                <div class="row align-items-center">
+                    <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                        <p class="text-muted small mb-0">&copy; 2024 CropAI. All rights reserved.</p>
+                    </div>
+                    <div class="col-md-6 text-center text-md-end">
+                        <a href="privacy.html" class="text-muted text-decoration-none me-3">Privacy Policy</a>
+                        <a href="terms.html" class="text-muted text-decoration-none">Terms of Service</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Article Modal -->
+    <div class="modal fade" id="articleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content"
+                style="background: var(--nav-bg); color: var(--text-main); border: 1px solid var(--glass-border); ">
+                <div class="modal-header border-bottom border-secondary">
+                    <h5 class="modal-title fw-bold" id="articleModalLabel">Article Title</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="articleModalBody">
+                    Article content goes here.
+                </div>
+                <div class="modal-footer border-top border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <a href="contact-us.html" class="btn btn-custom">Contact Support</a>
+                    <a href="community.html" class="btn btn-outline-light">Community Forum</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Theme Logic
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const htmlElement = document.documentElement;
+
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        if (savedTheme === 'light') themeIcon.classList.replace('fa-moon', 'fa-sun');
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            if (newTheme === 'light') {
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+            }
+        });
+
+        // Search Functionality
+        const searchInput = document.getElementById('searchInput');
+        const helpLinks = document.querySelectorAll('.help-link');
+        const categories = document.querySelectorAll('.category-col');
+
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+
+                helpLinks.forEach(link => {
+                    const text = link.textContent.toLowerCase();
+                    const listItem = link.parentElement;
+
+                    if (text.includes(searchTerm)) {
+                        listItem.style.display = '';
+                    } else {
+                        listItem.style.display = 'none';
+                    }
+                });
+
+                // Hide empty categories
+                categories.forEach(category => {
+                    const visibleLinks = category.querySelectorAll('.help-article-list li:not([style*="display: none"])');
+                    if (visibleLinks.length > 0) {
+                        category.style.display = '';
+                    } else {
+                        category.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // Modal Logic
+        const articleModal = new bootstrap.Modal(document.getElementById('articleModal'));
+        const modalTitle = document.getElementById('articleModalLabel');
+        const modalBody = document.getElementById('articleModalBody');
+
+        helpLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const title = link.getAttribute('data-title');
+                const content = link.getAttribute('data-content');
+
+                modalTitle.textContent = title;
+                modalBody.textContent = content;
+
+                articleModal.show();
+            });
+        });
+
+        // Load User Name
+        async function loadUser() {
+            try {
+                const response = await fetch('/api/user');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.user && data.user.name) {
+                        document.getElementById('navUserName').textContent = data.user.name.split(' ')[0];
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to load user", e);
+            }
+        }
+
+        // Logout
+        function logout() {
+            fetch('/api/logout', { method: 'POST' })
+                .then(() => window.location.href = 'login.html');
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
+
+        // Initialize
+        loadUser();
+    </script>
+    <script src="translations.js"></script>
+    <script src="i18n.js"></script>
+</body>
+
+</html>

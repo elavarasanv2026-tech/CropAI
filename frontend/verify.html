@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email - CropAI</title>
+    <link rel="icon" type="image/png" href="images/cropai-favicon.png?v=20260428c">
+    <link rel="apple-touch-icon" href="images/cropai-apple-touch.png?v=20260428c">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #00ff88;
+            --primary-glow: rgba(0, 255, 136, 0.5);
+            --secondary-color: #050a06;
+            --bg-body: #020402;
+            --text-main: #e0f2e9;
+            --text-muted: #8aa395;
+            --container-bg: rgba(10, 20, 15, 0.8);
+            --border-color: rgba(0, 255, 136, 0.15);
+            --glass-bg: rgba(0, 255, 136, 0.05);
+            --glass-border: rgba(0, 255, 136, 0.2);
+            --neon-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        /* Abstract Background Elements */
+        .ambient-light {
+            position: absolute;
+            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+            width: 60vw;
+            height: 60vw;
+            max-width: 600px;
+            max-height: 600px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.15;
+            z-index: -1;
+            filter: blur(60px);
+            animation: pulse-light 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse-light {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.1; }
+            100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.2; }
+        }
+
+        .verify-card {
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 480px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 20px rgba(0, 255, 136, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transform: translateY(20px);
+            opacity: 0;
+            animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fade-up {
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .icon-container {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            font-size: 36px;
+            box-shadow: inset 0 0 20px rgba(0, 255, 136, 0.05);
+            transition: all 0.4s ease;
+        }
+
+        .state-loading .icon-container {
+            animation: pulse-border 2s linear infinite;
+        }
+
+        .state-success .icon-container {
+            background: rgba(0, 255, 136, 0.15);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            box-shadow: 0 0 30px var(--primary-glow);
+        }
+
+        .state-error .icon-container {
+            background: rgba(255, 50, 50, 0.15);
+            border-color: #ff3232;
+            color: #ff3232;
+            box-shadow: 0 0 30px rgba(255, 50, 50, 0.3);
+        }
+
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 var(--primary-glow); }
+            70% { box-shadow: 0 0 0 20px rgba(0, 255, 136, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+        }
+
+        h2 {
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        p {
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 25px;
+            font-size: 1.05rem;
+        }
+
+        .btn-custom {
+            background: var(--primary-color);
+            color: var(--secondary-color);
+            font-weight: 600;
+            padding: 14px 28px;
+            border-radius: 12px;
+            width: 100%;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--primary-glow);
+            background: #00e57a;
+            color: var(--secondary-color);
+        }
+        
+        .btn-resend {
+            background: rgba(255, 50, 50, 0.1);
+            color: #ff5555;
+            border: 1px solid rgba(255, 50, 50, 0.3);
+            box-shadow: none;
+        }
+        
+        .btn-resend:hover {
+            background: rgba(255, 50, 50, 0.2);
+            color: #ff5555;
+            box-shadow: 0 4px 15px rgba(255, 50, 50, 0.2);
+        }
+
+        /* Loading Spinner */
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border-color);
+            border-bottom-color: var(--primary-color);
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden { display: none; }
+        
+        #resendContainer { margin-top: 20px; }
+        .resend-input {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--input-text);
+            padding: 12px 15px;
+            border-radius: 10px;
+            width: 100%;
+            margin-bottom: 12px;
+            outline: none;
+        }
+        .resend-input:focus { border-color: var(--primary-color); box-shadow: var(--neon-shadow); }
+
+    </style>
+</head>
+<body>
+    <div class="ambient-light"></div>
+
+    <div class="verify-card" id="verifyCard">
+        <!-- Loading State -->
+        <div id="loadingState" class="state-loading">
+            <div class="icon-container">
+                <span class="loader"></span>
+            </div>
+            <h2>Verifying your email</h2>
+            <p>Please wait a moment while we verify your account securely...</p>
+        </div>
+
+        <!-- Success State -->
+        <div id="successState" class="state-success hidden">
+            <div class="icon-container">
+                <i class="fas fa-check"></i>
+            </div>
+            <h2>Email verified successfully!</h2>
+            <p>Your account is now fully active. Redirecting you to the login page...</p>
+            <a href="login.html" class="btn btn-custom">Go to Login</a>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="state-error hidden">
+            <div class="icon-container">
+                <i class="fas fa-times"></i>
+            </div>
+            <h2 id="errorTitle">Invalid or expired link</h2>
+            <p id="errorDescription">The verification link is invalid or has expired.</p>
+            <button class="btn btn-custom btn-resend" onclick="showResend()">Resend Verification Email</button>
+            <a href="login.html" class="btn btn-outline-light mt-3" style="width: 100%; border-radius: 12px; padding: 12px;">Back to Login</a>
+            
+            <!-- Resend Box -->
+            <div id="resendContainer" class="hidden text-start">
+                <input type="email" id="resendEmail" class="resend-input" placeholder="Enter your email address">
+                <button class="btn btn-custom" onclick="submitResend()" style="font-size: 14px; padding: 10px 20px;">Send Link</button>
+                <div id="resendMessage" class="mt-2 text-center" style="font-size: 14px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Get token from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            // Alternatively, support path-based token: /verify/:token
+            // Since it's a static file usually, they might come via /verify.html?token=xyz
+            // Or if backend redirects to /verify.html?token=xyz
+            let token = urlParams.get('token');
+            
+            // If the router resolves /verify/TOKEN and serves verify.html, we extract it from path
+            if (!token && window.location.pathname.startsWith('/verify/')) {
+                token = window.location.pathname.split('/').pop();
+            }
+
+            const loadingState = document.getElementById('loadingState');
+            const successState = document.getElementById('successState');
+            const errorState = document.getElementById('errorState');
+            const errorTitle = document.getElementById('errorTitle');
+            const errorDescription = document.getElementById('errorDescription');
+
+            if (!token) {
+                loadingState.classList.add('hidden');
+                errorState.classList.remove('hidden');
+                errorTitle.innerText = "Link Corrupted";
+                errorDescription.innerText = "We couldn't find a token in your web address.";
+                return;
+            }
+
+            try {
+                // Call backend API
+                const response = await fetch('/verify/' + token, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                loadingState.classList.add('hidden');
+
+                if (response.ok) {
+                    successState.classList.remove('hidden');
+                    // Auto redirect after 3 seconds
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 3000);
+                } else {
+                    errorState.classList.remove('hidden');
+                    if (data.message) errorDescription.innerText = data.message;
+                    if (data.error === 'Email is already verified') {
+                        errorTitle.innerText = "Already Verified";
+                        document.querySelector('.btn-resend').classList.add('hidden'); // Hide resend button if already verified
+                    }
+                }
+            } catch (err) {
+                console.error("Verification failed:", err);
+                loadingState.classList.add('hidden');
+                errorState.classList.remove('hidden');
+                errorTitle.innerText = "Network Error";
+                errorDescription.innerText = "We couldn't reach the server. Please try again later.";
+            }
+        });
+
+        function showResend() {
+            document.getElementById('resendContainer').classList.remove('hidden');
+            document.querySelector('.btn-resend').classList.add('hidden');
+        }
+
+        async function submitResend() {
+            const email = document.getElementById('resendEmail').value;
+            const msgBox = document.getElementById('resendMessage');
+            
+            if (!email) {
+                msgBox.innerText = "Please enter an email.";
+                msgBox.style.color = "#ff5555";
+                return;
+            }
+
+            msgBox.innerText = "Sending...";
+            msgBox.style.color = "var(--text-muted)";
+
+            try {
+                const response = await fetch('/api/resend-verification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    msgBox.innerText = "Verification link sent! Check your inbox.";
+                    msgBox.style.color = "var(--primary-color)";
+                } else {
+                    msgBox.innerText = data.error || "Failed to resend.";
+                    msgBox.style.color = "#ff5555";
+                }
+            } catch (e) {
+                msgBox.innerText = "Network error. Try again later.";
+                msgBox.style.color = "#ff5555";
+            }
+        }
+    </script>
+    <script src="translations.js"></script>
+    <script src="i18n.js"></script>
+</body>
+</html>

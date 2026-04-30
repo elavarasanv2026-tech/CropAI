@@ -1,0 +1,334 @@
+{
+  "users": [
+    {
+      "id": 1757653395331,
+      "name": "gokulakannan",
+      "username": "gokul111",
+      "email": "dineshs7236@gmail.com",
+      "password": "$2a$10$EOvSDUiizRgKUG52J3hh5eWnSruQrC.VdLrQZzkrWP0kIrGV6IF.O",
+      "createdAt": "2025-09-12T05:03:15.331Z"
+    },
+    {
+      "id": 1768883695906,
+      "name": "gokulakannan",
+      "username": "gokul121",
+      "email": "gokul121@gmail.com",
+      "password": "$2a$10$W53AI3oznTKmtfZFVwCmMudgqThgrfxjN91AaEs8fn.w4eZEssLl6",
+      "createdAt": "2026-01-20T04:34:55.906Z"
+    },
+    {
+      "id": 1769491713080,
+      "name": "Elavarasan V",
+      "username": "Elavarasan",
+      "email": "elavarasan31032005@gmail.com",
+      "password": "$2a$10$kNuU07gmdJJmGSWZ92Ns7.f0oF7VdQsDapCTfQns3iWsiPzSuqwtO",
+      "createdAt": "2026-01-27T05:28:33.080Z"
+    },
+    {
+      "id": 1769748885154,
+      "name": "Test User",
+      "username": "testuser",
+      "email": "test@example.com",
+      "password": "$2a$10$Mag.dW1WQz10hFHzHhqMLejLXVzKhdbWVinUmz7rKjMfJUXInMBBq",
+      "createdAt": "2026-01-30T04:54:45.154Z",
+      "avatar": "/uploads/crop-1773219713306-410447004.png"
+    },
+    {
+      "id": 1770609460000,
+      "name": "Elavarasan V",
+      "username": "Elavarasan V",
+      "email": "elavarasanvit22@gmail.com",
+      "password": "$2a$10$EzgxvFE1VCR9qH8nEba8JOlcJmD5uPC1p49B888lrLk9mCqq9Ju82",
+      "createdAt": "2026-02-09T03:57:40.000Z"
+    },
+    {
+      "id": 1770625092923,
+      "name": "Google User",
+      "username": "google_user_1770625092782",
+      "email": "user@google.com",
+      "password": "$2a$10$nsO94MwcVKGMxup9NGtpbO3lLB3elOpQbdWpPhLAKU1MGnS1i86UG",
+      "createdAt": "2026-02-09T08:18:12.923Z"
+    },
+    {
+      "id": 1770625490505,
+      "name": "Facebook User",
+      "username": "facebook_user_1770625490333",
+      "email": "user@facebook.com",
+      "password": "$2a$10$4a7Yhi6CwBgYIrPLqg3eZeWUUACU80sZ6q9zeYtmYwDS/eiHmaDG2",
+      "createdAt": "2026-02-09T08:24:50.506Z"
+    },
+    {
+      "id": 1770695005950,
+      "name": "Gokul",
+      "username": "Gokul364",
+      "email": "gokulj364@gmail.com",
+      "password": "$2a$10$3Mnh5h74DEV1b4DpG2Eskex6XLFoynEF7sy7Oetgf09Du0DqyPzp6",
+      "createdAt": "2026-02-10T03:43:25.950Z"
+    },
+    {
+      "id": 1771388974762,
+      "name": "Elavarasan V",
+      "username": "ela@1031",
+      "email": "elavarasanv2026@gmail.com",
+      "password": "$2a$12$w3Tbu9YQj0P8rv1.3DHH1eZuxmUELviNsCjYTeaCBYJhAWLlmu2W6",
+      "createdAt": "2026-02-18T04:29:34.762Z",
+      "resetPasswordToken": "d134a0234ac5e045a8810dcc40ab9e8f8099574a51f49cf0dedc1d4b06705489",
+      "resetPasswordExpires": 1771572584761,
+      "avatar": "/uploads/crop-1775539908121-489183301.jpeg",
+      "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocLgP6PNKNEouIJB6uAKytY2Q6c7QrZ29vDu1yL96USMokVSmA=s96-c",
+      "googleId": "110962688234443644004",
+      "provider": "google",
+      "_id": 1771388974762,
+      "isVerified": true,
+      "selectedCrops": [
+        {
+          "id": "crop_1776508479623_0yisho8c",
+          "crop": "Guava",
+          "selectedAt": "2026-04-18T10:34:39.623Z",
+          "recommendationSnapshot": {
+            "crop": "Guava",
+            "suitabilityScore": 98,
+            "suitability": "Excellent",
+            "description": "Guava matched soil matches Loam / Alluvial / Well Drained. climate matches Tropical / Subtropical. No major mismatches were found against the entered values.",
+            "conditionSummary": "soil matches Loam / Alluvial / Well Drained, climate matches Tropical / Subtropical, season aligns with Monsoon / Summer",
+            "climateDetails": {
+              "tempRange": "20-34C",
+              "humidity": "45-75%"
+            },
+            "soilDetails": {
+              "ph": "5.5-7.5",
+              "moisture": "35-60%",
+              "type": "Loam, Alluvial, Well Drained"
+            },
+            "waterRequirements": {
+              "level": "Medium",
+              "advice": "Performs best with moderate, steady soil moisture."
+            },
+            "yieldRange": "6-10",
+            "yieldUnit": "tons/acre",
+            "marketValue": "Rs. 2,17,170",
+            "profitMargin": "216%",
+            "sustainabilityScore": 85,
+            "plantingSeason": "June-September",
+            "harvestingSeason": "8-10 months / seasonal flush",
+            "imageKeyword": "guava orchard farm",
+            "recommendationReason": "soil matches Loam / Alluvial / Well Drained; climate matches Tropical / Subtropical; season aligns with Monsoon / Summer",
+            "imageUrl": "",
+            "tfValidatedScore": 98
+          },
+          "selectionContext": {
+            "soilType": "loamy",
+            "climate": "tropical",
+            "season": "monsoon",
+            "waterAvailability": "medium",
+            "farmSize": 5,
+            "temperature": 28,
+            "humidity": 75,
+            "soilMoisture": 60,
+            "pH": 6.5,
+            "rainfall": 120,
+            "n": 0,
+            "p": 0,
+            "k": 0,
+            "location": ""
+          }
+        },
+        {
+          "id": "crop_1777263544775_hc00miog",
+          "crop": "Jackfruit",
+          "selectedAt": "2026-04-27T04:19:04.775Z",
+          "recommendationSnapshot": {
+            "crop": "Jackfruit",
+            "suitabilityScore": 98,
+            "suitability": "சிறந்தது",
+            "description": "Jackfruit matched மண் matches வண்டல் மண் / அல்லுவியல் / நல்ல வடிகால். காலநிலை matches ஈரப்பதமுள்ள / வெப்பமண்டல. உள்ளிட்ட மதிப்புகளுடன் குறிப்பிடத்தக்க முரண்பாடுகள் எதுவும் காணப்படவில்லை.",
+            "conditionSummary": "மண் matches வண்டல் மண் / அல்லுவியல் / நல்ல வடிகால், காலநிலை matches ஈரப்பதமுள்ள / வெப்பமண்டல, பருவம் aligns with மழைக்காலம்",
+            "climateDetails": {
+              "tempRange": "24-34C",
+              "humidity": "60-85%"
+            },
+            "soilDetails": {
+              "ph": "5.5-7.5",
+              "moisture": "40-65%",
+              "type": "Loam, Alluvial, Well Drained"
+            },
+            "waterRequirements": {
+              "level": "Medium",
+              "advice": "Performs best with moderate, steady soil moisture."
+            },
+            "yieldRange": "7-11",
+            "yieldUnit": "tons/acre",
+            "marketValue": "Rs. 2,05,740",
+            "profitMargin": "211%",
+            "sustainabilityScore": 86,
+            "plantingSeason": "ஜூன்-செப்டம்பர்",
+            "harvestingSeason": "மார்ச்-ஜூன்",
+            "imageKeyword": "jackfruit orchard farm",
+            "recommendationReason": "மண் matches வண்டல் மண் / அல்லுவியல் / நல்ல வடிகால்; காலநிலை matches ஈரப்பதமுள்ள / வெப்பமண்டல; பருவம் aligns with மழைக்காலம்",
+            "imageUrl": "/images/Crop_images/Jackfruit.jpg",
+            "tfValidatedScore": 98,
+            "_originalCrop": "Jackfruit"
+          },
+          "selectionContext": {
+            "soilType": "loamy",
+            "climate": "tropical",
+            "season": "monsoon",
+            "waterAvailability": "medium",
+            "farmSize": 5,
+            "temperature": 28,
+            "humidity": 75,
+            "soilMoisture": 60,
+            "pH": 6.5,
+            "rainfall": 120,
+            "n": 0,
+            "p": 0,
+            "k": 0,
+            "location": "231/2 Main road, \nPunnam(po),\nBhavani(tk),\nErode(dt)-638312"
+          }
+        }
+      ],
+      "preferredCrops": "Guava, Jackfruit",
+      "phone": "93424 60764",
+      "address": "231/2 Main road, \nPunnam(po),\nBhavani(tk),\nErode(dt)-638312",
+      "farmSize": 5
+    },
+    {
+      "id": 1773648483213,
+      "name": "Vigneshvaran M",
+      "username": "Vicky0018",
+      "email": "vigneshvaranmit22@jkkmct.edu.in",
+      "password": "$2a$10$ch..k5oA5XFCazjUK9BKz.eTErug7RyCgddZT75WuXeY0jTnLcifO",
+      "phone": "9876543212",
+      "address": "Erode",
+      "bio": "",
+      "createdAt": "2026-03-16T08:08:03.213Z",
+      "avatar": "/uploads/crop-1776053667748-231364941.jpeg",
+      "_id": 1773648483213,
+      "verificationToken": "11c820b6a2bf821e23facd39f110b216ed0abccc4e638b0395fe5f1d376390c7"
+    },
+    {
+      "id": 1773651990520,
+      "name": "Gokulakannan J",
+      "username": "gokul008",
+      "email": "gokulakannanjit22@jkkmct.edu.in",
+      "password": "$2a$10$YKlH49rKDqPHIVdIDjyG2usckmWl3Rw5aQJqUZYPecFqfb5BeygyG",
+      "phone": "9876543212",
+      "address": "Erode",
+      "bio": "",
+      "createdAt": "2026-03-16T09:06:30.520Z"
+    },
+    {
+      "id": 1774007872763,
+      "name": "John Doe",
+      "username": "john",
+      "email": "john@example.com",
+      "password": "$2a$10$/5x/cxcCcDiLsLNX03zBwe6F3UsRWhg9gAQ75If3nicmLNxQA5ybi",
+      "phone": "919876543210",
+      "address": "Coimbatore",
+      "bio": "",
+      "createdAt": "2026-03-20T11:57:52.763Z"
+    },
+    {
+      "id": 1775016595832,
+      "name": "Elavarasan",
+      "username": "elava2026_final",
+      "email": "elavarasanv2026_final@gmail.com",
+      "password": "$2a$10$V/eQUdydkwDFWOoFC2U1hOSKl8Dq8G6h/z0A6/dkqqwet7NGXCP62",
+      "farmSize": "",
+      "address": "",
+      "phone": "",
+      "bio": "",
+      "createdAt": "2026-04-01T04:09:55.832Z"
+    },
+    {
+      "id": "1775020200372",
+      "email": "kuttyelaa6364@gmail.com",
+      "name": "Elavarasan Elavarasan",
+      "username": "kuttyelaa6364",
+      "password": "",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocLBlgCjSLCe6EJgqNuYdZraCADBYv-9zsoiJnmmobYd21QkfA=s96-c",
+      "provider": "google",
+      "googleId": "105856188506314227181",
+      "createdAt": "2026-04-01T05:10:00.373Z"
+    },
+    {
+      "id": 1776074122493,
+      "name": "Dhivagar",
+      "username": "Dhiva@123",
+      "email": "dhivagarcit22@jkkmct.edu.in",
+      "password": "$2a$10$VudCeo0t0jYgSEjuO24RV.d0w8YT0wSLqooL3i.4gshwguxcbiRxG",
+      "farmSize": "",
+      "address": "",
+      "phone": "",
+      "bio": "",
+      "createdAt": "2026-04-13T09:55:22.493Z",
+      "_id": 1776074122493,
+      "verificationToken": "60069ae0528c0c033c51c507f7609f9ed7d7ffb2ba963a901435bbf98d73a958"
+    },
+    {
+      "id": 1776075094779,
+      "name": "Elavarasan V",
+      "username": "kutty@123",
+      "email": "vasanthhit22@jkkmct.edu.in",
+      "password": "$2a$10$Ld6V.kYF8NB3Kroqgg8hgObGrGYu7y/yATZZ/6b72k0vgl7XB7htK",
+      "farmSize": "",
+      "address": "",
+      "phone": "",
+      "bio": "",
+      "createdAt": "2026-04-13T10:11:34.779Z",
+      "_id": 1776075094779
+    },
+    {
+      "id": 1776075982941,
+      "name": "Vignesh",
+      "username": "Vicky00",
+      "email": "vigneshsit22@jkkmct.edu.in",
+      "password": "$2a$10$nL/3XO5TYeQRO6AJLL7j6uvoVhYTxhGcCu4y05Cjssh7FnBFt0JZ.",
+      "farmSize": "",
+      "address": "",
+      "phone": "",
+      "bio": "",
+      "createdAt": "2026-04-13T10:26:22.941Z"
+    },
+    {
+      "id": 1776136383423,
+      "name": "Kuttybaii",
+      "username": "baii@123",
+      "email": "elavarasan310305@gmail.com",
+      "password": "$2a$10$S21QoXAhD15iesxHUUReU.R0hDJfTV.8D8NIUkVJGF6BCTpEwfU62",
+      "phone": "9876543212",
+      "location": "Erode",
+      "verificationToken": "7acf41120897e99083d6da090e459fcf25c5c399c3e0b0cf77da6d942df99793",
+      "isVerified": false,
+      "role": "farmer",
+      "createdAt": "2026-04-14T03:13:03.423Z"
+    },
+    {
+      "id": 1776136874078,
+      "name": "Elsa",
+      "username": "elsa@63",
+      "email": "elavarasanvit22@jkkmct.edu.in",
+      "password": "$2a$10$zLr5Ff6CJO.wKziq70EOWeHUi4Gwa53DZ9KJdEaBjaDt60Yi/XGC2",
+      "phone": "9342076428",
+      "location": "Erode",
+      "verificationToken": "de8b94237e062e5e9a272d682b3cd2b21fa9f1a6cff90582f17f04a467afefce",
+      "isVerified": false,
+      "role": "farmer",
+      "createdAt": "2026-04-14T03:21:14.078Z"
+    },
+    {
+      "id": 1777526044176,
+      "name": "Hari",
+      "username": "hari@123",
+      "email": "appleballcatdog54321@gmail.com",
+      "password": "$2a$10$X1zVwZvHTsPdCawmwJs5vOpJlrfo5hNcM31uzziVF84gn3DDpiFm6",
+      "phone": "93424 60764",
+      "location": "Coimbatore",
+      "verificationToken": "4a049e847427ab4db62fefe3b45f603749f8eac524fefe1e8ffcdb07dab31fd9",
+      "isVerified": false,
+      "role": "farmer",
+      "createdAt": "2026-04-30T05:14:04.176Z",
+      "_id": 1777526044176
+    }
+  ]
+}

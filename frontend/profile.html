@@ -1,0 +1,1964 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - CropAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/png" href="images/cropai-favicon.png?v=20260428c">
+    <link rel="apple-touch-icon" href="images/cropai-apple-touch.png?v=20260428c">
+    <style>
+        :root {
+            /* Futuristic Jungle Palette */
+            --font-family-base: 'Outfit', 'Noto Sans Tamil', 'Nirmala UI', 'Latha', sans-serif;
+            --font-family-tamil: 'Noto Sans Tamil', 'Nirmala UI', 'Latha', sans-serif;
+            --primary-color: #00ff88;
+            --primary-glow: rgba(0, 255, 136, 0.5);
+            --primary-dim: rgba(0, 255, 136, 0.1);
+            --secondary-color: #050a06;
+            --accent-color: #00e5ff;
+
+            --success-color: #00ff88;
+            --info-color: #3b82f6;
+            --warning-color: #ffb700;
+            --danger-color: #ff3366;
+
+            --bg-body: #020402;
+            --card-bg: rgba(10, 20, 15, 0.6);
+            --sidebar-bg: rgba(13, 25, 20, 0.85);
+            --nav-bg: rgba(2, 4, 3, 0.8);
+
+            --text-main: #e0f2e9;
+            --text-muted: #8aa395;
+
+            --border-color: rgba(0, 255, 136, 0.15);
+            --input-bg: rgba(0, 30, 20, 0.3);
+            --input-text: #e0f2e9;
+
+            --glass-bg: rgba(0, 255, 136, 0.02);
+            --glass-border: rgba(0, 255, 136, 0.1);
+            --neon-shadow: 0 0 10px rgba(0, 255, 136, 0.2), 0 0 20px rgba(0, 255, 136, 0.1);
+        }
+
+        [data-theme="light"] {
+            /* Premium Ethereal Day Palette */
+            --primary-color: #008f4c;
+            --primary-glow: rgba(0, 143, 76, 0.3);
+            --primary-dim: rgba(0, 143, 76, 0.1);
+            --secondary-color: #f0fdf4;
+
+            --bg-body: #ced9d5;
+            /* Premium Sage Grey */
+            --card-bg: rgba(245, 247, 246, 0.65);
+            --sidebar-bg: rgba(245, 247, 246, 0.85);
+            --nav-bg: rgba(245, 247, 246, 0.9);
+
+            --text-main: #051f15;
+            --text-muted: #3a4f44;
+
+            --border-color: rgba(0, 143, 76, 0.15);
+            --input-bg: rgba(255, 255, 255, 0.7);
+            --input-text: #022c22;
+
+            --glass-bg: rgba(255, 255, 255, 0.5);
+            --glass-border: rgba(0, 143, 76, 0.2);
+            --neon-shadow: 0 4px 25px rgba(0, 143, 76, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            font-family: var(--font-family-base);
+            min-height: 100vh;
+            color: var(--text-main);
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 15% 25%, var(--primary-dim) 0%, transparent 45%),
+                radial-gradient(circle at 85% 75%, rgba(59, 130, 246, 0.08) 0%, transparent 45%);
+            background-attachment: fixed;
+        }
+
+        html[lang="ta"] body,
+        html[lang="ta"] button,
+        html[lang="ta"] input,
+        html[lang="ta"] textarea,
+        html[lang="ta"] select,
+        html[lang="ta"] .nav-link,
+        html[lang="ta"] .btn,
+        html[lang="ta"] h1,
+        html[lang="ta"] h2,
+        html[lang="ta"] h3,
+        html[lang="ta"] h4,
+        html[lang="ta"] h5,
+        html[lang="ta"] h6,
+        html[lang="ta"] p,
+        html[lang="ta"] span,
+        html[lang="ta"] a,
+        html[lang="ta"] li,
+        html[lang="ta"] label,
+        html[lang="ta"] small,
+        html[lang="ta"] div {
+            font-family: var(--font-family-tamil);
+            letter-spacing: 0;
+            word-spacing: 0.02em;
+            text-rendering: optimizeLegibility;
+        }
+
+        body,
+        .navbar-custom,
+        .sidebar,
+        .main-content {
+            transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+        }
+
+        .card {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+            backdrop-filter: blur(14px);
+        }
+
+        .card .card-body,
+        .card .card-header {
+            color: var(--text-main);
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--nav-bg) 100%);
+            backdrop-filter: saturate(160%);
+            border-right: 1px solid var(--border-color);
+            min-height: 100vh;
+            color: var(--text-main);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            z-index: 1000;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .sidebar-close {
+            display: none;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--primary-dim);
+            color: var(--text-main);
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+
+        .mobile-sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(1, 7, 4, 0.68);
+            backdrop-filter: blur(6px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 1090;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--primary-dim);
+            color: var(--text-main);
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+        }
+
+        body.sidebar-open {
+            overflow: hidden;
+        }
+
+        .sidebar .nav-link {
+            color: var(--text-muted);
+            padding: 12px 10px;
+            border-radius: 12px;
+            margin: 8px 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            border: 1px solid transparent;
+            border-left-width: 4px;
+            text-decoration: none;
+        }
+
+        .sidebar .nav-link:hover {
+            background: var(--glass-bg);
+            color: var(--text-main);
+            border-color: var(--border-color);
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link.active {
+            background: linear-gradient(45deg, rgba(0, 202, 114, 0.15), transparent);
+            color: var(--primary-color);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        /* Navbar */
+        .navbar-custom {
+            background: var(--nav-bg);
+            
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.5rem 0;
+        }
+
+        .navbar-custom .text-decoration-none,
+        .navbar-custom .dropdown-toggle {
+            color: var(--text-main) !important;
+        }
+
+        .dropdown-menu {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+            color: var(--text-main);
+        }
+
+        .dropdown-item {
+            color: var(--text-main);
+        }
+
+        .dropdown-item:hover,
+        .dropdown-item:focus {
+            background: var(--primary-dim);
+            color: var(--text-main);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            background: var(--primary-dim);
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            color: var(--primary-color);
+            background: rgba(0, 255, 136, 0.15);
+            transform: translateX(-5px);
+            border-color: var(--primary-color);
+            text-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .card-header {
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+        }
+
+        /* Form Controls */
+        .form-control {
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 12px 16px;
+            background: var(--input-bg);
+            color: var(--input-text);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px var(--primary-glow);
+            background: var(--input-bg);
+            color: var(--input-text);
+        }
+
+        .form-control::placeholder {
+            color: var(--text-muted);
+            opacity: 0.9;
+        }
+
+        .form-control:disabled,
+        .form-control[readonly] {
+            background: rgba(255, 255, 255, 0.14);
+            color: var(--text-main);
+            opacity: 1;
+            cursor: not-allowed;
+        }
+
+        .input-group-text {
+            background: var(--input-bg);
+            color: var(--text-muted);
+            border-color: var(--border-color);
+        }
+
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        .badge.bg-success {
+            background: linear-gradient(135deg, var(--primary-color), #00a85d) !important;
+            color: #08140d !important;
+        }
+
+        .table,
+        .form-label,
+        .small,
+        label,
+        h1, h2, h3, h4, h5, h6,
+        p {
+            color: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), #00a85d);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-weight: 700;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 202, 114, 0.3);
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #000;
+            box-shadow: 0 0 20px var(--primary-glow);
+            overflow: hidden;
+            position: relative;
+            flex: 0 0 100px;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-avatar-wrap {
+            position: relative;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .profile-avatar-actions {
+            display: flex;
+            justify-content: center;
+        }
+
+        .profile-avatar-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            border-radius: 999px;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+            padding: 0.48rem 0.9rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .profile-avatar-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: var(--primary-dim);
+            transform: translateY(-1px);
+        }
+
+        .nav-link {
+            color: var(--text-muted);
+        }
+
+        .nav-link:hover {
+            color: var(--text-main);
+        }
+
+        .border-top,
+        .border-bottom {
+            border-color: var(--border-color) !important;
+        }
+
+        .btn-outline-secondary {
+            color: var(--text-main);
+            border-color: var(--border-color);
+        }
+
+        .btn-outline-secondary:hover {
+            background: var(--primary-dim);
+            color: var(--text-main);
+            border-color: var(--primary-color);
+        }
+
+        .alert {
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-main);
+        }
+
+        .selected-crop-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            transition: opacity 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+        }
+
+        .selected-crop-card.removing {
+            opacity: 0;
+            transform: translateY(-8px) scale(0.98);
+        }
+
+        .remove-crop-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 51, 102, 0.35);
+            background: rgba(255, 51, 102, 0.14);
+            color: #ff7b9e;
+            font-weight: 700;
+            font-size: 0.88rem;
+            padding: 0.5rem 0.9rem;
+            transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, opacity 0.18s ease;
+        }
+
+        .remove-crop-btn:hover:not(:disabled) {
+            background: rgba(255, 51, 102, 0.24);
+            border-color: rgba(255, 51, 102, 0.55);
+            color: #ff9ab3;
+        }
+
+        .remove-crop-btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .empty-selected-crops {
+            border: 1px dashed var(--border-color);
+            border-radius: 1rem;
+            padding: 1.2rem;
+            background: rgba(255, 255, 255, 0.015);
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .modal-content {
+            background: linear-gradient(180deg, rgba(7, 16, 12, 0.98), rgba(4, 10, 8, 0.98));
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        .modal-header,
+        .modal-footer {
+            border-color: var(--border-color);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff4d73, #d61a48);
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: linear-gradient(135deg, #ff335f, #b90d39);
+        }
+
+        .toast-container {
+            z-index: 1095;
+        }
+
+        .toast {
+            background: rgba(8, 18, 13, 0.96);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 18px 38px rgba(0, 0, 0, 0.28);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: min(82vw, 300px);
+                min-height: 100vh;
+                height: 100vh;
+                border-right: 1px solid var(--border-color);
+                border-bottom: none;
+                overflow-y: auto;
+                z-index: 1100;
+                transform: translateX(-100%);
+                box-shadow: 18px 0 40px rgba(0, 0, 0, 0.35);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .sidebar .p-4 {
+                padding: 1.25rem !important;
+            }
+
+            .sidebar-close {
+                display: inline-flex;
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                min-height: 100vh;
+            }
+
+            .navbar-custom {
+                padding: 0.75rem !important;
+                position: sticky;
+                top: 0;
+                z-index: 1020;
+            }
+
+            .navbar-custom > .d-flex {
+                align-items: center !important;
+                gap: 0.75rem;
+                flex-wrap: wrap;
+            }
+
+            .navbar-custom .d-flex.align-items-center.gap-3 {
+                width: 100%;
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+
+            .navbar-custom .d-flex.align-items-center.gap-3:last-child {
+                justify-content: space-between;
+            }
+
+            .mobile-menu-btn {
+                display: inline-flex;
+                flex: 0 0 auto;
+            }
+
+            .mobile-sidebar-overlay.show {
+                opacity: 1;
+                visibility: visible;
+                pointer-events: auto;
+            }
+
+            .container-fluid {
+                padding: 1rem !important;
+            }
+
+            .card .card-body,
+            .card .card-header {
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+
+            .profile-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+                margin-bottom: 1.25rem;
+            }
+
+            .profile-avatar-wrap {
+                align-items: flex-start;
+            }
+
+            .profile-avatar {
+                width: 80px;
+                height: 80px;
+                font-size: 2rem;
+                flex-basis: 80px;
+            }
+
+            .card-header.d-flex {
+                flex-wrap: wrap;
+                gap: 0.75rem;
+                align-items: flex-start !important;
+            }
+
+            form .border-top.d-flex,
+            .selected-crop-card .d-flex.flex-wrap.justify-content-between.align-items-start {
+                flex-direction: column;
+                align-items: stretch !important;
+            }
+
+            form .border-top.d-flex .btn {
+                width: 100%;
+                margin: 0 !important;
+            }
+
+            form .border-top.d-flex {
+                gap: 0.75rem;
+            }
+
+            .back-btn {
+                justify-content: center;
+            }
+
+            .navbar-custom h5 {
+                flex: 1 1 auto;
+                min-width: 0;
+                margin-left: 0 !important;
+                font-size: 1.05rem;
+            }
+
+            .dropdown-menu {
+                min-width: min(220px, calc(100vw - 2rem));
+            }
+        }
+
+        @media (max-width: 576px) {
+            .container-fluid {
+                padding: 0.875rem !important;
+            }
+
+            .profile-header {
+                margin-bottom: 1rem;
+            }
+
+            .card {
+                border-radius: 16px;
+            }
+
+            .sidebar {
+                width: min(86vw, 290px);
+            }
+
+            .back-btn {
+                width: auto;
+                padding: 0.65rem 0.95rem;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="mobile-sidebar-overlay" id="mobileSidebarOverlay"></div>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="p-4">
+            <div class="d-flex align-items-center mb-4">
+                <img src="images/logo.svg" alt="CropAI Logo" class="me-3" style="width: 40px; height: 40px;">
+                <span class="h4 mb-0 fw-bold">CropAI</span>
+                <button type="button" class="sidebar-close ms-auto" id="sidebarClose" aria-label="Close menu" data-i18n-aria-label="profile.close_menu">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <nav class="nav flex-column">
+                <a class="nav-link" href="dashboard.html">
+                    <i class="fas fa-th-large"></i> <span data-i18n="nav.dashboard">Dashboard</span>
+                </a>
+                <a class="nav-link active" href="profile.html">
+                    <i class="fas fa-user-circle"></i> <span data-i18n="nav.profile">Profile</span>
+                </a>
+                <a class="nav-link" href="contact-us.html">
+                    <i class="fas fa-envelope me-3"></i> <span data-i18n="profile.contact">Contact</span>
+                </a>
+                <a class="nav-link" href="support.html">
+                    <i class="fas fa-life-ring me-3"></i> <span data-i18n="profile.support">Support</span>
+                </a>
+                <a class="nav-link" href="#" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> <span data-i18n="nav.logout">Logout</span>
+                </a>
+            </nav>
+            <div class="mt-4 pt-3 border-top border-secondary">
+                <a class="nav-link small py-2" href="privacy.html">
+                    <i class="fas fa-shield-alt me-3"></i> <span data-i18n="footer.privacy_policy">Privacy Policy</span>
+                </a>
+                <a class="nav-link small py-2" href="terms.html">
+                    <i class="fas fa-file-contract me-3"></i> <span data-i18n="footer.terms_of_service">Terms of Service</span>
+                </a>
+                <a class="nav-link small py-2" href="blog.html">
+                    <i class="fas fa-blog me-3"></i> <span data-i18n="footer.blog">Blog</span>
+                </a>
+                <a class="nav-link small py-2" href="careers.html">
+                    <i class="fas fa-briefcase me-3"></i> <span data-i18n="footer.careers">Careers</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Navbar -->
+        <nav class="navbar navbar-custom px-4">
+            <div class="d-flex justify-content-between align-items-center w-100">
+                <div class="d-flex align-items-center gap-3">
+                    <button type="button" class="mobile-menu-btn" id="sidebarToggle" aria-label="Open menu" data-i18n-aria-label="profile.open_menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <a href="javascript:history.back()" class="back-btn">
+                        <i class="fas fa-arrow-left"></i>
+                        <span data-i18n="login.go_back">Go Back</span>
+                    </a>
+                    <h5 class="mb-0 ms-2" data-i18n="profile.personal_details">Personal Details</h5>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn back-btn border-0 p-2" id="theme-toggle">
+                        <i class="fas fa-moon" id="theme-icon"></i>
+                    </button>
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle"
+                            data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle fa-lg me-2"></i>
+                            <span id="navUserName">User</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="profile.html" data-i18n="nav.profile">Profile</a></li>
+                            <li><a class="dropdown-item" href="contact-us.html" data-i18n="profile.contact">Contact</a></li>
+                            <li><a class="dropdown-item" href="support.html" data-i18n="profile.support">Support</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#"
+                                    onclick="document.getElementById('logoutBtn').click()" data-i18n="nav.logout">Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid p-4">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <!-- Profile Header Card -->
+                    <div class="card mb-4">
+                        <div class="card-body p-4">
+                            <div class="profile-header">
+                                <div class="profile-avatar-wrap">
+                                    <div class="profile-avatar" id="profileAvatar">U</div>
+                                    <div class="profile-avatar-actions">
+                                        <input type="file" id="profileImageInput" accept="image/*" class="d-none">
+                                        <button type="button" class="profile-avatar-btn" id="changeProfileImageBtn">
+                                            <i class="fas fa-camera"></i>
+                                            <span data-i18n="profile.change_photo">Change Photo</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h2 class="fw-bold mb-1" id="headerName">Loading...</h2>
+                                    <p class="text-muted mb-0" id="headerEmail">loading@example.com</p>
+                                    <span class="badge bg-success mt-2" id="profileStatusBadge" data-i18n="profile.active_farmer">Active Farmer</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Details Form -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-edit me-2"></i><span data-i18n="profile.edit_profile">Edit Profile</span></h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <div id="alertContainer"></div>
+                            <form id="profileForm">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted" data-i18n="dashboard.full_name">Full Name</label>
+                                        <input type="text" class="form-control" name="name" id="inputName" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted" data-i18n="profile.username">Username</label>
+                                        <input type="text" class="form-control" id="inputUsername" disabled
+                                            style="opacity: 0.7; cursor: not-allowed;">
+                                        <small class="text-muted" style="font-size: 0.75rem;" data-i18n="profile.username_locked">Username cannot be
+                                            changed</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted" data-i18n="dashboard.email_address">Email Address</label>
+                                        <input type="email" class="form-control" name="email" id="inputEmail" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted" data-i18n="profile.phone_number">Phone Number</label>
+                                        <input type="tel" class="form-control" name="phone" id="inputPhone"
+                                            placeholder="+91 98765 43210" data-i18n-placeholder="profile.phone_placeholder">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label text-muted" data-i18n="profile.address_location">Address / Location</label>
+                                        <textarea class="form-control" name="address" id="inputAddress" rows="2"
+                                            placeholder="Village, District, State" data-i18n-placeholder="profile.address_placeholder"></textarea>
+                                    </div>
+
+                                    <div class="col-12 mt-4">
+                                        <h5 class="mb-3 pb-2 border-bottom"
+                                            style="border-color: var(--border-color) !important;" data-i18n="profile.farm_details">Farm Details</h5>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted" data-i18n="profile.farm_size_acres">Farm Size (Acres)</label>
+                                        <input type="number" step="0.1" class="form-control" name="farmSize"
+                                            id="inputFarmSize" placeholder="e.g. 2.5" data-i18n-placeholder="profile.farm_size_placeholder">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted" data-i18n="profile.preferred_crops">Preferred Crops</label>
+                                        <input type="text" class="form-control" name="preferredCrops" id="inputCrops"
+                                            placeholder="Rice, Wheat, Sugarcane" data-i18n-placeholder="profile.preferred_crops_placeholder">
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end mt-4 pt-3 border-top"
+                                    style="border-color: var(--border-color) !important;">
+                                    <button type="button" class="btn btn-outline-secondary me-3"
+                                        onclick="loadUserProfile()" id="resetChangesBtn" data-i18n="profile.reset_changes">Reset Changes</button>
+                                    <button type="submit" class="btn btn-primary px-4" id="saveChangesBtn" data-i18n="profile.save_changes">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card mt-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-seedling me-2"></i><span data-i18n="profile.selected_crops">Selected Crops</span></h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <div id="selectedCropsList" class="d-grid gap-3">
+                                <div class="text-muted" data-i18n="profile.selected_crops_hint">Selected crops will appear here after you choose them from recommendations.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
+    <div class="modal fade" id="removeCropModal" tabindex="-1" aria-labelledby="removeCropModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="removeCropModalLabel" data-i18n="profile.remove_selected_crop">Remove Selected Crop</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" data-i18n-aria-label="common.close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0" id="removeCropModalMessage" data-i18n="profile.remove_crop_confirm">Are you sure you want to remove this crop?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" data-i18n="common.cancel">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmRemoveCropBtn" data-i18n="profile.confirm_yes">Yes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Theme Logic
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const htmlElement = document.documentElement;
+        const selectedCropsContainer = document.getElementById('selectedCropsList');
+        const preferredCropsInput = document.getElementById('inputCrops');
+        const removeCropModalElement = document.getElementById('removeCropModal');
+        const removeCropModalMessage = document.getElementById('removeCropModalMessage');
+        const confirmRemoveCropBtn = document.getElementById('confirmRemoveCropBtn');
+        const confirmRemoveCropModal = new bootstrap.Modal(removeCropModalElement);
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarClose = document.getElementById('sidebarClose');
+        const mobileSidebarOverlay = document.getElementById('mobileSidebarOverlay');
+        const profileAvatar = document.getElementById('profileAvatar');
+        const profileImageInput = document.getElementById('profileImageInput');
+        const changeProfileImageBtn = document.getElementById('changeProfileImageBtn');
+        const DEFAULT_SAVE_BUTTON_HTML = document.getElementById('saveChangesBtn').innerHTML;
+        const DEFAULT_CONFIRM_REMOVE_HTML = document.getElementById('confirmRemoveCropBtn').innerHTML;
+        let emptySelectedCropsMessage = 'No crops selected yet';
+        let selectedCropsState = [];
+        let pendingRemovalCropId = null;
+        const removingCropIds = new Set();
+        let currentProfileImageKey = 'cropai_profile_image_guest';
+
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            if (theme === 'light') {
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+            }
+        }
+
+        function isMobileViewport() {
+            return window.innerWidth <= 768;
+        }
+
+        function closeSidebar() {
+            if (!isMobileViewport()) return;
+            sidebar.classList.remove('show');
+            mobileSidebarOverlay.classList.remove('show');
+            document.body.classList.remove('sidebar-open');
+        }
+
+        function openSidebar() {
+            if (!isMobileViewport()) return;
+            sidebar.classList.add('show');
+            mobileSidebarOverlay.classList.add('show');
+            document.body.classList.add('sidebar-open');
+        }
+
+        function syncSidebarForViewport() {
+            if (isMobileViewport()) {
+                sidebar.classList.remove('show');
+                mobileSidebarOverlay.classList.remove('show');
+                document.body.classList.remove('sidebar-open');
+            } else {
+                sidebar.classList.remove('show');
+                mobileSidebarOverlay.classList.remove('show');
+                document.body.classList.remove('sidebar-open');
+            }
+        }
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function getCurrentLanguage() {
+            return (typeof window.getSavedLanguage === 'function' ? window.getSavedLanguage() : 'en') === 'ta' ? 'ta' : 'en';
+        }
+
+        function getProfileImageStorageKey(user) {
+            const identity = user?.email || user?.username || user?.name || 'guest';
+            return `cropai_profile_image_${String(identity).trim().toLowerCase()}`;
+        }
+
+        function setAvatarInitials(initials) {
+            profileAvatar.innerHTML = '';
+            profileAvatar.textContent = initials;
+        }
+
+        function setAvatarImage(src, altText) {
+            profileAvatar.innerHTML = `<img src="${escapeHtml(src)}" alt="${escapeHtml(altText || 'Profile photo')}">`;
+        }
+
+        function loadStoredProfileImage() {
+            const savedImage = localStorage.getItem(currentProfileImageKey);
+            return typeof savedImage === 'string' && savedImage.trim() ? savedImage : '';
+        }
+
+        function applyProfileAvatar(user) {
+            const initials = (user?.name || 'U')
+                .split(' ')
+                .filter(Boolean)
+                .map((n) => n[0])
+                .join('')
+                .substring(0, 2)
+                .toUpperCase();
+
+            const storedImage = loadStoredProfileImage();
+            if (storedImage) {
+                setAvatarImage(storedImage, `${user?.name || 'User'} profile photo`);
+                return;
+            }
+
+            setAvatarInitials(initials || 'U');
+        }
+
+        function handleProfileImageChange(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            if (!file.type || !file.type.startsWith('image/')) {
+                showAlert('Please choose a valid image file.', 'danger');
+                profileImageInput.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                const result = typeof reader.result === 'string' ? reader.result : '';
+                if (!result) return;
+                localStorage.setItem(currentProfileImageKey, result);
+                setAvatarImage(result, 'Profile photo');
+            };
+            reader.onerror = () => {
+                showAlert('Unable to read the selected image. Please try another file.', 'danger');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function getProfileTranslations(lang = getCurrentLanguage()) {
+            const dictionary = (window.CROPAI_TRANSLATIONS && window.CROPAI_TRANSLATIONS[lang]) || {};
+            const englishFallback = (window.CROPAI_TRANSLATIONS && window.CROPAI_TRANSLATIONS.en) || {};
+            const read = (key, fallback) => {
+                const value = dictionary[key] ?? englishFallback[key];
+                return typeof value === 'string' && value.trim() ? value : fallback;
+            };
+
+            return {
+                errorPrefix: read('common.error', 'Error') + ':',
+                successPrefix: read('common.success', 'Success') + ':',
+                close: read('common.close', 'Close'),
+                cancel: read('common.cancel', 'Cancel'),
+                remove: read('dashboard.remove', 'Remove'),
+                saveChanges: read('profile.save_changes', 'Save Changes'),
+                saving: read('profile.saving', 'Saving...'),
+                selectedCropFallback: read('profile.selected_crop', 'Selected Crop'),
+                savedOn: read('profile.saved_on', 'Saved on'),
+                recentlySelected: read('profile.recently_selected', 'Recently selected'),
+                removing: read('profile.removing', 'Removing...'),
+                acrePlanSuffix: read('profile.acre_plan', 'acre plan'),
+                notAvailable: read('profile.not_available', 'Not available'),
+                noSpecialNotes: read('profile.no_special_notes', 'No special notes available.'),
+                emptySelectedCrops: read('profile.no_crops_selected', 'No crops selected yet'),
+                removeCropConfirm: read('profile.remove_crop_confirm', 'Are you sure you want to remove this crop?'),
+                confirmYes: read('profile.confirm_yes', 'Yes'),
+                removeCropFailed: read('profile.remove_crop_failed', 'Failed to remove crop'),
+                cropRemovedSuccess: read('profile.crop_removed_success', 'Crop removed successfully'),
+                removeCropUnable: read('profile.remove_crop_unable', 'Unable to remove crop right now.'),
+                notLoggedIn: read('profile.not_logged_in', 'Not logged in'),
+                savingWithSpinner: `<span class="spinner-border spinner-border-sm me-2"></span>${escapeHtml(read('profile.saving', 'Saving...'))}`,
+                removingWithSpinner: `<span class="spinner-border spinner-border-sm me-2"></span>${escapeHtml(read('profile.removing', 'Removing...'))}`,
+                profileUpdatedSuccess: read('profile.updated_success', 'Profile updated successfully!'),
+                updateFailed: read('profile.update_failed', 'Failed to update profile'),
+                networkError: read('profile.network_error', 'Network error. Please try again.'),
+                labels: {
+                    seedRequirement: read('profile.seed_requirement', 'Seed / Sapling Requirement'),
+                    manureOrganicInput: read('profile.manure_organic_input', 'FYM / Compost at Start'),
+                    basalFertilizer: read('profile.basal_fertilizer', 'Basal Fertilizer'),
+                    topDressing: read('profile.top_dressing', 'Starter NPK Recommendation'),
+                    landPreparation: read('profile.land_preparation', 'Land Preparation'),
+                    ploughingSchedule: read('profile.ploughing_schedule', 'Ploughing Required'),
+                    sowingMethod: read('profile.sowing_method', 'Nursery / Planting Method'),
+                    irrigationGuidance: read('profile.irrigation_guidance', 'Initial Water Plan'),
+                    cropDuration: read('profile.crop_duration', 'Crop Duration'),
+                    expectedHarvestTime: read('profile.expected_harvest_time', 'First Harvest'),
+                    daysToHarvest: read('profile.days_to_harvest', 'Days to Harvest'),
+                    estimatedCost: read('profile.estimated_cost', 'Initial Cost Estimate'),
+                    acreage: read('profile.acreage', 'Acreage'),
+                    yieldPerAcre: read('profile.yield_per_acre', 'Expected Yield'),
+                    marketDemand: read('profile.market_demand', 'Market Demand'),
+                    profitPotential: read('profile.profit_potential', 'Annual Income Estimate'),
+                    importantNotes: read('profile.important_notes', 'Important Notes'),
+                    spacing: read('profile.spacing', 'Spacing'),
+                    plantsForAcreage: read('profile.plants_for_acreage', 'Plants for Selected Acres'),
+                    bestPlantingSeason: read('profile.best_planting_season', 'Best Planting Season'),
+                    suitableVarieties: read('profile.suitable_varieties', 'Suitable Varieties'),
+                    nurseryRecommendation: read('profile.nursery_recommendation', 'Nursery Recommendation'),
+                    pitBedPreparation: read('profile.pit_bed_preparation', 'Pit / Bed Preparation'),
+                    soilTreatment: read('profile.soil_treatment', 'Soil Treatment Before Planting'),
+                    starterNpkRecommendation: read('profile.starter_npk', 'Starter NPK Recommendation'),
+                    firstIrrigation: read('profile.first_irrigation', 'First Irrigation'),
+                    weeklyWateringSchedule: read('profile.weekly_watering_schedule', 'Weekly Watering Schedule'),
+                    firstHarvest: read('profile.first_harvest', 'First Harvest'),
+                    fullYieldStart: read('profile.full_yield_start', 'Full Yield Start'),
+                    initialCostEstimate: read('profile.initial_cost_estimate', 'Initial Cost Estimate'),
+                    landPrepCost: read('profile.land_prep_cost', 'Land Preparation Cost'),
+                    seedSaplingCost: read('profile.seed_sapling_cost', 'Seed / Sapling Cost'),
+                    fertilizerCost: read('profile.fertilizer_cost', 'Fertilizer Cost'),
+                    labourCost: read('profile.labour_cost', 'Labour Cost'),
+                    totalStartupCost: read('profile.total_startup_cost', 'Total Startup Cost'),
+                    expectedYield: read('profile.expected_yield', 'Expected Yield'),
+                    annualIncomeEstimate: read('profile.annual_income_estimate', 'Annual Income Estimate'),
+                    riskFactors: read('profile.risk_factors', 'Risk Factors')
+                }
+            };
+        }
+
+        const PROFILE_DYNAMIC_CROP_TAMIL_MAP = {
+            Apple: 'ஆப்பிள்',
+            Banana: 'வாழை',
+            Black: 'கருப்பு',
+            'Black Gram': 'உளுந்து',
+            Brinjal: 'கத்தரிக்காய்',
+            Cabbage: 'முட்டைக்கோஸ்',
+            Capsicum: 'குடைமிளகாய்',
+            Carrot: 'கேரட்',
+            Cauliflower: 'காலிஃபிளவர்',
+            Chili: 'மிளகாய்',
+            Chilli: 'மிளகாய்',
+            Clove: 'கிராம்பு',
+            Coconut: 'தேங்காய்',
+            Cotton: 'பருத்தி',
+            Cinnamon: 'இலவங்கப்பட்டை',
+            Garlic: 'பூண்டு',
+            Ginger: 'இஞ்சி',
+            Groundnut: 'நிலக்கடலை',
+            Guava: 'கொய்யா',
+            Kiwi: 'கிவி',
+            Maize: 'மக்காச்சோளம்',
+            Mango: 'மாம்பழம்',
+            Millet: 'கம்பு',
+            Mulberry: 'முல்பெரி',
+            Okra: 'வெண்டைக்காய்',
+            Onion: 'வெங்காயம்',
+            Papaya: 'பப்பாளி',
+            Pomegranate: 'மாதுளை',
+            Potato: 'உருளைக்கிழங்கு',
+            Radish: 'முள்ளங்கி',
+            Ragi: 'கேழ்வரகு',
+            Rice: 'அரிசி',
+            Spinach: 'பசலைக்கீரை',
+            Strawberry: 'ஸ்ட்ராபெரி',
+            Sugarcane: 'கரும்பு',
+            Sunflower: 'சூரியகாந்தி',
+            Tomato: 'தக்காளி',
+            Turmeric: 'மஞ்சள்',
+            Wheat: 'கோதுமை'
+        };
+
+        const PROFILE_DYNAMIC_TEXT_TAMIL_MAP = {
+            'June-August or January-February with assured irrigation': 'ஜூன்-ஆகஸ்ட் அல்லது ஜனவரி-பிப்ரவரி காலத்தில், பாசன வசதி உறுதியுடன் நடவு செய்யலாம்.',
+            'June-September with monsoon moisture or December-January with irrigation': 'ஜூன்-செப்டம்பர் மழை ஈரத்துடன் அல்லது டிசம்பர்-ஜனவரி பாசன வசதியுடன் நடவு செய்யலாம்.',
+            'July-September during monsoon or February-March with irrigation support': 'ஜூலை-செப்டம்பர் மழைக்காலத்தில் அல்லது பிப்ரவரி-மார்ச் பாசன ஆதரவுடன் நடவு செய்யலாம்.',
+            'Year-round with irrigation; avoid peak summer establishment in hot zones': 'பாசன வசதி இருந்தால் ஆண்டு முழுவதும் நடவு செய்யலாம்; அதிக வெப்பம் உள்ள பகுதிகளில் உச்ச கோடைக்கால நடவை தவிர்க்கவும்.',
+            'Use 8-12 month old disease-free grafts from a certified nursery; avoid root-bound plants.': 'சான்றளிக்கப்பட்ட நாற்றங்காலில் இருந்து 8-12 மாத வயதான நோயற்ற ஒட்டு நாற்றுகளை பயன்படுத்தவும்; வேர் சுருண்ட நாற்றுகளை தவிர்க்கவும்.',
+            'Use 8-10 month old healthy seedlings with at least 6 leaves and good girth.': 'குறைந்தது 6 இலைகளும் நல்ல தண்டு பருமனும் கொண்ட 8-10 மாத வயதான ஆரோக்கியமான நாற்றுகளை பயன்படுத்தவும்.',
+            'Purchase healthy tissue-culture plants or sword suckers from a trusted nursery.': 'நம்பகமான நாற்றங்காலில் இருந்து ஆரோக்கியமான திசு வளர்ப்பு நாற்றுகள் அல்லது வாள் சக்கர்களை வாங்கவும்.',
+            'Use vigorous 45-60 day old seedlings from a nursery and keep male plants only as required.': 'நாற்றங்காலில் இருந்து 45-60 நாள் வயதான வலுவான நாற்றுகளை பயன்படுத்தவும்; தேவையான அளவில் மட்டுமே ஆண் செடிகளை வைத்திருக்கவும்.',
+            'Mix topsoil with well-decomposed FYM, neem cake, and Trichoderma before planting the grafts.': 'ஒட்டு நாற்றுகளை நடவு செய்வதற்கு முன் மேல்மண்ணுடன் நன்றாக மக்கிய பண்ணையெரு, வேப்பம் புண்ணாக்கு மற்றும் டிரைக்கோடெர்மாவை கலந்து பயன்படுத்தவும்.',
+            'Long-duration crop cycle of about 8-18 months': 'சுமார் 8-18 மாதங்கள் வளர்ச்சி காலம் கொண்ட நீண்டகால பயிர்.',
+            'Perennial setup with a long productive life under regular pruning, nutrition, and irrigation': 'தொடர்ச்சியான கிளைச்சரிவு, ஊட்டச்சத்து மேலாண்மை மற்றும் பாசனத்துடன் நீண்ட உற்பத்தி ஆயுள் கொண்ட நிலைத்த தோட்ட அமைப்பு.',
+            '2-3 years after planting': 'நடவு செய்த பின் 2-3 ஆண்டுகளில்.',
+            '3-4 years after planting': 'நடவு செய்த பின் 3-4 ஆண்டுகளில்.',
+            '4-5 years after planting': 'நடவு செய்த பின் 4-5 ஆண்டுகளில்.',
+            '4th year onwards': '4ஆம் ஆண்டிலிருந்து.',
+            '5th year onwards': '5ஆம் ஆண்டிலிருந்து.',
+            '6th year onwards': '6ஆம் ஆண்டிலிருந்து.',
+            '7th year onwards': '7ஆம் ஆண்டிலிருந்து.',
+            '6-10 tons/acre after establishment and regular management': 'நிலைப்படுத்தலுக்குப் பின் மற்றும் சீரான மேலாண்மையில் ஏக்கருக்கு 6-10 டன் மகசூல் கிடைக்கும்.',
+            'Stable demand across copra, tender coconut, and fresh nut markets.': 'கொப்பரை, இளநீர் மற்றும் தேங்காய் சந்தைகளில் நிலையான தேவை உள்ளது.',
+            'Good demand in local fresh markets, pulp units, and nearby wholesale buyers.': 'உள்ளூர் பசுமைப் சந்தைகள், பழமஜ்ஜை தயாரிப்பு மையங்கள் மற்றும் அருகிலுள்ள மொத்த விற்பனையாளர்களிடம் நல்ல தேவை உள்ளது.',
+            'Moderate demand in local fresh markets, small processors, and direct retail channels.': 'உள்ளூர் பசுமைப் சந்தைகள், சிறிய செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வழிகளில் மிதமான தேவை உள்ளது.',
+            'Low demand in local fresh markets, small processors, and direct retail channels.': 'உள்ளூர் பசுமைப் சந்தைகள், சிறிய செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வழிகளில் குறைந்த தேவை உள்ளது.',
+            'No demand in local fresh markets, small processors, and direct retail channels.': 'உள்ளூர் பசுமைப் சந்தைகள், சிறிய செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வழிகளில் தேவை குறைவாக உள்ளது.',
+            'in local fresh market, processors, direct retail channels': 'உள்ளூர் பசுமைப் சந்தை, செயலாக்க நிலையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வழிகள்',
+            'Strong demand for table fruit and juice processing in urban and export-linked markets.': 'நகர சந்தைகள் மற்றும் ஏற்றுமதி சார்ந்த சந்தைகளில் உணவு பழம் மற்றும் ஜூஸ் தயாரிப்புக்கு வலுவான தேவை உள்ளது.',
+            'Monitor wilt, fruit fly, and anthracnose during the first 2 years.': 'முதல் 2 ஆண்டுகளில் வாடல் நோய், பழ ஈ மற்றும் ஆந்த்ரக்னோஸ் தாக்கத்தை தொடர்ந்து கண்காணிக்கவும்.',
+            'Avoid prolonged dry spell after planting to reduce root stress.': 'நடவு செய்த பின் நீண்ட வறட்சி இடைவெளி ஏற்படாமல் பார்த்துக்கொள்ளவும்; இல்லையெனில் வேர் அழுத்தம் அதிகரிக்கும்.',
+            'Poor irrigation gaps can reduce canopy establishment and delay first bearing.': 'பாசன இடைவெளி சரியாக இல்லாவிட்டால் மேல் கிளை அமைப்பு குறைந்து முதல் காய்தல் தாமதமாகலாம்.',
+            'keep them open for 2-3 weeks before refilling with enriched topsoil.': 'வளமான மேல்மண் நிரப்புவதற்கு முன் அவற்றை 2-3 வாரங்கள் திறந்தவாறு விடவும்.',
+            '0.6 m x 0.6 m x 0.6 m pits and keep them open for 2-3 weeks before refilling with enriched topsoil.': '0.6 மீ x 0.6 மீ x 0.6 மீ அளவிலான குழிகளை எடுத்து, வளமான மேல்மண் நிரப்புவதற்கு முன் அவற்றை 2-3 வாரங்கள் திறந்தவாறு விடவும்.',
+            '1 deep ploughing followed by 2 cross cultivator passes': '1 முறை ஆழ உழவு செய்து, பின்னர் 2 முறை குறுக்கு கல்டிவேட்டர் உழவு செய்யவும்.',
+            'prolonged dry spells': 'நீண்டகால வறட்சி நிலை',
+            'reduce root stress': 'வேர் அழுத்தத்தை குறைக்க',
+            'irrigation gaps can reduce canopy establishment and delay first bearing': 'பாசன இடைவெளி அதிகமானால் செடியின் கிளை வளர்ச்சி குறைந்து முதல் காய்ப்பு தாமதமாகலாம்',
+            'Use only true-to-type, disease-free planting material from a reliable nursery and avoid over-aged saplings.': 'நம்பகமான நாற்றங்காலில் இருந்து ரகத்தன்மை சரியான, நோயற்ற நாற்று பொருட்களை மட்டும் பயன்படுத்தவும்; அதிக வயதான நாற்றுகளை தவிர்க்கவும்.',
+            'Starter NPK mixture around': 'தொடக்க NPK கலவை சுமார்',
+            'applied in pits/beds and early root-zone establishment.': 'குழி அல்லது பாத்திகளில் இட்டு, ஆரம்ப வேர் நிலைப்பாட்டிற்குப் பயன்படுத்தவும்.',
+            'Current water availability is low, so fine-tune the interval based on soil moisture.': 'தற்போதைய நீர் கிடைப்புத் தன்மை குறைவாக உள்ளது; எனவே மண் ஈரப்பதத்தைப் பார்த்து பாசன இடைவெளியை சரிசெய்யவும்.',
+            'Current water availability is high, so fine-tune the interval based on soil moisture.': 'தற்போதைய நீர் கிடைப்புத் தன்மை அதிகமாக உள்ளது; எனவே மண் ஈரப்பதத்தைப் பார்த்து பாசன இடைவெளியை சரிசெய்யவும்.',
+            'Current water availability is medium, so fine-tune the interval based on soil moisture.': 'தற்போதைய நீர் கிடைப்புத் தன்மை மிதமாக உள்ளது; எனவே மண் ஈரப்பதத்தைப் பார்த்து பாசன இடைவெளியை சரிசெய்யவும்.',
+            'Irrigate every 5-7 days in summer and every 10-15 days in cool or rainy spells based on soil moisture.': 'மண் ஈரப்பதத்தைப் பொறுத்து கோடைக்காலத்தில் ஒவ்வொரு 5-7 நாட்களுக்கும், குளிர் அல்லது மழைக்கால இடைவெளிகளில் 10-15 நாட்களுக்கும் பாசனம் செய்யவும்.',
+            'Water every 5-7 days in summer during the first year; reduce interval with basin mulch and rainfall support.': 'முதல் ஆண்டில் கோடைக்காலத்தில் ஒவ்வொரு 5-7 நாட்களுக்கும் பாசனம் செய்யவும்; பாசன இடைவெளியை பாத்தி மூல்சிங் மற்றும் மழை ஆதரவின் அடிப்படையில் குறைக்கலாம்.',
+            'Irrigate every 3-5 days initially; later shift to 5-7 day intervals depending on soil type and evaporative demand.': 'ஆரம்பத்தில் ஒவ்வொரு 3-5 நாட்களுக்கும் பாசனம் செய்யவும்; பின்னர் மண் தன்மை மற்றும் ஆவியாகும் அளவைப் பொறுத்து 5-7 நாள் இடைவெளிக்கு மாற்றவும்.',
+            'Irrigate every 2-4 days during establishment and use mulch to reduce summer stress.': 'நிலைப்படுத்தும் கட்டத்தில் ஒவ்வொரு 2-4 நாட்களுக்கும் பாசனம் செய்யவும்; கோடை அழுத்தத்தை குறைக்க மூல்சிங் பயன்படுத்தவும்.',
+            'Deep plough once, then prepare pits/basins and refill with manure-rich soil.': 'ஒருமுறை ஆழமாக உழுதி, பின்னர் குழிகள் அல்லது தொட்டிகளை தயார் செய்து, எருச்சத்து நிறைந்த மண்ணால் நிரப்பவும்.',
+            'Layout the orchard, mark spacing, and prepare pits with compost or FYM.': 'தோட்ட வடிவமைப்பை செய்து, இடைவெளியை குறித்து, குழிகளை கம்போஸ்ட் அல்லது பண்ணையெருவுடன் தயார் செய்யவும்.',
+            'Plant grafts, saplings, suckers, or rooted cuttings as recommended for the crop.': 'பயிருக்கேற்ற பரிந்துரைப்படி ஒட்டு நாற்றுகள், செடிநாற்றுகள், சக்கர்கள் அல்லது வேர் கொண்ட கொடித்துண்டுகளை நட்டு வளர்க்கவும்.',
+            'Provide life irrigation immediately after planting and maintain regular irrigation in summer.': 'நட்ட உடனே உயிர்ப்பாசனம் செய்து, கோடைக்காலத்தில் முறையான பாசனத்தை தொடரவும்.',
+            'Give life irrigation immediately after planting, then irrigate every 5-7 days in summer and every 10-15 days during cooler months. Maintain uniform moisture in the root zone, avoid water stagnation, and reduce irrigation during rainy periods or just before harvest flushes. Current water availability is medium, so adjust interval planning accordingly.': 'நடவு செய்த உடனே உயிர்ப்பாசனம் வழங்கவும். பின்னர் கோடைகாலத்தில் ஒவ்வொரு 5-7 நாட்களுக்கும், குளிரான காலங்களில் 10-15 நாட்களுக்கும் பாசனம் செய்யவும். வேர் பகுதியில் சீரான ஈரப்பதம் நிலைக்க பார்த்துக்கொள்ளவும். நீர் தேக்கம் தவிர்க்கவும். மழைக்காலங்களில் அல்லது அறுவடைக்கு முன் பாசனத்தை குறைக்கவும். தற்போதைய நீர் கிடைப்புத் தன்மை மிதமானது; அதற்கேற்ப பாசன இடைவெளியை திட்டமிடவும்.',
+            'Current water availability is medium, so adjust interval planning accordingly.': 'தற்போதைய நீர் கிடைப்புத் தன்மை மிதமானது; அதற்கேற்ப பாசன இடைவெளியை திட்டமிடவும்.',
+            'Perennial / long-duration crop': 'நிலைத்த / நீண்டகால பயிர்',
+            'Within the next main production year': 'அடுத்த முக்கிய உற்பத்தி ஆண்டுக்குள்',
+            'Within the current season': 'தற்போதைய பருவத்திற்குள்',
+            'Next production window': 'அடுத்த உற்பத்திக் காலம்',
+            'Moderate to high demand in fresh fruit markets; strong demand near urban and processing centers.': 'புதிய பழச் சந்தைகளில் மிதமானது முதல் அதிகமானது வரை தேவை உள்ளது; நகரங்கள் மற்றும் செயலாக்க மையங்களின் அருகில் வலுவான தேவை காணப்படுகிறது.',
+            'Good orchard profitability after establishment, especially with quality fruit and managed harvest flushes.': 'தோட்டம் நிலைநிறுத்தப்பட்ட பின் நல்ல லாபம் கிடைக்கும்; குறிப்பாக தரமான பழங்களும் திட்டமிட்ட அறுவடை சுழற்சியும் இருந்தால் அதிக பலன் கிடைக்கும்.',
+            'Perennial crop (10-15 years lifespan)': 'நீண்டகால பயிர் (10-15 ஆண்டுகள் ஆயுட்காலம்)',
+            'First harvest in 2-3 years, peak yield after 4 years': 'முதல் அறுவடை 2-3 ஆண்டுகளில்; 4 ஆண்டுகளுக்கு பின் உச்ச மகசூல் கிடைக்கும்',
+            '730-1095 days (2-3 years)': '730-1095 நாட்கள் (2-3 ஆண்டுகள்)',
+            '6-10 tons/acre under managed orchard conditions': 'சரியான தோட்ட மேலாண்மையில் ஏக்கருக்கு 6-10 டன்',
+            'High demand in local fresh markets, wholesale mandis, and processing units for table fruit, pulp, and juice.': 'உள்ளூர் புதிய சந்தைகள், மொத்த சந்தைகள் மற்றும் டேபிள் பழம், பழச்சாறு, பழமஜ்ஜை செயலாக்க மையங்களில் அதிக தேவை உள்ளது.',
+            'High profit potential after establishment; returns improve strongly from year 4 onward with managed pruning, irrigation, and market-linked harvest planning.': 'நிலைநிறுத்தப்பட்ட பின் உயர்ந்த லாப வாய்ப்பு உள்ளது; 4ஆம் ஆண்டிலிருந்து தழைச்சுற்று, பாசனம் மற்றும் சந்தை சார்ந்த அறுவடை திட்டமிடலால் வருமானம் கணிசமாக உயரும்.',
+            'Soil pH': 'மண் pH',
+            'should be managed within the ideal': 'சிறந்த',
+            'range.': 'வரம்புக்குள் பராமரிக்க வேண்டும்.',
+            'Current rainfall input': 'தற்போதைய மழைப்பொழிவு அளவு',
+            'should be considered while planning irrigation.': 'பாசனத்தை திட்டமிடும் போது கருத்தில் கொள்ளப்பட வேண்டும்.',
+            'Temperature around': 'சுமார் வெப்பநிலை',
+            'should be monitored during establishment and flowering stages.': 'நிலைப்படுத்தல் மற்றும் பூப்பதற்கான கட்டங்களில் கண்காணிக்கப்பட வேண்டும்.',
+            'soil matches': 'மண் பொருந்துகிறது',
+            'climate matches': 'காலநிலை பொருந்துகிறது',
+            'season aligns with': 'பருவம் பொருந்துகிறது',
+            'water need matches': 'நீர் தேவை பொருந்துகிறது',
+            'farm size is workable for this crop': 'இந்த பயிருக்குப் பண்ணை அளவு ஏற்றதாக உள்ளது',
+            'temperature fits': 'வெப்பநிலை பொருந்துகிறது',
+            'humidity fits': 'ஈரப்பதம் பொருந்துகிறது',
+            'soil moisture fits': 'மண் ஈரப்பதம் பொருந்துகிறது',
+            'pH fits': 'pH பொருந்துகிறது',
+            'rainfall fits': 'மழைப்பொழிவு பொருந்துகிறது',
+            'Current water availability is': 'தற்போதைய நீர் கிடைப்புத் தன்மை',
+            'so adjust interval planning accordingly.': 'எனவே இடைவெளி திட்டமிடலை அதற்கேற்ப சரிசெய்க.'
+        };
+
+        const PROFILE_DYNAMIC_TERM_REPLACEMENTS_TA = [
+            ['Rs.', '₹'],
+            ['Rs', '₹'],
+            ['grafts', 'ஒட்டு நாற்றுகள்'],
+            ['graft', 'ஒட்டு நாற்று'],
+            ['saplings', 'நாற்றுகள்'],
+            ['sapling', 'நாற்று'],
+            ['seedlings', 'நாற்றுகள்'],
+            ['seedling', 'நாற்று'],
+            ['suckers', 'சக்கர்கள்'],
+            ['sucker', 'சக்கர்'],
+            ['cuttings', 'கன்றுக்குச்சிகள்'],
+            ['cutting', 'கன்றுக்குச்சி'],
+            ['disease-free', 'நோயற்ற'],
+            ['certified nursery', 'சான்றளிக்கப்பட்ட நாற்றங்கால்'],
+            ['reliable nursery', 'நம்பகமான நாற்றங்கால்'],
+            ['trusted nursery', 'நம்பகமான நாற்றங்கால்'],
+            ['root-bound plants', 'வேர் சுருண்ட நாற்றுகள்'],
+            ['planting material', 'நாற்று பொருட்கள்'],
+            ['nursery material', 'நாற்று பொருட்கள்'],
+            ['root-zone establishment', 'வேர் நிலைப்பாடு'],
+            ['root-zone', 'வேர் பகுதி'],
+            ['establishment', 'நிலைப்படுத்தல்'],
+            ['regular management', 'சீரான மேலாண்மை'],
+            ['direct retail channels', 'நேரடி சில்லறை விற்பனை வழிகள்'],
+            ['small processors', 'சிறிய செயலாக்க மையங்கள்'],
+            ['local fresh market demand', 'உள்ளூர் பசுமைப் சந்தையில் நல்ல தேவை'],
+            ['local fresh markets', 'உள்ளூர் பசுமைப் சந்தைகள்'],
+            ['local fresh market', 'உள்ளூர் பசுமைப் சந்தை'],
+            ['processors', 'செயலாக்க நிலையங்கள்'],
+            ['with assured irrigation', 'பாசன வசதி உறுதியுடன்'],
+            ['with irrigation support', 'பாசன ஆதரவுடன்'],
+            ['after planting', 'நடவு செய்த பின்'],
+            ['before planting', 'நடவு செய்வதற்கு முன்'],
+            ['keep them open', 'அவற்றை திறந்தவாறு விடவும்'],
+            ['before refilling', 'நிரப்புவதற்கு முன்'],
+            ['enriched topsoil', 'வளமான மேல்மண்'],
+            ['deep ploughing', 'ஆழ உழவு'],
+            ['cross cultivator passes', 'குறுக்கு கல்டிவேட்டர் உழவு'],
+            ['during the first year', 'முதல் ஆண்டில்'],
+            ['during the first 2 years', 'முதல் 2 ஆண்டுகளில்'],
+            ['long-duration crop cycle', 'நீண்டகால பயிர் சுழற்சி'],
+            ['productive life', 'உற்பத்தி ஆயுள்'],
+            ['fruit fly', 'பழ ஈ'],
+            ['anthracnose', 'ஆந்த்ரக்னோஸ்'],
+            ['wilt', 'வாடல் நோய்'],
+            ['prolonged dry spells', 'நீண்டகால வறட்சி நிலை'],
+            ['reduce root stress', 'வேர் அழுத்தத்தை குறைக்க'],
+            ['canopy establishment', 'செடியின் கிளை வளர்ச்சி நிலைபெறுதல்'],
+            ['first bearing', 'முதல் காய்ப்பு'],
+            ['drip irrigation', 'சொட்டு பாசனம்'],
+            ['mulching', 'மூல்சிங்'],
+            ['soil moisture', 'மண் ஈரப்பதம்'],
+            ['market linkage', 'சந்தை இணைப்பு'],
+            ['true-to-type', 'ரகத்தன்மை சரியான'],
+            ['over-aged saplings', 'அதிக வயதான நாற்றுகள்'],
+            ['healthy seedlings', 'ஆரோக்கியமான நாற்றுகள்'],
+            ['healthy grafts', 'ஆரோக்கியமான ஒட்டு நாற்றுகள்'],
+            ['healthy tissue-culture plants', 'ஆரோக்கியமான திசு வளர்ப்பு நாற்றுகள்'],
+            ['well-decomposed FYM', 'நன்றாக மக்கிய பண்ணையெரு'],
+            ['neem cake', 'வேப்பம் புண்ணாக்கு'],
+            ['Trichoderma', 'டிரைக்கோடெர்மா'],
+            ['month old', 'மாத வயதான'],
+            ['months', 'மாதங்கள்'],
+            ['month', 'மாதம்'],
+            ['approx.', 'சுமார்'],
+            ['plants for', 'செடிகள்'],
+            ['plants', 'செடிகள்'],
+            ['spacing', 'இடைவெளி'],
+            ['acre plan', 'ஏக்கர் திட்டம்'],
+            ['tons/acre', 'டன்/ஏக்கர்'],
+            ['tons', 'டன்'],
+            ['kg/tree', 'கிலோ/மரம்'],
+            ['kg/acre', 'கிலோ/ஏக்கர்'],
+            ['kg', 'கிலோ'],
+            ['days', 'நாட்கள்'],
+            ['years', 'ஆண்டுகள்'],
+            ['year', 'ஆண்டு'],
+            ['acre', 'ஏக்கர்'],
+            ['acres', 'ஏக்கர்கள்'],
+            ['summer', 'கோடை'],
+            ['cooler months', 'குளிர்ந்த மாதங்கள்'],
+            ['rainy periods', 'மழைக்கால நாட்கள்'],
+            ['harvest flushes', 'அறுவடை அலைகள்'],
+            ['local fresh markets', 'உள்ளூர் புதிய சந்தைகள்'],
+            ['wholesale mandis', 'மொத்த சந்தைகள்'],
+            ['processing units', 'செயலாக்க மையங்கள்'],
+            ['table fruit', 'உண்ணும் பழம்'],
+            ['pulp', 'பழமஜ்ஜை'],
+            ['juice', 'சாறு'],
+            ['orchard conditions', 'தோட்ட மேலாண்மை நிலைகள்'],
+            ['orchard', 'தோட்டம்'],
+            ['managed', 'மேலாண்மை செய்யப்பட்ட'],
+            ['market-linked harvest planning', 'சந்தை சார்ந்த அறுவடை திட்டமிடல்'],
+            ['quality fruit', 'தரமான பழம்'],
+            ['Give life irrigation immediately after planting', 'நடவு செய்த உடனே உயிர்ப்பாசனம் வழங்கவும்'],
+            ['then irrigate every 5-7 days in summer and every 10-15 days during cooler months.', 'பின்னர் கோடைகாலத்தில் ஒவ்வொரு 5-7 நாட்களுக்கும், குளிரான காலங்களில் 10-15 நாட்களுக்கும் பாசனம் செய்யவும்.'],
+            ['Maintain uniform moisture in the root zone', 'வேர் பகுதியில் சீரான ஈரப்பதம் நிலைக்க பார்த்துக்கொள்ளவும்'],
+            ['reduce irrigation during rainy periods or just before harvest flushes.', 'மழைக்காலங்களில் அல்லது அறுவடைக்கு முன் பாசனத்தை குறைக்கவும்.'],
+            ['life irrigation', 'உயிர்ப்பாசனம்'],
+            ['water stagnation', 'நீர் தேக்கம்'],
+            ['root zone', 'வேர் பகுதி'],
+            ['fruit markets', 'பழச் சந்தைகள்'],
+            ['urban', 'நகர'],
+            ['Moderate', 'மிதமானது'],
+            ['High', 'அதிகம்'],
+            ['Low', 'குறைவு'],
+            ['Monsoon', 'மழைக்காலம்'],
+            ['Summer', 'கோடை'],
+            ['Tropical', 'வெப்பமண்டல'],
+            ['Subtropical', 'உபவெப்பமண்டல'],
+            ['Well Drained', 'நல்ல வடிகால்'],
+            ['Alluvial', 'வண்டல் மண்'],
+            ['Loam', 'வண்டல் மண்']
+        ];
+
+        const PROFILE_DYNAMIC_POST_REPLACEMENTS_TA = [
+            ['Give உயிர்ப்பாசனம் immediately நடவு செய்த பின்.', 'நடவு செய்த உடனே உயிர்ப்பாசனம் வழங்கவும்.'],
+            ['Give உயிர்ப்பாசனம் immediately நடவு செய்த பின்', 'நடவு செய்த உடனே உயிர்ப்பாசனம் வழங்கவும்'],
+            ['Give life irrigation immediately நடவு செய்த பின்.', 'நடவு செய்த உடனே உயிர்ப்பாசனம் வழங்கவும்.'],
+            ['Give life irrigation immediately நடவு செய்த பின்', 'நடவு செய்த உடனே உயிர்ப்பாசனம் வழங்கவும்'],
+            ['நல்ல demand in local fresh பசுமை சந்தைகள், சாரு processors, மற்றும் நேரடி சில்லறை விற்பனை வழிகளில்.', 'உள்ளூர் பசுமைப் சந்தைகள், செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வாயில்களில் நல்ல தேவை உள்ளது.'],
+            ['நல்ல demand in local fresh பசுமை சந்தைகள், சாரு processor, மற்றும் நேரடி சில்லறை விற்பனை வழிகள்.', 'உள்ளூர் பசுமைப் சந்தைகள், செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வாயில்களில் நல்ல தேவை உள்ளது.'],
+            ['நல்ல demand in local fresh பசுமை சந்தைகள், சாரு processor, மற்றும் நேரடி சில்லறை விற்பனை வழிகள்', 'உள்ளூர் பசுமைப் சந்தைகள், செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வாயில்களில் நல்ல தேவை உள்ளது'],
+            ['நல்ல demand in local fresh பசுமை சந்தைகள், செயலாக்க மையங்கள், மற்றும் நேரடி சில்லறை விற்பனை வழிகள்.', 'உள்ளூர் பசுமைப் சந்தைகள், செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வாயில்களில் நல்ல தேவை உள்ளது.'],
+            ['நல்ல demand in local fresh பசுமை சந்தைகள், செயலாக்க மையங்கள், மற்றும் நேரடி சில்லறை விற்பனை வழிகள்', 'உள்ளூர் பசுமைப் சந்தைகள், செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வாயில்களில் நல்ல தேவை உள்ளது'],
+            ['நல்ல demand in உள்ளூர் பசுமைப் சந்தைகள், செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வழிகளில்.', 'உள்ளூர் பசுமைப் சந்தைகள், செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வாயில்களில் நல்ல தேவை உள்ளது.'],
+            ['நல்ல demand in உள்ளூர் பசுமைப் சந்தைகள், செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வழிகளில்', 'உள்ளூர் பசுமைப் சந்தைகள், செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வாயில்களில் நல்ல தேவை உள்ளது'],
+            ['demand in local fresh பசுமை சந்தைகள், செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வழிகளில்.', 'உள்ளூர் பசுமைப் சந்தைகள், செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வாயில்களில் நல்ல தேவை உள்ளது.'],
+            ['demand in local fresh பசுமை சந்தைகள், செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வழிகளில்', 'உள்ளூர் பசுமைப் சந்தைகள், செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வாயில்களில் நல்ல தேவை உள்ளது'],
+            ['in local fresh market பசுமை சந்தைகள், சாரு processor, மற்றும் நேரடி சில்லறை விற்பனை வழிகள்.', 'உள்ளூர் பசுமைப் சந்தைகள், செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வாயில்களில் நல்ல தேவை உள்ளது.'],
+            ['in local fresh market பசுமை சந்தைகள், சாரு processor, மற்றும் நேரடி சில்லறை விற்பனை வழிகள்', 'உள்ளூர் பசுமைப் சந்தைகள், செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வாயில்களில் நல்ல தேவை உள்ளது'],
+            ['local fresh பசுமை சந்தைகள், செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வழிகள்', 'உள்ளூர் பசுமைப் சந்தைகள், செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வாயில்களில் நல்ல தேவை உள்ளது'],
+            ['processors', 'செயலாக்க மையங்கள்'],
+            ['processor', 'செயலாக்க மையம்'],
+            ['demand', 'தேவை'],
+            ['local fresh', 'உள்ளூர் பசுமை'],
+            ['Give', 'வழங்கவும்'],
+            ['immediately', 'உடனே']
+        ];
+
+        function replaceCaseInsensitive(value, search, replacement) {
+            return String(value || '').replace(new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), replacement);
+        }
+
+        function translateProfileCropName(value, lang = getCurrentLanguage()) {
+            if (!value || lang !== 'ta') return value;
+            const cleaned = String(value || '').trim();
+            return PROFILE_DYNAMIC_CROP_TAMIL_MAP[cleaned] || cleaned.replace(/\b([A-Za-z][A-Za-z\s()/.-]*)\b/g, (match) => PROFILE_DYNAMIC_CROP_TAMIL_MAP[match.trim()] || match);
+        }
+
+        function translateProfileDynamicText(value, lang = getCurrentLanguage()) {
+            if (!value || lang !== 'ta') return value;
+
+            const rawText = String(value || '');
+            const trimmed = rawText.trim();
+            if (!trimmed) return rawText;
+
+            if (/^(?:[A-Z][A-Za-z0-9()\s.-]+)(?:,\s*[A-Z][A-Za-z0-9()\s.-]+)+$/.test(trimmed)) {
+                return rawText;
+            }
+
+            let translated = PROFILE_DYNAMIC_TEXT_TAMIL_MAP[trimmed] || rawText;
+
+            Object.entries(PROFILE_DYNAMIC_CROP_TAMIL_MAP).forEach(([english, tamil]) => {
+                translated = replaceCaseInsensitive(translated, english, tamil);
+            });
+
+            Object.entries(PROFILE_DYNAMIC_TEXT_TAMIL_MAP).forEach(([english, tamil]) => {
+                translated = replaceCaseInsensitive(translated, english, tamil);
+            });
+
+            PROFILE_DYNAMIC_TERM_REPLACEMENTS_TA.forEach(([english, tamil]) => {
+                translated = replaceCaseInsensitive(translated, english, tamil);
+            });
+
+            translated = translated
+                .replace(/\b(\d+)(st|nd|rd|th)\s+year onwards\b/gi, '$1ஆம் ஆண்டிலிருந்து')
+                .replace(/\b(\d+(?:-\d+)?)\s+years?\s+after\s+planting\b/gi, 'நடவு செய்த பின் $1 ஆண்டுகளில்')
+                .replace(/\b(\d+(?:-\d+)?)\s+months\b/gi, '$1 மாதங்கள்')
+                .replace(/\b(\d+(?:-\d+)?)\s+days\b/gi, '$1 நாட்கள்')
+                .replace(/\b(\d+(?:-\d+)?)\s+years\b/gi, '$1 ஆண்டுகள்')
+                .replace(/(\d+)\s*mm/gi, '$1 மிமீ')
+                .replace(/(\d+)\s*°C/gi, '$1°C')
+                .replace(/(\d+)\s*\/\s*acre/gi, '$1/ஏக்கர்')
+                .replace(/(\d+)\s*m\s*x\s*(\d+)\s*m/gi, '$1 மீ x $2 மீ')
+                .replace(/\bfor\s+(\d+(?:\.\d+)?)\s+ஏக்கர்கள்/gi, '$1 ஏக்கர்களுக்கு')
+                .replace(/\bfor\s+(\d+(?:\.\d+)?)\s+ஏக்கர்/gi, '$1 ஏக்கருக்கு')
+                .replace(/\bafter\s+(\d+)\s+ஆண்டு/gi, '$1 ஆண்டுகளுக்கு பின்')
+                .replace(/\bin\s+(\d+(?:-\d+)?)\s+ஆண்டுகள்/gi, '$1 ஆண்டுகளில்')
+                .replace(/\bpeak yield\b/gi, 'உச்ச மகசூல்')
+                .replace(/\bfirst harvest\b/gi, 'முதல் அறுவடை')
+                .replace(/\bgood\b/gi, 'நல்ல')
+                .replace(/\bmedium\b/gi, 'மிதமானது');
+
+            translated = translated
+                .replace(/\band\b/gi, 'மற்றும்')
+                .replace(/\bwith\b/gi, 'உடன்')
+                .replace(/\bof about\b/gi, 'சுமார்')
+                .replace(/\bbased on\b/gi, 'அடிப்படையில்')
+                .replace(/\bavoid\b/gi, 'தவிர்க்கவும்')
+                .replace(/\bmonitor\b/gi, 'கண்காணிக்கவும்')
+                .replace(/\buse\b/gi, 'பயன்படுத்தவும்');
+
+            PROFILE_DYNAMIC_POST_REPLACEMENTS_TA.forEach(([english, tamil]) => {
+                translated = replaceCaseInsensitive(translated, english, tamil);
+            });
+
+            const normalizedTamilMarketText = String(translated)
+                .toLowerCase()
+                .replace(/\s+/g, ' ')
+                .trim();
+            if (
+                (
+                    /demand|processor|processors|local fresh|retail channels|in\b/.test(normalizedTamilMarketText)
+                    && /பசுமை|சில்லறை|சந்தை|தேவை/.test(translated)
+                )
+                || /பசுமை\s+பசுமை/.test(translated)
+            ) {
+                return 'உள்ளூர் பசுமைப் சந்தைகள், செயலாக்க மையங்கள் மற்றும் நேரடி சில்லறை விற்பனை வழிகளில் நல்ல தேவை உள்ளது.';
+            }
+
+            return translated;
+        }
+
+        if (typeof window.registerDynamicTranslator === 'function') {
+            window.registerDynamicTranslator('profile', (value, lang) => translateProfileDynamicText(value, lang));
+        }
+
+        function localizeSelectedCropEntry(entry, lang = getCurrentLanguage()) {
+            if (!entry || typeof entry !== 'object' || lang !== 'ta') return entry;
+
+            const quotation = entry.quotation && typeof entry.quotation === 'object' ? entry.quotation : {};
+            const localizedQuotation = { ...quotation };
+
+            [
+                'seedRequirement',
+                'plantingMaterialRequirement',
+                'spacing',
+                'plantsForAcreage',
+                'bestPlantingSeason',
+                'suitableVarieties',
+                'nurseryRecommendation',
+                'basalFertilizer',
+                'startupFym',
+                'starterNpkRecommendation',
+                'manureRequirement',
+                'landPreparation',
+                'ploughingRequired',
+                'pitBedPreparation',
+                'soilTreatment',
+                'sowingMethod',
+                'irrigationGuidance',
+                'firstIrrigation',
+                'weeklyWateringSchedule',
+                'cropDuration',
+                'firstHarvest',
+                'expectedHarvestTime',
+                'fullYieldStart',
+                'daysToHarvest',
+                'initialCostEstimate',
+                'estimatedCost',
+                'yieldPerAcre',
+                'expectedYield',
+                'marketDemand',
+                'profitPotential',
+                'annualIncomeEstimate'
+            ].forEach((field) => {
+                localizedQuotation[field] = translateProfileDynamicText(quotation[field], lang);
+            });
+
+            if (Array.isArray(quotation.importantNotes)) {
+                localizedQuotation.importantNotes = quotation.importantNotes.map((note) => translateProfileDynamicText(note, lang));
+            }
+
+            if (Array.isArray(quotation.riskFactors)) {
+                localizedQuotation.riskFactors = quotation.riskFactors.map((risk) => translateProfileDynamicText(risk, lang));
+            }
+
+            if (quotation.startupCostBreakdown && typeof quotation.startupCostBreakdown === 'object') {
+                localizedQuotation.startupCostBreakdown = Object.fromEntries(
+                    Object.entries(quotation.startupCostBreakdown).map(([key, value]) => [key, translateProfileDynamicText(value, lang)])
+                );
+            }
+
+            return {
+                ...entry,
+                crop: translateProfileCropName(entry.crop, lang),
+                quotation: localizedQuotation
+            };
+        }
+
+        function getSelectedCropNames(crops = selectedCropsState) {
+            const lang = getCurrentLanguage();
+            return Array.isArray(crops)
+                ? crops.map((entry) => localizeSelectedCropEntry(entry, lang)?.crop || entry?.crop).filter(Boolean)
+                : [];
+        }
+
+        function syncPreferredCropsInput(crops = selectedCropsState) {
+            if (!preferredCropsInput) return;
+            preferredCropsInput.value = getSelectedCropNames(crops).join(', ');
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const accentClass = type === 'danger' ? 'text-danger' : type === 'warning' ? 'text-warning' : 'text-success';
+            const pageText = getProfileTranslations();
+            toast.className = 'toast align-items-center border-0';
+            toast.role = 'alert';
+            toast.ariaLive = 'assertive';
+            toast.ariaAtomic = 'true';
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <span class="${accentClass} fw-bold me-2">${type === 'danger' ? escapeHtml(pageText.errorPrefix) : escapeHtml(pageText.successPrefix)}</span>${escapeHtml(message)}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="${escapeHtml(pageText.close)}"></button>
+                </div>
+            `;
+            container.appendChild(toast);
+            const instance = new bootstrap.Toast(toast, { delay: 2800 });
+            toast.addEventListener('hidden.bs.toast', () => toast.remove());
+            instance.show();
+        }
+
+        function findCropCard(cropId) {
+            return Array.from(document.querySelectorAll('.selected-crop-card')).find((card) => card.dataset.cropId === cropId) || null;
+        }
+
+        function renderSelectedCrops(selectedCrops = selectedCropsState) {
+            if (!selectedCropsContainer) return;
+            const pageText = getProfileTranslations();
+            const lang = getCurrentLanguage();
+
+            selectedCropsState = Array.isArray(selectedCrops) ? [...selectedCrops] : [];
+            syncPreferredCropsInput(selectedCropsState);
+            emptySelectedCropsMessage = pageText.emptySelectedCrops;
+
+            if (!selectedCropsState.length) {
+                selectedCropsContainer.innerHTML = `<div class="empty-selected-crops">${emptySelectedCropsMessage}</div>`;
+                return;
+            }
+
+            selectedCropsContainer.innerHTML = selectedCropsState.map((entry) => {
+                const localizedEntry = localizeSelectedCropEntry(entry, lang);
+                const quotation = localizedEntry.quotation || {};
+                const notes = Array.isArray(quotation.importantNotes) ? quotation.importantNotes.filter(Boolean) : [];
+                const risks = Array.isArray(quotation.riskFactors) ? quotation.riskFactors.filter(Boolean) : [];
+                const startupCost = quotation.startupCostBreakdown && typeof quotation.startupCostBreakdown === 'object'
+                    ? quotation.startupCostBreakdown
+                    : {};
+                const selectedAt = localizedEntry.selectedAt ? new Date(localizedEntry.selectedAt) : null;
+                const cropId = String(localizedEntry.id || '');
+                const isRemoving = removingCropIds.has(cropId);
+                const selectedLabel = selectedAt && !Number.isNaN(selectedAt.getTime())
+                    ? selectedAt.toLocaleDateString(lang === 'ta' ? 'ta-IN' : 'en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                    : pageText.recentlySelected;
+
+                return `
+                    <div class="selected-crop-card rounded-4 p-3${isRemoving ? ' removing' : ''}" data-crop-id="${escapeHtml(cropId)}">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+                            <div>
+                                <h5 class="mb-1">${escapeHtml(localizedEntry.crop || pageText.selectedCropFallback)}</h5>
+                                <div class="text-muted small">${escapeHtml(pageText.savedOn)} ${escapeHtml(selectedLabel)}</div>
+                            </div>
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <button type="button" class="remove-crop-btn" data-remove-crop-id="${escapeHtml(cropId)}" ${isRemoving ? 'disabled' : ''}>
+                                    <i class="fas ${isRemoving ? 'fa-spinner fa-spin' : 'fa-trash'}"></i>
+                                    <span>${escapeHtml(isRemoving ? pageText.removing : pageText.remove)}</span>
+                                </button>
+                                <span class="badge bg-success">${escapeHtml(String(quotation.acreage || '-'))} ${escapeHtml(pageText.acrePlanSuffix)}</span>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.seedRequirement)}</div>
+                                <div>${escapeHtml(quotation.plantingMaterialRequirement || quotation.seedRequirement || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.spacing)}</div>
+                                <div>${escapeHtml(quotation.spacing || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.plantsForAcreage)}</div>
+                                <div>${escapeHtml(quotation.plantsForAcreage || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.bestPlantingSeason)}</div>
+                                <div>${escapeHtml(quotation.bestPlantingSeason || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.landPreparation)}</div>
+                                <div>${escapeHtml(quotation.landPreparation || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.ploughingSchedule)}</div>
+                                <div>${escapeHtml(quotation.ploughingRequired || quotation.ploughingSchedule || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.pitBedPreparation)}</div>
+                                <div>${escapeHtml(quotation.pitBedPreparation || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.soilTreatment)}</div>
+                                <div>${escapeHtml(quotation.soilTreatment || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.suitableVarieties)}</div>
+                                <div>${escapeHtml(quotation.suitableVarieties || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.nurseryRecommendation)}</div>
+                                <div>${escapeHtml(quotation.nurseryRecommendation || quotation.sowingMethod || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.manureOrganicInput)}</div>
+                                <div>${escapeHtml(quotation.startupFym || quotation.manureRequirement || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.estimatedCost)}</div>
+                                <div>${escapeHtml(quotation.initialCostEstimate || quotation.estimatedCost || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.basalFertilizer)}</div>
+                                <div>${escapeHtml(quotation.basalFertilizer || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.topDressing)}</div>
+                                <div>${escapeHtml(quotation.starterNpkRecommendation || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.firstIrrigation)}</div>
+                                <div>${escapeHtml(quotation.firstIrrigation || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.weeklyWateringSchedule)}</div>
+                                <div>${escapeHtml(quotation.weeklyWateringSchedule || quotation.irrigationGuidance || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.cropDuration)}</div>
+                                <div>${escapeHtml(quotation.cropDuration || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.firstHarvest)}</div>
+                                <div>${escapeHtml(quotation.firstHarvest || quotation.expectedHarvestTime || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.fullYieldStart)}</div>
+                                <div>${escapeHtml(quotation.fullYieldStart || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.landPrepCost)}</div>
+                                <div>${escapeHtml(startupCost.landPreparation || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.seedSaplingCost)}</div>
+                                <div>${escapeHtml(startupCost.seedSapling || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.fertilizerCost)}</div>
+                                <div>${escapeHtml(startupCost.fertilizer || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.labourCost)}</div>
+                                <div>${escapeHtml(startupCost.labour || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.totalStartupCost)}</div>
+                                <div>${escapeHtml(startupCost.total || quotation.initialCostEstimate || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.acreage)}</div>
+                                <div>${escapeHtml(String(quotation.acreage || pageText.notAvailable))}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.expectedYield)}</div>
+                                <div>${escapeHtml(quotation.expectedYield || quotation.yieldPerAcre || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.marketDemand)}</div>
+                                <div>${escapeHtml(quotation.marketDemand || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.annualIncomeEstimate)}</div>
+                                <div>${escapeHtml(quotation.annualIncomeEstimate || quotation.profitPotential || pageText.notAvailable)}</div>
+                            </div>
+                            <div class="col-12">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.riskFactors)}</div>
+                                <div>${risks.length ? risks.map((risk) => `<div class="mb-1">${escapeHtml(risk)}</div>`).join('') : escapeHtml(pageText.noSpecialNotes)}</div>
+                            </div>
+                            <div class="col-12">
+                                <div class="small text-muted mb-1">${escapeHtml(pageText.labels.importantNotes)}</div>
+                                <div>${notes.length ? notes.map((note) => `<div class="mb-1">${escapeHtml(note)}</div>`).join('') : escapeHtml(pageText.noSpecialNotes)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (typeof window.notifyContentRendered === 'function') {
+                window.notifyContentRendered(selectedCropsContainer);
+            }
+        }
+
+        function populateProfile(user) {
+            document.getElementById('headerName').textContent = user.name;
+            document.getElementById('headerEmail').textContent = user.email;
+            document.getElementById('navUserName').textContent = user.name.split(' ')[0];
+            currentProfileImageKey = getProfileImageStorageKey(user);
+            applyProfileAvatar(user);
+
+            document.getElementById('inputName').value = user.name || '';
+            document.getElementById('inputUsername').value = user.username || '';
+            document.getElementById('inputEmail').value = user.email || '';
+            document.getElementById('inputPhone').value = user.phone || '';
+            document.getElementById('inputAddress').value = user.address || '';
+            document.getElementById('inputFarmSize').value = user.farmSize || '';
+            renderSelectedCrops(user.selectedCrops || []);
+        }
+
+        function promptRemoveCrop(cropId) {
+            if (!cropId || removingCropIds.has(cropId)) return;
+            const pageText = getProfileTranslations();
+            pendingRemovalCropId = cropId;
+            removeCropModalMessage.textContent = pageText.removeCropConfirm;
+            confirmRemoveCropBtn.disabled = false;
+            confirmRemoveCropBtn.innerHTML = escapeHtml(pageText.confirmYes);
+            confirmRemoveCropModal.show();
+        }
+
+        async function removeSelectedCrop() {
+            if (!pendingRemovalCropId || removingCropIds.has(pendingRemovalCropId)) return;
+
+            const cropId = pendingRemovalCropId;
+            const pageText = getProfileTranslations();
+            removingCropIds.add(cropId);
+            confirmRemoveCropBtn.disabled = true;
+            confirmRemoveCropBtn.innerHTML = pageText.removingWithSpinner;
+            renderSelectedCrops(selectedCropsState);
+
+            try {
+                const response = await fetch(`/api/remove-crop/${encodeURIComponent(cropId)}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || pageText.removeCropFailed);
+                }
+
+                const cropCard = findCropCard(cropId);
+                if (cropCard) {
+                    cropCard.classList.add('removing');
+                    await new Promise((resolve) => setTimeout(resolve, 220));
+                }
+
+                const nextSelectedCrops = Array.isArray(result.user?.selectedCrops)
+                    ? result.user.selectedCrops
+                    : selectedCropsState.filter((entry) => String(entry.id) !== String(cropId));
+
+                renderSelectedCrops(nextSelectedCrops);
+                showToast(pageText.cropRemovedSuccess);
+                confirmRemoveCropModal.hide();
+            } catch (error) {
+                renderSelectedCrops(selectedCropsState);
+                showAlert(error.message || pageText.removeCropUnable, 'danger');
+                showToast(error.message || pageText.removeCropUnable, 'danger');
+            } finally {
+                removingCropIds.delete(cropId);
+                pendingRemovalCropId = null;
+                confirmRemoveCropBtn.disabled = false;
+                confirmRemoveCropBtn.innerHTML = escapeHtml(pageText.confirmYes);
+                renderSelectedCrops(selectedCropsState);
+            }
+        }
+
+        // Fetch user data logic
+        async function loadUserProfile() {
+            try {
+                const response = await fetch('/api/user');
+                if (!response.ok) {
+                    throw new Error(getProfileTranslations().notLoggedIn);
+                }
+                const data = await response.json();
+                const user = data.user || data; // Handle both wrapped and unwrapped response
+
+                populateProfile(user);
+
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Handle Form Submit
+        document.getElementById('profileForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+            const btn = this.querySelector('button[type="submit"]');
+            const pageText = getProfileTranslations();
+            const originalText = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = pageText.savingWithSpinner;
+
+            try {
+                const response = await fetch('/api/user', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showAlert(pageText.profileUpdatedSuccess, 'success');
+                    if (result.user) {
+                        populateProfile(result.user);
+                    } else {
+                        loadUserProfile();
+                    }
+                } else {
+                    showAlert(result.error || pageText.updateFailed, 'danger');
+                }
+            } catch (error) {
+                showAlert(pageText.networkError, 'danger');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        });
+
+        function showAlert(message, type) {
+            const container = document.getElementById('alertContainer');
+            const pageText = getProfileTranslations();
+            container.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="${escapeHtml(pageText.close)}"></button>
+                </div>
+            `;
+            // Auto dismiss
+            setTimeout(() => {
+                const alert = container.querySelector('.alert');
+                if (alert) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            }, 5000);
+        }
+
+        selectedCropsContainer.addEventListener('click', (event) => {
+            const removeButton = event.target.closest('[data-remove-crop-id]');
+            if (!removeButton) return;
+            promptRemoveCrop(removeButton.dataset.removeCropId);
+        });
+
+        confirmRemoveCropBtn.addEventListener('click', removeSelectedCrop);
+
+        removeCropModalElement.addEventListener('hidden.bs.modal', () => {
+            pendingRemovalCropId = null;
+            confirmRemoveCropBtn.disabled = false;
+            confirmRemoveCropBtn.innerHTML = escapeHtml(getProfileTranslations().confirmYes);
+        });
+
+        window.applyPageTranslations = function () {
+            renderSelectedCrops(selectedCropsState);
+        };
+
+        sidebarToggle.addEventListener('click', openSidebar);
+        sidebarClose.addEventListener('click', closeSidebar);
+        mobileSidebarOverlay.addEventListener('click', closeSidebar);
+        changeProfileImageBtn.addEventListener('click', () => profileImageInput.click());
+        profileImageInput.addEventListener('change', handleProfileImageChange);
+
+        window.addEventListener('resize', syncSidebarForViewport);
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeSidebar();
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!isMobileViewport()) return;
+            const navLink = event.target.closest('.sidebar .nav-link');
+            if (navLink) {
+                closeSidebar();
+            }
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            await fetch('/api/logout', { method: 'POST' });
+            window.location.href = 'login.html';
+        });
+
+        // Initialize
+        syncSidebarForViewport();
+        loadUserProfile();
+    </script>
+    <script src="translations.js"></script>
+    <script src="i18n.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,629 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - CropAI</title>
+    <link rel="icon" type="image/png" href="images/cropai-favicon.png?v=20260428c">
+    <link rel="apple-touch-icon" href="images/cropai-apple-touch.png?v=20260428c">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #00ff88;
+            --primary-glow: rgba(0, 255, 136, 0.5);
+            --primary-dim: rgba(0, 255, 136, 0.1);
+            --secondary-color: #050a06;
+            --accent-color: #00e5ff;
+            --cyber-purple: #bc13fe;
+
+            --success-color: #00ff88;
+            --info-color: #3b82f6;
+            --warning-color: #ffb700;
+            --danger-color: #ff3366;
+
+            --text-main: #e0f2e9;
+            --text-muted: #8aa395;
+
+            --bg-body: #020402;
+            --glass-bg: rgba(0, 255, 136, 0.05);
+            --glass-border: rgba(0, 255, 136, 0.15);
+            --nav-bg: rgba(2, 4, 3, 0.85);
+            --card-text: #8aa395;
+            --neon-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+            --bg-light: #0b0d0f;
+        }
+
+        [data-theme="light"] {
+            --primary-dim: rgba(0, 143, 76, 0.1);
+            --secondary-color: #f0fdf4;
+            --bg-body: #ced9d5;
+            --text-main: #051f15;
+            --text-muted: #3a4f44;
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(0, 143, 76, 0.2);
+            --nav-bg: rgba(245, 247, 246, 0.85);
+            --card-text: #334155;
+            --neon-shadow: 0 4px 25px rgba(0, 143, 76, 0.1);
+            --bg-light: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.7;
+            color: var(--text-main);
+            overflow-x: hidden;
+            background-color: var(--bg-body);
+            background-image:
+                radial-gradient(circle at 10% 20%, var(--primary-dim) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 40%);
+            animation: liquidBackground 20s linear infinite alternate;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        @keyframes liquidBackground {
+            0% {
+                background-position: 0% 0%;
+                filter: hue-rotate(0deg);
+            }
+
+            50% {
+                background-position: 100% 100%;
+                filter: hue-rotate(45deg);
+            }
+
+            100% {
+                background-position: 0% 0%;
+                filter: hue-rotate(0deg);
+            }
+        }
+
+        /* Environmental Overlays */
+        .environmental-overlays { display: none !important;
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 500;
+        }
+
+        .dark-vignette {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, transparent 30%, rgba(2, 4, 3, 0.6) 100%);
+        }
+
+        /* Animated Background Blobs */
+        .blob-container { display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            overflow: hidden;
+            
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        .blob {
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            border-radius: 50%;
+            animation: moveBlob 20s infinite alternate;
+        }
+
+        .blob-1 {
+            background: rgba(0, 255, 136, 0.15);
+            top: -100px;
+            left: -100px;
+            animation-duration: 25s;
+        }
+
+        .blob-2 {
+            background: rgba(188, 19, 254, 0.08);
+            bottom: -150px;
+            right: -100px;
+            animation-duration: 30s;
+        }
+
+        @keyframes moveBlob {
+            0% {
+                transform: translate(0, 0) scale(1);
+                rotate: 0deg;
+                filter: hue-rotate(0deg);
+            }
+
+            33% {
+                transform: translate(100px, 200px) scale(1.1);
+                rotate: 120deg;
+                filter: hue-rotate(90deg);
+            }
+
+            100% {
+                transform: translate(0, 0) scale(1);
+                rotate: 360deg;
+                filter: hue-rotate(360deg);
+            }
+        }
+
+        /* Cursor Glow */
+        .cursor-glow { display: none !important;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.12) 0%, rgba(188, 19, 254, 0.08) 50%, transparent 70%);
+            border-radius: 50%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: screen;
+            transition: width 0.3s, height 0.3s;
+            animation: cursorHue 5s linear infinite;
+        }
+
+        @keyframes cursorHue {
+            0% {
+                filter: hue-rotate(0deg);
+            }
+
+            100% {
+                filter: hue-rotate(360deg);
+            }
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            background: var(--primary-dim);
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            color: var(--primary-color);
+            background: rgba(0, 255, 136, 0.15);
+            transform: translateX(-5px);
+            border-color: var(--primary-color);
+            text-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .page-header {
+            padding: 20px 0 20px;
+            text-align: center;
+            background: linear-gradient(rgba(11, 13, 15, 0.8), rgba(11, 13, 15, 0.9)), url('https://images.unsplash.com/photo-1605000797499-95a053545e58?q=80&w=1200&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* Pricing Card Styles */
+        .pricing-card {
+            background: rgba(10, 20, 15, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            border-color: var(--primary-color);
+            box-shadow: 0 20px 50px rgba(0, 255, 136, 0.15);
+        }
+
+        /* Holographic Pro Plan */
+        .pricing-card.popular {
+            border-color: var(--primary-color);
+            background: rgba(0, 255, 136, 0.05);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.1);
+            overflow: hidden;
+        }
+
+        .pricing-card.popular::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 2px;
+            border-radius: 20px;
+            background: linear-gradient(45deg,
+                    var(--primary-color),
+                    var(--cyber-purple),
+                    var(--accent-color),
+                    var(--primary-color));
+            background-size: 300% 300%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: popularBorder 3s linear infinite;
+        }
+
+        @keyframes popularBorder {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .pricing-card.popular::after {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.1) 0%, transparent 60%);
+            animation: popularGlow 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes popularGlow {
+
+            0%,
+            100% {
+                transform: translate(-30%, -30%);
+            }
+
+            50% {
+                transform: translate(30%, 30%);
+            }
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: 20px;
+            right: -35px;
+            background: var(--primary-color);
+            color: #000;
+            padding: 5px 40px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            transform: rotate(45deg);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .price-tag {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-period {
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .features-list {
+            margin: 30px 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .features-list li {
+            margin-bottom: 15px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+        }
+
+        .features-list li i {
+            color: var(--success-color);
+            margin-right: 15px;
+            background: rgba(0, 255, 136, 0.1);
+            padding: 5px;
+            border-radius: 50%;
+            font-size: 0.8rem;
+        }
+
+        .btn-pricing {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            border: 1px solid var(--primary-color);
+            background: transparent;
+            color: var(--primary-color);
+        }
+
+        .btn-pricing:hover {
+            background: var(--primary-color);
+            color: #000;
+            box-shadow: 0 10px 20px rgba(0, 255, 136, 0.2);
+        }
+
+        .btn-pricing.primary {
+            background: var(--primary-color);
+            color: #000;
+        }
+
+        .btn-pricing.primary:hover {
+            background: #00e676;
+            transform: translateY(-2px);
+        }
+
+        /* Footer Styles */
+        .footer {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 20px 0 15px;
+            position: relative;
+        }
+
+        .footer a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: white;
+        }
+
+        .footer .text-muted {
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Environmental Overlays -->
+    <div class="environmental-overlays">
+        <div class="dark-vignette"></div>
+    </div>
+
+    <!-- Animated Blobs -->
+    <div class="blob-container">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- Cursor Glow -->
+    <div id="cursor-glow" class="cursor-glow"></div>
+
+    <!-- Simple Header with Single Back Option -->
+    <div class="container-fluid py-1 px-4 d-flex justify-content-between align-items-center position-relative"
+        style="z-index: 1100;">
+        <a href="javascript:history.back()" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Go Back
+        </a>
+        <button class="btn back-btn" id="theme-toggle">
+            <i class="fas fa-moon" id="theme-icon"></i>
+        </button>
+    </div>
+
+    <header class="page-header">
+        <div class="container">
+            <h1 class="display-3 fw-bold text-white mb-2">Simple, Transparent Pricing</h1>
+            <p class="lead text-white-50 mx-auto" style="max-width: 700px;">Choose the plan that's right for your farm.
+                No hidden fees.</p>
+        </div>
+    </header>
+
+    <section class="py-1">
+        <div class="container py-1">
+            <div class="row g-4 align-items-center">
+                <!-- Basic Plan -->
+                <div class="col-lg-4">
+                    <div class="pricing-card">
+                        <h3 class="fw-bold mb-3">Starter</h3>
+                        <p class="text-muted mb-4">Perfect for small farms getting started with Smart Farming.</p>
+                        <div class="price-tag">₹2,499<span class="price-period">/mo</span></div>
+                        <ul class="features-list">
+                            <li><i class="fas fa-check"></i> Up to 5 Sensors</li>
+                            <li><i class="fas fa-check"></i> Basic Crop Recommendations</li>
+                            <li><i class="fas fa-check"></i> 24h Data Refresh Rate</li>
+                            <li><i class="fas fa-check"></i> Email Support</li>
+                        </ul>
+                        <a href="signup.html" class="btn btn-pricing">Get Started</a>
+                    </div>
+                </div>
+
+                <!-- Pro Plan -->
+                <div class="col-lg-4">
+                    <div class="pricing-card popular">
+                        <div class="popular-badge">POPULAR</div>
+                        <h3 class="fw-bold mb-3">Professional</h3>
+                        <p class="text-muted mb-4">Advanced analytics for serious farmers.</p>
+                        <div class="price-tag">₹6,499<span class="price-period">/mo</span></div>
+                        <ul class="features-list">
+                            <li><i class="fas fa-check"></i> Up to 20 Sensors</li>
+                            <li><i class="fas fa-check"></i> AI-Powered Recommendations</li>
+                            <li><i class="fas fa-check"></i> Real-time Data Monitoring</li>
+                            <li><i class="fas fa-check"></i> Priority Email & Chat Support</li>
+                            <li><i class="fas fa-check"></i> Weather Forecast Integration</li>
+                        </ul>
+                        <a href="signup.html" class="btn btn-pricing primary">Start Free Trial</a>
+                    </div>
+                </div>
+
+                <!-- Enterprise Plan -->
+                <div class="col-lg-4">
+                    <div class="pricing-card">
+                        <h3 class="fw-bold mb-3">Enterprise</h3>
+                        <p class="text-muted mb-4">Custom solutions for large agricultural operations.</p>
+                        <div class="price-tag">₹15,999<span class="price-period">/mo</span></div>
+                        <ul class="features-list">
+                            <li><i class="fas fa-check"></i> Unlimited Sensors</li>
+                            <li><i class="fas fa-check"></i> Custom Recommendation Models</li>
+                            <li><i class="fas fa-check"></i> Dedicated Account Manager</li>
+                            <li><i class="fas fa-check"></i> API Access</li>
+                            <li><i class="fas fa-check"></i> On-site Setup Assistance</li>
+                        </ul>
+                        <a href="contact-us.html" class="btn btn-pricing">Contact Sales</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-5 pt-5 text-center">
+                <div class="col-lg-8 mx-auto">
+                    <h3 class="fw-bold mb-4">Frequently Asked Questions</h3>
+                    <div class="accordion accordion-flush" id="pricingFAQ">
+                        <div class="accordion-item bg-transparent border-bottom border-secondary">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed bg-transparent text-main shadow-none"
+                                    type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    Can I change plans later?
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#pricingFAQ">
+                                <div class="accordion-body text-muted">
+                                    Yes, you can upgrade or downgrade your plan at any time. Changes will take effect at
+                                    the start of the next billing cycle.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item bg-transparent border-bottom border-secondary">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed bg-transparent text-main shadow-none"
+                                    type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                    Do I need to buy specific sensors?
+                                </button>
+                            </h2>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#pricingFAQ">
+                                <div class="accordion-body text-muted">
+                                    Our platform is compatible with most standard smart soil and weather sensors. We also
+                                    offer a starter kit if you don't have existing hardware.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item bg-transparent border-bottom border-secondary">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed bg-transparent text-main shadow-none"
+                                    type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                    Is there a discount for annual billing?
+                                </button>
+                            </h2>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#pricingFAQ">
+                                <div class="accordion-body text-muted">
+                                    Yes! We offer a 20% discount if you choose to be billed annually instead of monthly.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-seedling text-success me-2"></i>
+                        CropAI
+                    </h5>
+                    <p class="text-muted">
+                        Empowering farmers with smart technology and data-driven insights for sustainable agriculture.
+                    </p>
+                </div>
+                <!-- Reuse Footer Columns -->
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Product</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="index.html#features" class="text-muted text-decoration-none">Features</a></li>
+                        <li><a href="pricing.html" class="text-muted text-decoration-none">Pricing</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Support</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="help-center.html" class="text-muted text-decoration-none">Help Center</a></li>
+                        <li><a href="community.html" class="text-muted text-decoration-none">Community</a></li>
+                        <li><a href="contact-us.html" class="text-muted text-decoration-none">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Company</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="about-us.html" class="text-muted text-decoration-none">About</a></li>
+                        <li><a href="blog.html" class="text-muted text-decoration-none">Blog</a></li>
+                        <li><a href="careers.html" class="text-muted text-decoration-none">Careers</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-top border-secondary pt-3 mt-3">
+                <div class="row align-items-center">
+                    <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                        <p class="text-muted small mb-0">&copy; 2024 CropAI. All rights reserved.</p>
+                    </div>
+                    <div class="col-md-6 text-center text-md-end">
+                        <a href="privacy.html" class="text-muted text-decoration-none me-3">Privacy Policy</a>
+                        <a href="terms.html" class="text-muted text-decoration-none">Terms of Service</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const htmlElement = document.documentElement;
+
+        // Initialize theme when page loads
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        if (savedTheme === 'light') themeIcon.classList.replace('fa-moon', 'fa-sun');
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            if (newTheme === 'light') {
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+            }
+        });
+    </script>
+    <script src="translations.js"></script>
+    <script src="i18n.js"></script>
+</body>
+
+</html>

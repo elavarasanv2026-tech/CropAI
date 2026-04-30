@@ -1,0 +1,27 @@
+@startuml
+[*] --> Visitor
+
+Visitor --> RegisteredUnverified : Sign up
+RegisteredUnverified --> Verified : Verify email token
+RegisteredUnverified --> RegisteredUnverified : Resend verification
+RegisteredUnverified --> Visitor : Signup abandoned
+
+Verified --> LoggedIn : Login success
+Verified --> PasswordResetPending : Forgot password
+
+PasswordResetPending --> Verified : Reset password success
+PasswordResetPending --> Verified : Token expires / cancelled
+
+LoggedIn --> ProfileManaged : Update profile
+ProfileManaged --> LoggedIn : Save complete
+
+LoggedIn --> CropSaved : Save selected crop
+CropSaved --> LoggedIn : Persisted
+
+LoggedIn --> CropRemoved : Remove selected crop
+CropRemoved --> LoggedIn : Persisted
+
+LoggedIn --> LoggedOut : Logout
+LoggedOut --> LoggedIn : Login again
+LoggedOut --> [*]
+@enduml

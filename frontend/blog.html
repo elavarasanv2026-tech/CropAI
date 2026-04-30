@@ -1,0 +1,588 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - CropAI</title>
+    <link rel="icon" type="image/png" href="images/cropai-favicon.png?v=20260428c">
+    <link rel="apple-touch-icon" href="images/cropai-apple-touch.png?v=20260428c">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            /* Futuristic Jungle Palette */
+            --primary-color: #00ff88;
+            --primary-glow: rgba(0, 255, 136, 0.5);
+            --primary-dim: rgba(0, 255, 136, 0.1);
+            --secondary-color: #050a06;
+            --accent-color: #00e5ff;
+            --cyber-purple: #bc13fe;
+
+            --success-color: #00ff88;
+            --info-color: #3b82f6;
+            --warning-color: #ffb700;
+            --danger-color: #ff3366;
+
+            --bg-body: #020402;
+            --card-bg: rgba(10, 20, 15, 0.6);
+            --sidebar-bg: rgba(13, 25, 20, 0.85);
+            --nav-bg: rgba(2, 4, 3, 0.8);
+
+            --text-main: #e0f2e9;
+            --text-muted: #8aa395;
+
+            --border-color: rgba(0, 255, 136, 0.15);
+            --glass-bg: rgba(0, 255, 136, 0.02);
+            --glass-border: rgba(0, 255, 136, 0.1);
+            --neon-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+
+        [data-theme="light"] {
+            /* Field Day Theme */
+            --primary-color: #007f5f;
+            --primary-glow: rgba(0, 127, 95, 0.3);
+            --primary-dim: rgba(0, 127, 95, 0.1);
+            --secondary-color: #ffffff;
+            --bg-body: #e8f5e9;
+            --card-bg: #ffffff;
+            --nav-bg: #ffffff;
+            --text-main: #1b4332;
+            --text-muted: #52b788;
+            --border-color: rgba(0, 127, 95, 0.15);
+            --neon-shadow: 0 5px 20px rgba(0, 127, 95, 0.2);
+        }
+
+        body {
+            background-color: var(--bg-body);
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        .navbar-custom {
+            background: var(--nav-bg);
+            
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.8rem 0;
+        }
+
+        .navbar-custom .nav-link {
+            font-weight: 600;
+            color: var(--text-main) !important;
+            transition: color 0.3s;
+        }
+
+        .navbar-custom .nav-link:hover {
+            color: var(--primary-color) !important;
+        }
+
+        .btn-custom {
+            background: linear-gradient(135deg, var(--primary-color), #00a85d);
+            border: none;
+            color: #000;
+            font-weight: 700;
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+        }
+
+        .header-section {
+            padding: 20px 0 20px;
+            text-align: center;
+        }
+
+        .blog-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .blog-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0, 255, 136, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .blog-img-wrapper {
+            position: relative;
+            overflow: hidden;
+            height: 220px;
+        }
+
+        .blog-img {
+            height: 100%;
+            object-fit: cover;
+            width: 100%;
+            transition: transform 0.6s;
+        }
+
+        .blog-card:hover .blog-img {
+            transform: scale(1.1);
+        }
+
+        .blog-content {
+            padding: 1.8rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .blog-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .blog-meta i {
+            color: var(--primary-color);
+        }
+
+        .blog-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+            line-height: 1.4;
+        }
+
+        .blog-excerpt {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .extended-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            margin-bottom: 0;
+        }
+
+        .extended-content.show {
+            max-height: 1000px;
+            opacity: 1;
+            margin-bottom: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .read-more-btn {
+            background: transparent;
+            border: none;
+            color: var(--primary-color);
+            font-weight: 600;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            margin-top: auto;
+            font-size: 0.95rem;
+        }
+
+        .read-more-btn:hover {
+            gap: 0.8rem;
+            text-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .read-more-btn i {
+            transition: transform 0.3s;
+        }
+
+        .read-more-btn.active i {
+            transform: rotate(-180deg);
+        }
+
+        .blog-tag {
+            background: var(--primary-dim);
+            color: var(--primary-color);
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        footer {
+            background: #000;
+            padding: 40px 0 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-link:hover {
+            color: var(--primary-color);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-bottom: 1.5rem;
+            background: var(--primary-dim);
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .back-btn:hover {
+            color: var(--primary-color);
+            background: rgba(0, 255, 136, 0.15);
+            transform: translateX(-5px);
+            border-color: var(--primary-color);
+        }
+
+        /* Reveal Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Simple Header with Single Back Option -->
+    <div class="container-fluid py-1 px-4 d-flex justify-content-between align-items-center position-relative"
+        style="z-index: 1100;">
+        <a href="javascript:history.back()" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Go Back
+        </a>
+        <button class="btn back-btn" id="theme-toggle">
+            <i class="fas fa-moon" id="theme-icon"></i>
+        </button>
+    </div>
+
+    <!-- Header -->
+    <section class="header-section">
+        <div class="container">
+            <!-- Removed Redundant Button -->
+            <h1 class="display-4 fw-bold mb-2">CropAI Blog</h1>
+            <p class="lead text-muted mb-4">Latest insights, trends, and success stories from the world of Agritech.</p>
+        </div>
+    </section>
+
+    <!-- Content -->
+    <div class="container mb-5">
+        <div class="row g-4">
+            <!-- Blog 1 -->
+            <div class="col-md-6 col-lg-4 reveal">
+                <div class="blog-card">
+                    <div class="blog-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1628352081506-83c43123ed6d?auto=format&fit=crop&q=80&w=800"
+                            class="blog-img" alt="AI in Agriculture">
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span class="blog-tag">AI Tech</span>
+                        </div>
+                    </div>
+                    <div class="blog-content">
+                        <div class="blog-meta">
+                            <span><i class="far fa-calendar"></i> Oct 24, 2024</span>
+                            <span><i class="far fa-user"></i> Admin</span>
+                        </div>
+                        <h3 class="blog-title">AI in Agriculture: The Next Green Revolution</h3>
+                        <div class="blog-excerpt">
+                            Discover how artificial intelligence is transforming farming practices and increasing yields
+                            globally.
+                        </div>
+                        <div class="extended-content" id="content-1">
+                            <p>AI is revolutionizing the agricultural landscape by providing predictive analytics for
+                                crop selection, weather forecasting, and market trends. Farmers can now use computer
+                                vision to detect plant diseases early, preventing widespread crop failure.</p>
+                            <p>Moreover, autonomous farming machinery guided by AI is optimizing resource usage, from
+                                precision irrigation to automated harvesting, significantly reducing labor costs and
+                                environmental footprint.</p>
+                            <a href="blog-details.html" class="btn btn-sm btn-outline-success mt-2 rounded-pill">View
+                                Full Article</a>
+                        </div>
+                        <button class="read-more-btn" onclick="toggleContent(1, this)">
+                            <span>Read More</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Blog 2 -->
+            <div class="col-md-6 col-lg-4 reveal">
+                <div class="blog-card">
+                    <div class="blog-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&q=80&w=800"
+                            class="blog-img" alt="Sustainable Irrigation">
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span class="blog-tag">Sustainability</span>
+                        </div>
+                    </div>
+                    <div class="blog-content">
+                        <div class="blog-meta">
+                            <span><i class="far fa-calendar"></i> Oct 18, 2024</span>
+                            <span><i class="far fa-user"></i> Sarah J.</span>
+                        </div>
+                        <h3 class="blog-title">Sustainable Irrigation Techniques</h3>
+                        <div class="blog-excerpt">
+                            Learn about water-saving irrigation methods that can help you conserve resources and reduce
+                            costs.
+                        </div>
+                        <div class="extended-content" id="content-2">
+                            <p>Drip irrigation and smart moisture sensors are at the forefront of sustainable water
+                                management. These systems deliver water directly to the plant roots, minimizing
+                                evaporation and runoff.</p>
+                            <p>By implementing IoT-based irrigation schedules, farmers can reduce water consumption by
+                                up to 40% while ensuring plants receive the exact amount of hydration they need based on
+                                real-time soil data.</p>
+                        </div>
+                        <button class="read-more-btn" onclick="toggleContent(2, this)">
+                            <span>Read More</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Blog 3 -->
+            <div class="col-md-6 col-lg-4 reveal">
+                <div class="blog-card">
+                    <div class="blog-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?auto=format&fit=crop&q=80&w=800"
+                            class="blog-img" alt="Soil Health">
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span class="blog-tag">Soil Science</span>
+                        </div>
+                    </div>
+                    <div class="blog-content">
+                        <div class="blog-meta">
+                            <span><i class="far fa-calendar"></i> Oct 10, 2024</span>
+                            <span><i class="far fa-user"></i> Mike T.</span>
+                        </div>
+                        <h3 class="blog-title">Understanding Soil Health</h3>
+                        <div class="blog-excerpt">
+                            A comprehensive guide to analyzing soil reports and taking corrective actions for better
+                            crop health.
+                        </div>
+                        <div class="extended-content" id="content-3">
+                            <p>Soil health is determined by its chemical, physical, and biological properties. Regular
+                                testing for pH, nitrogen, phosphorus, and potassium is essential for maintaining
+                                fertility.</p>
+                            <p>Our research shows that incorporating organic matter and rotational grazing can restore
+                                depleted soil biomes, leading to more resilient crops and better nutrient absorption.
+                            </p>
+                        </div>
+                        <button class="read-more-btn" onclick="toggleContent(3, this)">
+                            <span>Read More</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5 class="fw-bold mb-3">CropAI</h5>
+                    <p class="text-muted">Empowering farmers with intelligent crop recommendations.</p>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold mb-3">Product</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="index.html#features" class="footer-link">Features</a></li>
+                        <li class="mb-2"><a href="pricing.html" class="footer-link">Pricing</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold mb-3">Company</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="about-us.html" class="footer-link">About Us</a></li>
+                        <li class="mb-2"><a href="careers.html" class="footer-link">Careers</a></li>
+                        <li class="mb-2"><a href="blog.html" class="footer-link"
+                                style="color: var(--primary-color)">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold mb-3">Support</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="help-center.html" class="footer-link">Help Center</a></li>
+                        <li class="mb-2"><a href="community.html" class="footer-link">Community</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-6 mb-4">
+                    <h6 class="fw-bold mb-3">Legal</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="privacy.html" class="footer-link">Privacy</a></li>
+                        <li class="mb-2"><a href="terms.html" class="footer-link">Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-top border-secondary pt-4 text-center">
+                <p class="text-muted small mb-0">&copy; 2024 CropAI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const htmlElement = document.documentElement;
+
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            if (theme === 'light') {
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+            }
+        }
+
+        function toggleContent(id, btn) {
+            const content = document.getElementById(`content-${id}`);
+            const isShowing = content.classList.contains('show');
+            const btnText = btn.querySelector('span');
+
+            if (!isShowing) {
+                content.classList.add('show');
+                btn.classList.add('active');
+                btnText.textContent = 'Read Less';
+            } else {
+                content.classList.remove('show');
+                btn.classList.remove('active');
+                btnText.textContent = 'Read More';
+                // Optional: Scroll back to the card top if it's too long
+                btn.closest('.blog-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        // ----------------------------------------------------
+        // UNIQUE ANIMATIONS
+        // ----------------------------------------------------
+
+        // 1. Scroll Reveal Animations
+        const revealElements = document.querySelectorAll('.reveal');
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    // Add staggered delay based on index (optional logic, simplified here)
+                    setTimeout(() => {
+                        entry.target.classList.add('active');
+                    }, index * 100);
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        // 2. 3D Tilt Effect for Blog Cards
+        const cards = document.querySelectorAll('.blog-card');
+        cards.forEach(card => {
+            card.style.transformStyle = 'preserve-3d';
+
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+
+                const rotateX = ((y - centerY) / centerY) * -5; // Subtle tilt
+                const rotateY = ((x - centerX) / centerX) * 5;
+
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateY(0)';
+            });
+        });
+
+        // 3. Ambient Floating Particles
+        const particleContainer = document.createElement('div');
+        particleContainer.id = 'ambient-particles';
+        particleContainer.style.position = 'fixed';
+        particleContainer.style.top = '0';
+        particleContainer.style.left = '0';
+        particleContainer.style.width = '100%';
+        particleContainer.style.height = '100%';
+        particleContainer.style.pointerEvents = 'none';
+        particleContainer.style.zIndex = '-1';
+        particleContainer.style.overflow = 'hidden';
+        document.body.appendChild(particleContainer);
+
+        for (let i = 0; i < 20; i++) {
+            const particle = document.createElement('div');
+            const size = Math.random() * 4 + 2;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.background = `rgba(167, 0, 255, ${Math.random() * 0.3})`;
+            particle.style.position = 'absolute';
+            particle.style.borderRadius = '50%';
+            particle.style.filter = 'none';
+            particle.style.left = Math.random() * 100 + 'vw';
+            particle.style.top = Math.random() * 100 + 'vh';
+
+            // Animate using Web Animations API for better performance
+            particle.animate([
+                { transform: 'translate(0, 0)', opacity: 0.2 },
+                { transform: `translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px)`, opacity: 0.6 },
+                { transform: 'translate(0, 0)', opacity: 0.2 }
+            ], {
+                duration: Math.random() * 10000 + 10000,
+                iterations: Infinity,
+                direction: 'alternate',
+                easing: 'ease-in-out'
+            });
+
+            particleContainer.appendChild(particle);
+        }
+
+    </script>
+    <script src="translations.js"></script>
+    <script src="i18n.js"></script>
+</body>
+
+</html>

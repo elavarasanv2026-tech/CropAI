@@ -1,0 +1,481 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - CropAI</title>
+    <link rel="icon" type="image/png" href="images/cropai-favicon.png?v=20260428c">
+    <link rel="apple-touch-icon" href="images/cropai-apple-touch.png?v=20260428c">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #00ff88;
+            --primary-glow: rgba(0, 255, 136, 0.5);
+            --primary-dim: rgba(0, 255, 136, 0.1);
+            --secondary-color: #050a06;
+            --accent-color: #00e5ff;
+            --cyber-purple: #bc13fe;
+
+            --success-color: #00ff88;
+            --info-color: #3b82f6;
+            --warning-color: #ffb700;
+            --danger-color: #ff3366;
+
+            --text-main: #e0f2e9;
+            --text-muted: #8aa395;
+
+            --bg-body: #020402;
+            --glass-bg: rgba(0, 255, 136, 0.05);
+            --glass-border: rgba(0, 255, 136, 0.15);
+            --nav-bg: rgba(2, 4, 3, 0.85);
+            --card-text: #8aa395;
+            --neon-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+            --bg-light: #0b0d0f;
+        }
+
+        [data-theme="light"] {
+            --primary-dim: rgba(0, 143, 76, 0.1);
+            --secondary-color: #f0fdf4;
+            --bg-body: #ced9d5;
+            --text-main: #051f15;
+            --text-muted: #3a4f44;
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(0, 143, 76, 0.2);
+            --nav-bg: rgba(245, 247, 246, 0.85);
+            --card-text: #334155;
+            --neon-shadow: 0 4px 25px rgba(0, 143, 76, 0.1);
+            --bg-light: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.7;
+            color: var(--text-main);
+            overflow-x: hidden;
+            background-color: var(--bg-body);
+            background-image:
+                radial-gradient(circle at 10% 20%, var(--primary-dim) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 40%);
+            animation: liquidBackground 20s linear infinite alternate;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        @keyframes liquidBackground {
+            0% {
+                background-position: 0% 0%;
+                filter: hue-rotate(0deg);
+            }
+
+            50% {
+                background-position: 100% 100%;
+                filter: hue-rotate(45deg);
+            }
+
+            100% {
+                background-position: 0% 0%;
+                filter: hue-rotate(0deg);
+            }
+        }
+
+        /* Environmental Overlays */
+        .environmental-overlays { display: none !important;
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 500;
+        }
+
+        .dark-vignette {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, transparent 30%, rgba(2, 4, 3, 0.6) 100%);
+        }
+
+        /* Animated Background Blobs */
+        .blob-container { display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            overflow: hidden;
+            
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        .blob {
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            border-radius: 50%;
+            animation: moveBlob 20s infinite alternate;
+        }
+
+        .blob-1 {
+            background: rgba(0, 255, 136, 0.15);
+            top: -100px;
+            left: -100px;
+            animation-duration: 25s;
+        }
+
+        .blob-2 {
+            background: rgba(188, 19, 254, 0.08);
+            bottom: -150px;
+            right: -100px;
+            animation-duration: 30s;
+        }
+
+        @keyframes moveBlob {
+            0% {
+                transform: translate(0, 0) scale(1);
+                rotate: 0deg;
+                filter: hue-rotate(0deg);
+            }
+
+            33% {
+                transform: translate(100px, 200px) scale(1.1);
+                rotate: 120deg;
+                filter: hue-rotate(90deg);
+            }
+
+            100% {
+                transform: translate(0, 0) scale(1);
+                rotate: 360deg;
+                filter: hue-rotate(360deg);
+            }
+        }
+
+        /* Cursor Glow */
+        .cursor-glow { display: none !important;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.12) 0%, rgba(188, 19, 254, 0.08) 50%, transparent 70%);
+            border-radius: 50%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: screen;
+            transition: width 0.3s, height 0.3s;
+            animation: cursorHue 5s linear infinite;
+        }
+
+        @keyframes cursorHue {
+            0% {
+                filter: hue-rotate(0deg);
+            }
+
+            100% {
+                filter: hue-rotate(360deg);
+            }
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            background: var(--primary-dim);
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            color: var(--primary-color);
+            background: rgba(0, 255, 136, 0.15);
+            transform: translateX(-5px);
+            border-color: var(--primary-color);
+            text-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .page-header {
+            padding: 20px 0 20px;
+            text-align: center;
+            background: linear-gradient(rgba(2, 4, 2, 0.8), rgba(2, 4, 3, 0.95)), url('https://images.unsplash.com/photo-1625246333195-bf4044be2594?q=80&w=1920&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header h1 {
+            background: linear-gradient(135deg, #fff 0%, var(--primary-color) 50%, var(--accent-color) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        /* Footer Styles */
+        .footer {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 30px 0 15px;
+            position: relative;
+        }
+
+        .footer a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: white;
+        }
+
+        .footer .text-muted {
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+
+        /* Animations */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .delay-100 {
+            transition-delay: 0.1s;
+        }
+
+        .delay-200 {
+            transition-delay: 0.2s;
+        }
+
+        .delay-300 {
+            transition-delay: 0.3s;
+        }
+
+        .delay-400 {
+            transition-delay: 0.4s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .floating-img {
+            animation: float 4s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Environmental Overlays -->
+    <div class="environmental-overlays">
+        <div class="dark-vignette"></div>
+    </div>
+
+    <!-- Animated Blobs -->
+    <div class="blob-container">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- Cursor Glow -->
+    <div id="cursor-glow" class="cursor-glow"></div>
+    <!-- Simple Header with Single Back Option -->
+    <div class="container-fluid py-1 px-4 d-flex justify-content-between align-items-center position-relative"
+        style="z-index: 1100;">
+        <a href="javascript:history.back()" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Go Back
+        </a>
+        <button class="btn back-btn" id="theme-toggle">
+            <i class="fas fa-moon" id="theme-icon"></i>
+        </button>
+    </div>
+
+    <header class="page-header">
+        <div class="container">
+            <h1 class="display-3 fw-bold text-white mb-2 animate-on-scroll">About CropAI</h1>
+            <p class="lead text-white-50 mx-auto animate-on-scroll delay-100" style="max-width: 700px;">Empowering
+                sustainable agriculture through
+                advanced technology and data-driven insights.</p>
+        </div>
+    </header>
+
+    <section class="py-2">
+        <div class="container py-2">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-3 mb-lg-0">
+                    <div class="pe-lg-5">
+                        <span class="text-success fw-bold text-uppercase mb-2 d-block animate-on-scroll">Our
+                            Story</span>
+                        <h2 class="display-5 fw-bold mb-3 animate-on-scroll delay-100">Cultivating the Future of
+                            Agriculture</h2>
+                        <p class="lead text-muted mb-3 animate-on-scroll delay-200">
+                            Founded in 2024, CropAI began with a simple mission: to empower every farmer with the data
+                            insights previously available only to large-scale operations.
+                        </p>
+                        <p class="text-muted mb-3 animate-on-scroll delay-300">
+                            Using advanced machine learning and affordable smart sensors, we've helped over 10,000 farmers
+                            across the globe increase their yields while reducing water usage and environmental impact.
+                            Our team of agronomists and data scientists works tirelessly to refine our algorithms for
+                            local climates and crop varieties.
+                        </p>
+                        <div class="row g-4 mb-4">
+                            <div class="col-6">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-success bg-opacity-10 p-3 rounded-circle me-3">
+                                        <i class="fas fa-check text-success fa-lg"></i>
+                                    </div>
+                                    <span class="fw-bold">Data-Driven</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-success bg-opacity-10 p-3 rounded-circle me-3">
+                                        <i class="fas fa-leaf text-success fa-lg"></i>
+                                    </div>
+                                    <span class="fw-bold">Sustainable</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="animate-on-scroll delay-300">
+                        <img src="https://images.unsplash.com/photo-1628352081506-83c43123ed6d?auto=format&fit=crop&q=80&w=800"
+                            class="img-fluid rounded-4 shadow-lg w-100 floating-img" alt="About Us">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-seedling text-success me-2"></i>
+                        CropAI
+                    </h5>
+                    <p class="text-muted">
+                        Empowering farmers with smart technology and data-driven insights for sustainable agriculture.
+                    </p>
+                </div>
+                <!-- Reuse Footer Columns -->
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Product</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="index.html#features" class="text-muted text-decoration-none">Features</a></li>
+                        <li><a href="pricing.html" class="text-muted text-decoration-none">Pricing</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Support</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="help-center.html" class="text-muted text-decoration-none">Help Center</a></li>
+                        <li><a href="community.html" class="text-muted text-decoration-none">Community</a></li>
+                        <li><a href="contact-us.html" class="text-muted text-decoration-none">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="fw-bold mb-3">Company</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="about-us.html" class="text-muted text-decoration-none">About</a></li>
+                        <li><a href="blog.html" class="text-muted text-decoration-none">Blog</a></li>
+                        <li><a href="careers.html" class="text-muted text-decoration-none">Careers</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-top border-secondary pt-4 mt-4">
+                <div class="row align-items-center">
+                    <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                        <p class="text-muted small mb-0">&copy; 2024 CropAI. All rights reserved.</p>
+                    </div>
+                    <div class="col-md-6 text-center text-md-end">
+                        <a href="privacy.html" class="text-muted text-decoration-none me-3">Privacy Policy</a>
+                        <a href="terms.html" class="text-muted text-decoration-none">Terms of Service</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const htmlElement = document.documentElement;
+
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        if (savedTheme === 'light') themeIcon.classList.replace('fa-moon', 'fa-sun');
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            if (newTheme === 'light') {
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+            }
+        });
+
+        // Scroll Animations
+        document.addEventListener("DOMContentLoaded", () => {
+            const observerOptions = {
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target); // Animate only once
+                    }
+                });
+            }, observerOptions);
+
+            const animatedElements = document.querySelectorAll('.animate-on-scroll');
+            animatedElements.forEach(el => observer.observe(el));
+        });
+    </script>
+    <script src="translations.js"></script>
+    <script src="i18n.js"></script>
+</body>
+
+</html>
