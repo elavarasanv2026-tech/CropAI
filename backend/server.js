@@ -2265,6 +2265,61 @@ function getBrandedEmailFrom() {
     return `"${MAIL_BRAND_NAME}" <${senderEmail}>`;
 }
 
+function buildVerificationEmailHtml(verificationUrl, name = '') {
+    const supportEmail = getSupportEmail();
+    const cleanedName = String(name || '').trim();
+    const greeting = cleanedName ? `Hello, ${cleanedName}.` : 'Hello.';
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background:#0f1117;font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#0f1117;margin:0;padding:0;width:100%;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:640px;width:100%;background:#151515;border:1px solid #31343a;border-radius:18px;">
+          <tr>
+            <td style="padding:40px 28px 36px;">
+              <div style="text-align:center;color:#dff6e8;font-size:30px;line-height:1.2;font-weight:400;margin:0 0 28px;">
+                Welcome to <span style="color:#16a34a;">CropAI</span>
+              </div>
+              <div style="color:#d8dde7;font-size:18px;line-height:1.6;margin:0 0 22px;">${greeting}</div>
+              <div style="color:#b7bfcb;font-size:18px;line-height:1.8;margin:0 0 30px;">
+                Thanks for creating an account with CropAI. To complete your signup, please confirm that this email address belongs to you.
+              </div>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 30px;">
+                <tr>
+                  <td align="center">
+                    <a href="${verificationUrl}" style="display:inline-block;background:#19a84a;color:#ffffff;text-decoration:none;padding:16px 30px;border-radius:12px;font-size:18px;line-height:1.2;min-width:200px;text-align:center;box-sizing:border-box;">
+                      Verify Email
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <div style="color:#b7bfcb;font-size:17px;line-height:1.8;margin:0 0 18px;">
+                After verification, you'll be able to log in and access your dashboard, get AI crop recommendations, and explore our tools for farming optimization.
+              </div>
+              <div style="color:#a2aab5;font-size:16px;line-height:1.8;margin:0 0 28px;">
+                If you didn't sign up for CropAI, please ignore this message. No further action is required.
+              </div>
+              <div style="border-top:1px solid #2c2f35;padding-top:22px;text-align:center;color:#8b93a0;font-size:14px;line-height:1.8;">
+                You are receiving this email because you registered at CropAI.<br>
+                Need help? Contact CropAI Support<br>
+                <a href="mailto:${supportEmail}" style="color:#16a34a;text-decoration:none;">${supportEmail}</a>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
 async function sendBrandedEmail({ to, subject, html, text, replyTo }) {
     if (!emailTransporter) {
         throw new Error('Email transporter is not configured.');
@@ -3322,35 +3377,7 @@ app.post('/api/signup', async (req, res) => {
                 await sendBrandedEmail({
                     to: normalizedEmail,
                     subject: VERIFICATION_EMAIL_SUBJECT,
-                    html: `<!DOCTYPE html>
-<html lang="en"><body style="margin:0;padding:0;background:#f0f4f8;font-family:Arial,Helvetica,sans-serif;">
-  <div style="max-width:600px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.05);border:1px solid #eef2f6;">
-    <div style="padding:40px;text-align:center;">
-      <h1 style="margin:0;color:#0d2b1a;font-size:28px;font-weight:700;">Welcome to <span style="color:#16a34a;">CropAI</span></h1>
-    </div>
-    <div style="padding:0 40px 40px;">
-      <p style="margin:0 0 15px;color:#334155;font-size:16px;">Hello,</p>
-      <p style="margin:0 0 25px;color:#475569;font-size:15px;line-height:1.7;">
-        Thanks for creating an account with <strong>CropAI</strong>. To complete your signup, please confirm that this email address belongs to you.
-      </p>
-      <div style="text-align:center;margin:35px 0;">
-        <a href="${verifyLink}" style="display:inline-block;background:#16a34a;color:#ffffff;text-decoration:none;padding:16px 45px;border-radius:8px;font-weight:700;font-size:16px;">
-          Verify Email
-        </a>
-      </div>
-      <p style="margin:0 0 15px;color:#64748b;font-size:14px;line-height:1.7;">
-        After verification, you'll be able to log in and access your dashboard, get AI crop recommendations, and explore our tools for farming optimization.
-      </p>
-      <p style="margin:0 0 30px;color:#64748b;font-size:14px;">If you didn't sign up for CropAI, please ignore this message.</p>
-      <hr style="border:none;border-top:1px solid #f1f5f9;margin:30px 0;">
-      <p style="text-align:center;color:#94a3b8;font-size:13px;margin:0;">
-        You are receiving this email because you registered at cropai.com.<br>
-        Need help? Contact CropAI Support<br>
-        <a href="mailto:${getSupportEmail()}" style="color:#16a34a;text-decoration:none;">${getSupportEmail()}</a>
-      </p>
-    </div>
-  </div>
-</body></html>`
+                    html: buildVerificationEmailHtml(verifyLink, name)
                 });
                 emailSent = true;
                 console.log(`[AUTH] Verification email sent to ${normalizedEmail}`);
@@ -3421,15 +3448,7 @@ app.post('/api/resend-verification', async (req, res) => {
                 to: normalizedEmail,
                 subject: VERIFICATION_EMAIL_SUBJECT,
                 replyTo: getSupportEmail(),
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #020402; color: #e0f2e9; padding: 2rem; border-radius: 16px; border: 1px solid #00e5ff;">
-                        <h2 style="color: #00e5ff; text-align: center;">Verify Your Account</h2>
-                        <p style="font-size: 16px;">You requested a new verification link. Please verify your email address to activate your account.</p>
-                        <div style="text-align: center; margin: 30px 0;">
-                            <a href="${verifyLink}" style="background: #00e5ff; color: #050a06; padding: 14px 28px; text-decoration: none; font-weight: bold; border-radius: 8px; display: inline-block;">Verify Email Address</a>
-                        </div>
-                    </div>
-                `
+                html: buildVerificationEmailHtml(verifyLink, user.name || user.username || '')
             });
             res.json({ message: 'Verification email resent successfully' });
         } else {

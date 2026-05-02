@@ -11185,9 +11185,26 @@
                     }
 
                     try {
-                        const res = await fetchWithRetry(`/api/disease-care?crop=${encodeURIComponent(cropId)}&lang=${activeLang}`, { method: 'GET' }, 5000, 1, 200);
-                        if (!res.ok) throw new Error('API failed');
-                        const data = await res.json();
+                        const cacheKey = `${cropId}::${activeLang}`;
+                        const requestToken = ++diseaseCareRequestToken;
+                        let data = diseaseCareCache.get(cacheKey);
+
+                        if (!data) {
+                            const res = await fetchWithRetry(
+                                `/api/disease-care?crop=${encodeURIComponent(cropId)}&lang=${activeLang}`,
+                                { method: 'GET' },
+                                15000,
+                                2,
+                                600
+                            );
+                            if (!res.ok) throw new Error('API failed');
+                            data = await res.json();
+                            diseaseCareCache.set(cacheKey, data);
+                        }
+
+                        if (requestToken !== diseaseCareRequestToken) {
+                            return;
+                        }
 
                         renderDiseaseData(data, activeLang);
                         document.getElementById('diseaseResults').style.display = 'block';
@@ -12037,6 +12054,9 @@
                 }
             }
         }
+
+        const diseaseCareCache = new Map();
+        let diseaseCareRequestToken = 0;
 
         async function refreshActiveUserIdentity() {
             const cachedUser = (window.CropAIAuth && window.CropAIAuth.getStoredCurrentUser)
