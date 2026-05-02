@@ -2194,15 +2194,40 @@ const getOpenAIVisionResponse = async (prompt, image, systemPrompt = null) => {
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const TRUST_PROXY_VALUE = String(process.env.TRUST_PROXY || (IS_PRODUCTION ? '1' : '0')).trim().toLowerCase();
+const SHOULD_TRUST_PROXY = TRUST_PROXY_VALUE === '1' || TRUST_PROXY_VALUE === 'true' || TRUST_PROXY_VALUE === 'yes';
+const SESSION_SECRET = process.env.SESSION_SECRET || 'crop-ai-secret-2026';
+
+if (SHOULD_TRUST_PROXY) {
+    app.set('trust proxy', 1);
+}
+
+function getAppBaseUrl(req) {
+    const configuredBaseUrl = process.env.APP_URL || process.env.BASE_URL;
+    if (configuredBaseUrl) {
+        return String(configuredBaseUrl).replace(/\/+$/, '');
+    }
+
+    const protocol = req?.protocol || 'http';
+    const host = req?.get ? req.get('host') : '';
+    return `${protocol}://${host}`.replace(/\/+$/, '');
+}
 
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 app.use(cors({ origin: true, credentials: true }));
 app.use(session({
-    secret: 'crop-ai-secret-2026',
+    secret: SESSION_SECRET,
+    proxy: SHOULD_TRUST_PROXY,
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 }
+    cookie: {
+        httpOnly: true,
+        secure: IS_PRODUCTION,
+        sameSite: IS_PRODUCTION ? 'none' : 'lax',
+        maxAge: 24 * 60 * 60 * 1000
+    }
 }));
 
 // Email verification auth endpoints are now handled directly inside server.js APIs
@@ -3288,7 +3313,7 @@ app.post('/api/signup', async (req, res) => {
         await user.save();
 
         // Email Sending (Gmail via Nodemailer)
-        const baseUrl = process.env.APP_URL || process.env.BASE_URL || 'http://localhost:3000';
+        const baseUrl = getAppBaseUrl(req);
         const verifyLink = `${baseUrl}/verify.html?token=${verificationToken}`;
 
         let emailSent = false;
@@ -3388,7 +3413,7 @@ app.post('/api/resend-verification', async (req, res) => {
         user.verificationToken = verificationToken;
         await user.save();
 
-        const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+        const baseUrl = getAppBaseUrl(req);
         const verifyLink = `${baseUrl}/verify.html?token=${verificationToken}`;
 
         if (emailTransporter) {
@@ -3574,7 +3599,7 @@ app.post('/api/forgot-pass', async (req, res) => {
 
         resetTokenStore.set(token, { email, expiresAt });
 
-        const resetLink = `http://${req.headers.host}/reset-password.html?token=${token}`;
+        const resetLink = `${getAppBaseUrl(req)}/reset-password.html?token=${token}`;
         console.log(`[AUTH] Password reset requested for ${email}. Link: ${resetLink}`);
 
         if (emailMode === 'disabled' || !emailTransporter) {
@@ -3994,6 +4019,15 @@ app.use(express.static(frontendDir, {
 // Explicit route for the home page (index.html)
 app.get('/', (req, res) => {
     res.sendFile(path.join(frontendDir, 'index.html'));
+});
+
+app.get('/api/health', (req, res) => {
+    res.json({
+        ok: true,
+        uptime: Math.round(process.uptime()),
+        environment: process.env.NODE_ENV || 'development',
+        database: isMongoConnected ? 'mongodb' : 'json-fallback'
+    });
 });
 
 
