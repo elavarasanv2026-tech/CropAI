@@ -915,8 +915,11 @@
                     showAlert(window.t ? window.t('login.success_redirect') : 'Login successful! Redirecting to dashboard...', 'success');
                     setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
                 } else {
-                    // Check for 403 unverified email
-                    showAlert(result.error || (window.t ? window.t('login.failed') : 'Login failed!'), 'danger');
+                    if (response.status === 403) {
+                        showUnverifiedAlert(String(result.email || data.identifier || ''));
+                    } else {
+                        showAlert(result.error || (window.t ? window.t('login.failed') : 'Login failed!'), 'danger');
+                    }
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalText;
                 }
@@ -965,7 +968,7 @@
             const msg = document.getElementById('resendLoginMsg');
             if (msg) { msg.textContent = 'Sending...'; }
             try {
-                const res = await fetch('/api/resend-verification', {
+                const res = await fetchWithRetry('/api/resend-verification', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
                 });
@@ -1020,7 +1023,13 @@
         // Check URL for email form password reset redirects
         window.addEventListener('load', async function () {
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('resetSuccess') === '1') {
+            if (urlParams.get('verified') === 'true') {
+                showAlert('Email verified successfully! Ippo login pannalaam.', 'success');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else if (urlParams.get('verified') === 'error') {
+                showAlert('Verification link invalid or expired. Please resend verification email.', 'danger');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else if (urlParams.get('resetSuccess') === '1') {
                 showAlert(window.t ? window.t('login.reset_success') : 'Password reset successfully! You can now log in.', 'success');
                 window.history.replaceState({}, document.title, window.location.pathname);
             } else if (urlParams.get('resetError')) {
@@ -1038,10 +1047,12 @@
 
             try {
                 if (typeof navigator !== 'undefined' && !navigator.onLine) return;
-                const response = await fetchWithRetry('/api/user', { method: 'GET' }, 5000, 1, 200);
+                const response = await fetchWithRetry('/api/auth/status', { method: 'GET' }, 5000, 1, 200);
                 if (response && response.ok) {
                     const result = await response.json();
-                    window.location.href = 'dashboard.html';
+                    if (result && result.authenticated) {
+                        window.location.href = 'dashboard.html';
+                    }
                 }
             } catch (error) {
                 // User not logged in, stay on login page

@@ -1395,6 +1395,8 @@ function sanitizeUserProfilePayload(payload = {}, existingUser = {}) {
 function buildSafeUserResponse(user) {
     const safeUser = user?.toObject ? user.toObject() : JSON.parse(JSON.stringify(user || {}));
     delete safeUser.password;
+    safeUser.emailVerified = Boolean(safeUser.emailVerified ?? safeUser.isVerified);
+    safeUser.isVerified = safeUser.emailVerified;
     safeUser.selectedCrops = hydrateSelectedCrops(safeUser);
     safeUser.preferredCrops = buildPreferredCropText(safeUser.selectedCrops, safeUser.preferredCrops);
     return safeUser;
@@ -2273,6 +2275,25 @@ function getSmtpAuthPass() {
     return process.env.SMTP_AUTH_PASS || process.env.EMAIL_PASS;
 }
 
+function getVerificationBaseUrl() {
+    return String(process.env.BASE_URL || process.env.APP_URL || 'http://localhost:3000').replace(/\/+$/, '');
+}
+
+function buildVerificationLink(token) {
+    return `${getVerificationBaseUrl()}/api/verify-email?token=${encodeURIComponent(String(token || '').trim())}`;
+}
+
+function isUserEmailVerified(user) {
+    return Boolean(user && (user.emailVerified ?? user.isVerified));
+}
+
+function markUserEmailVerified(user) {
+    if (!user) return;
+    user.isVerified = true;
+    user.emailVerified = true;
+    user.verificationToken = '';
+}
+
 function getBrandedEmailFrom() {
     const senderEmail = process.env.EMAIL_FROM || getSupportEmail();
     return `"${MAIL_BRAND_NAME}" <${senderEmail}>`;
@@ -2362,6 +2383,26 @@ async function initEmailTransporter() {
         !gmailUser.includes('your_gmail') &&
         !gmailPass.includes('your_16') &&
         !gmailPass.includes('your_gmail_app_password');
+    const sendGridApiKey = String(process.env.SENDGRID_API_KEY || '').trim();
+    const hasSendGridCreds = Boolean(sendGridApiKey) && !sendGridApiKey.includes('your_');
+
+    console.log(`[EMAIL] BASE_URL=${process.env.BASE_URL || '<missing>'}`);
+    console.log(`[EMAIL] APP_URL=${process.env.APP_URL || '<missing>'}`);
+    console.log(`[EMAIL] EMAIL_USER configured=${gmailUser ? 'YES' : 'NO'}`);
+    console.log(`[EMAIL] EMAIL_PASS/SMTP_AUTH_PASS configured=${gmailPass ? 'YES' : 'NO'}`);
+    console.log(`[EMAIL] SENDGRID_API_KEY configured=${hasSendGridCreds ? 'YES' : 'NO'}`);
+
+    if (hasSendGridCreds) {
+        emailTransporter = nodemailer.createTransport({
+            host: 'smtp.sendgrid.net',
+            port: 465,
+            secure: true,
+            auth: { user: 'apikey', pass: sendGridApiKey }
+        });
+        emailMode = 'sendgrid';
+        console.log('[EMAIL] SendGrid SMTP configured. Verification emails will be attempted through SendGrid.');
+        return;
+    }
 
     if (hasGmailCreds) {
         emailTransporter = nodemailer.createTransport({
@@ -2372,11 +2413,11 @@ async function initEmailTransporter() {
         });
 
         emailMode = 'gmail';
-        console.log('Gmail SMTP configured. Delivery will be attempted when an email is sent.');
+        console.log('[EMAIL] Gmail SMTP configured. Delivery will be attempted when an email is sent.');
         return;
     }
     emailMode = 'disabled';
-    console.log('Email delivery disabled. Set SMTP_AUTH_USER/SMTP_AUTH_PASS or EMAIL_USER/EMAIL_PASS to enable SMTP.');
+    console.log('[EMAIL] Email delivery disabled. Set EMAIL_USER + EMAIL_PASS, or SENDGRID_API_KEY, or SMTP_AUTH_USER + SMTP_AUTH_PASS.');
 }
 
 initEmailTransporter();
@@ -3348,6 +3389,7 @@ app.post('/api/signup', async (req, res) => {
             existingUser = await User.findOne({ 
                 $or: [{ email: normalizedEmail }, { username: normalizedUsername }] 
             });
+            console.log(`[AUTH][SIGNUP] lookup email=${normalizedEmail} username=${normalizedUsername} found=${existingUser ? 'YES' : 'NO'}`);
         } catch (dbErr) {
             console.error('[AUTH] DB Check failed:', dbErr.message);
             return res.status(500).json({ error: 'Database error during registration check.' });
@@ -3355,12 +3397,15 @@ app.post('/api/signup', async (req, res) => {
 
         if (existingUser) {
             if (String(existingUser.email).toLowerCase() === normalizedEmail) {
-                if (existingUser.isVerified) {
+                if (isUserEmailVerified(existingUser)) {
                     return res.status(400).json({ error: 'Email address is already in use' });
                 }
 
                 const verificationToken = crypto.randomBytes(32).toString('hex');
                 existingUser.verificationToken = verificationToken;
+                existingUser.emailVerified = false;
+                existingUser.isVerified = false;
+                console.log(`[AUTH][SIGNUP] verification token refreshed for ${normalizedEmail}: ${verificationToken}`);
 
                 if (!existingUser.name && normalizedName) {
                     existingUser.name = normalizedName;
@@ -3371,8 +3416,7 @@ app.post('/api/signup', async (req, res) => {
 
                 await existingUser.save();
 
-                const baseUrl = getAppBaseUrl(req);
-                const verifyLink = `${baseUrl}/verify.html?token=${verificationToken}`;
+                const verifyLink = buildVerificationLink(verificationToken);
                 let emailSent = false;
 
                 try {
@@ -3383,10 +3427,10 @@ app.post('/api/signup', async (req, res) => {
                             html: buildVerificationEmailHtml(verifyLink, existingUser.name || normalizedName)
                         });
                         emailSent = true;
-                        console.log(`[AUTH] Re-sent verification email during signup retry to ${normalizedEmail}`);
+                        console.log(`[AUTH][SIGNUP] verification email re-sent successfully to ${normalizedEmail}`);
                     }
                 } catch (emailErr) {
-                    console.error('[AUTH] Failed to re-send verification email during signup retry:', emailErr.message);
+                    console.error(`[AUTH][SIGNUP] verification email send failed for ${normalizedEmail}:`, emailErr.message);
                 }
 
                 return res.status(200).json({
@@ -3407,6 +3451,7 @@ app.post('/api/signup', async (req, res) => {
         
         // 2. Generate secure verification token using crypto
         const verificationToken = crypto.randomBytes(32).toString('hex');
+        console.log(`[AUTH][SIGNUP] verification token created for ${normalizedEmail}: ${verificationToken}`);
 
         // Create new user in DB
         const user = new User({
@@ -3418,14 +3463,14 @@ app.post('/api/signup', async (req, res) => {
             location: address || '',
             verificationToken: verificationToken,
             isVerified: false,
+            emailVerified: false,
             role: 'farmer'
         });
         
         await user.save();
 
         // Email Sending (Gmail via Nodemailer)
-        const baseUrl = getAppBaseUrl(req);
-        const verifyLink = `${baseUrl}/verify.html?token=${verificationToken}`;
+        const verifyLink = buildVerificationLink(verificationToken);
 
         let emailSent = false;
         try {
@@ -3433,20 +3478,20 @@ app.post('/api/signup', async (req, res) => {
                 await sendBrandedEmail({
                     to: normalizedEmail,
                     subject: VERIFICATION_EMAIL_SUBJECT,
-                    html: buildVerificationEmailHtml(verifyLink, name)
+                    html: buildVerificationEmailHtml(verifyLink, normalizedName)
                 });
                 emailSent = true;
-                console.log(`[AUTH] Verification email sent to ${normalizedEmail}`);
+                console.log(`[AUTH][SIGNUP] verification email sent successfully to ${normalizedEmail}`);
             }
         } catch (emailErr) {
-            console.error('[AUTH] Failed to send verification email:', emailErr.message);
+            console.error(`[AUTH][SIGNUP] verification email send failed for ${normalizedEmail}:`, emailErr.message);
         }
 
         res.status(201).json({
             message: emailSent
                 ? 'Account created! Please check your inbox to verify your email.'
                 : 'Account created! (Email delivery is currently unavailable — contact support to verify.)',
-            user: { email: normalizedEmail, name },
+            user: { email: normalizedEmail, name: normalizedName, emailVerified: false, isVerified: false },
             emailSent
         });
     } catch (err) {
@@ -3455,35 +3500,35 @@ app.post('/api/signup', async (req, res) => {
     }
 });
 
-// Verification Route (frontend calls GET /verify/:token via API)
-app.get('/verify/:token', async (req, res) => {
+async function handleEmailVerification(req, res) {
     try {
-        const { token } = req.params;
+        const token = String(req.params?.token || req.query?.token || '').trim();
 
         const user = await findUserByVerificationToken(token);
+        console.log(`[AUTH][VERIFY] token lookup token=${token ? `${token.slice(0, 8)}...` : '<missing>'} found=${user ? 'YES' : 'NO'}`);
 
         if (!user) {
-            return res.status(400).json({ error: 'Invalid or expired verification link', message: 'The verification link is invalid or has expired.' });
+            return res.redirect('/login.html?verified=error');
         }
 
-        if (user.isVerified) {
-            return res.status(200).json({
-                message: 'Email already verified. You can log in now.',
-                alreadyVerified: true
-            });
+        if (isUserEmailVerified(user)) {
+            console.log(`[AUTH][VERIFY] email already verified for ${user.email}`);
+            return res.redirect('/login.html?verified=true');
         }
 
-        // Keep the token so the same email link remains idempotent if reopened.
-        // A resend will replace the token with a fresh one automatically.
-        user.isVerified = true;
+        markUserEmailVerified(user);
         await user.save();
+        console.log(`[AUTH][VERIFY] email verified successfully for ${user.email}`);
 
-        res.status(200).json({ message: 'Email verified successfully.' });
+        return res.redirect('/login.html?verified=true');
     } catch (err) {
         console.error('[AUTH] Verification Error:', err);
-        res.status(500).json({ error: 'Server error during verification' });
+        return res.redirect('/login.html?verified=error');
     }
-});
+}
+
+app.get('/api/verify-email', handleEmailVerification);
+app.get('/verify/:token', handleEmailVerification);
 
 // Resend Verification Email Feature
 app.post('/api/resend-verification', async (req, res) => {
@@ -3493,17 +3538,20 @@ app.post('/api/resend-verification', async (req, res) => {
 
         const normalizedEmail = String(email).trim().toLowerCase();
         const user = await User.findOne({ email: normalizedEmail });
+        console.log(`[AUTH][RESEND] lookup email=${normalizedEmail} found=${user ? 'YES' : 'NO'}`);
 
         if (!user) return res.status(404).json({ error: 'User not found' });
-        if (user.isVerified) return res.status(400).json({ error: 'Email is already verified' });
+        if (isUserEmailVerified(user)) return res.status(400).json({ error: 'Email is already verified' });
 
         // Generate new token
         const verificationToken = crypto.randomBytes(32).toString('hex');
         user.verificationToken = verificationToken;
+        user.emailVerified = false;
+        user.isVerified = false;
+        console.log(`[AUTH][RESEND] verification token created for ${normalizedEmail}: ${verificationToken}`);
         await user.save();
 
-        const baseUrl = getAppBaseUrl(req);
-        const verifyLink = `${baseUrl}/verify.html?token=${verificationToken}`;
+        const verifyLink = buildVerificationLink(verificationToken);
 
         if (emailTransporter) {
             await sendBrandedEmail({
@@ -3512,10 +3560,12 @@ app.post('/api/resend-verification', async (req, res) => {
                 replyTo: getSupportEmail(),
                 html: buildVerificationEmailHtml(verifyLink, user.name || user.username || '')
             });
+            console.log(`[AUTH][RESEND] verification email sent successfully to ${normalizedEmail}`);
             res.json({ message: 'Verification email resent successfully' });
         } else {
+            console.error('[AUTH][RESEND] email transporter is not configured');
             res.status(503).json({
-                error: 'Email service is not configured. Set SMTP_AUTH_USER/SMTP_AUTH_PASS or EMAIL_USER/EMAIL_PASS.'
+                error: 'Email service is not configured. Set EMAIL_USER and EMAIL_PASS, or set SENDGRID_API_KEY.'
             });
         }
     } catch (err) {
@@ -3528,7 +3578,7 @@ app.post('/api/resend-verification', async (req, res) => {
 
         if (isAuthError) {
             return res.status(503).json({
-                error: 'SMTP authentication failed for the configured mailbox. Update EMAIL_PASS for support.cropai@gmail.com, or set SMTP_AUTH_USER/SMTP_AUTH_PASS separately.'
+                error: 'SMTP authentication failed. Check EMAIL_USER and EMAIL_PASS, or use SENDGRID_API_KEY.'
             });
         }
 
@@ -3540,28 +3590,43 @@ app.post('/api/resend-verification', async (req, res) => {
 app.post('/api/login', async (req, res) => {
     try {
         const { identifier, password } = req.body;
-        const normalizedIdentifier = String(identifier).trim().toLowerCase();
+        const trimmedIdentifier = String(identifier || '').trim();
+        const normalizedIdentifier = trimmedIdentifier.toLowerCase();
         
         const user = await User.findOne({ 
-            $or: [{ email: normalizedIdentifier }, { username: identifier }] 
+            $or: [{ email: normalizedIdentifier }, { username: trimmedIdentifier }] 
         });
+        console.log(`[AUTH][LOGIN] lookup identifier=${trimmedIdentifier} found=${user ? 'YES' : 'NO'}`);
 
         if (!user || !(await bcrypt.compare(password, user.password))) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
         
-        if (!user.isVerified) {
-            return res.status(403).json({ error: 'Please verify your email first' });
+        if (!isUserEmailVerified(user)) {
+            console.log(`[AUTH][LOGIN] blocked unverified login for ${user.email}`);
+            return res.status(403).json({
+                error: 'Email not verified. Please verify your email.',
+                email: user.email,
+                emailVerified: false
+            });
         }
 
         req.session.userId = user._id.toString();
-        req.session.loginIdentifier = identifier;
-        req.session.user = { id: user._id.toString(), name: user.name, username: user.username, email: user.email, avatar: user.avatar };
+        req.session.loginIdentifier = trimmedIdentifier;
+        req.session.user = { id: user._id.toString(), name: user.name, username: user.username, email: user.email, avatar: user.avatar, emailVerified: true, isVerified: true };
         res.json({ message: 'Login successful', user: req.session.user });
     } catch (err) {
         console.error('Login error:', err);
         res.status(500).json({ error: 'Login failed', details: err.message });
     }
+});
+
+app.get('/api/auth/status', (req, res) => {
+    const authenticated = Boolean(req.session?.userId || req.session?.user);
+    res.json({
+        authenticated,
+        user: authenticated ? req.session.user || null : null
+    });
 });
 
 // Google authentication endpoint
