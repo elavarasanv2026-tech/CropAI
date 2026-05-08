@@ -124,6 +124,19 @@ async function connectMongoDB() {
     }
 }
 
+async function findUserByVerificationToken(token) {
+    const normalizedToken = String(token || '').trim();
+    if (!normalizedToken) return null;
+
+    let user = await User.findOne({ verificationToken: normalizedToken });
+    if (user) return user;
+
+    const fallbackUser = (jsonDb.data.users || []).find(
+        entry => String(entry.verificationToken || '').trim() === normalizedToken
+    );
+    return beautifyMockUser(fallbackUser);
+}
+
 function normalizeVegetableName(name) {
     return String(name || '').trim().toLowerCase();
 }
@@ -3403,17 +3416,23 @@ app.post('/api/signup', async (req, res) => {
 app.get('/verify/:token', async (req, res) => {
     try {
         const { token } = req.params;
-        
-        // Find user by token
-        const user = await User.findOne({ verificationToken: token });
-        
+
+        const user = await findUserByVerificationToken(token);
+
         if (!user) {
             return res.status(400).json({ error: 'Invalid or expired verification link', message: 'The verification link is invalid or has expired.' });
         }
 
-        // If valid: set isVerified = true, remove verificationToken
+        if (user.isVerified) {
+            return res.status(200).json({
+                message: 'Email already verified. You can log in now.',
+                alreadyVerified: true
+            });
+        }
+
+        // Keep the token so the same email link remains idempotent if reopened.
+        // A resend will replace the token with a fresh one automatically.
         user.isVerified = true;
-        user.verificationToken = undefined;
         await user.save();
 
         res.status(200).json({ message: 'Email verified successfully.' });
@@ -3918,6 +3937,26 @@ async function callCropHealthAnalysis(uploadedImage, base64Image) {
     return parseKindwiseCropHealthResponse(apiResponse);
 }
 
+function buildFallbackCropHealthResult(cropName, confidence) {
+    return {
+        crop_name: cropName,
+        confidence: confidence || 'Medium',
+        health_status: 'Healthy',
+        disease_detected: 'No',
+        disease_name: '',
+        disease_severity: 'None',
+        symptoms: [],
+        treatment: [],
+        care_tips: [
+            `Continue routine monitoring for ${cropName}.`,
+            'Maintain balanced irrigation and good airflow around the crop.',
+            'Upload a closer leaf photo if you want a more detailed disease analysis.'
+        ],
+        immediate_action: ensureMeaningfulImmediateAction('', 'No', '', cropName),
+        harvest_ready: 'No'
+    };
+}
+
 async function handleCombinedCropAnalysis(req, res) {
     try {
         const uploadedImage = extractUploadedImage(req);
@@ -3964,28 +4003,57 @@ async function handleCombinedCropAnalysis(req, res) {
             normalizedBytes: normalizedBuffer.length
         });
 
-        const plantIdResult = await callPlantIdIdentification(uploadedImage, base64Image);
-        const cropHealthResult = await callCropHealthAnalysis(uploadedImage, base64Image);
+        const [plantIdOutcome, cropHealthOutcome] = await Promise.allSettled([
+            callPlantIdIdentification(uploadedImage, base64Image),
+            callCropHealthAnalysis(uploadedImage, base64Image)
+        ]);
 
-        const cropName = plantIdResult.crop_name;
+        const plantIdResult = plantIdOutcome.status === 'fulfilled' ? plantIdOutcome.value : null;
+        const cropHealthResult = cropHealthOutcome.status === 'fulfilled' ? cropHealthOutcome.value : null;
+        const primaryError = plantIdOutcome.status === 'rejected'
+            ? plantIdOutcome.reason
+            : (cropHealthOutcome.status === 'rejected' ? cropHealthOutcome.reason : null);
+
+        if (!plantIdResult && !cropHealthResult) {
+            throw primaryError || new Error('Crop analysis failed for all providers.');
+        }
+
+        if (plantIdOutcome.status === 'rejected') {
+            console.warn('[CROP.ANALYSIS] Plant identification degraded:', plantIdOutcome.reason?.message || plantIdOutcome.reason);
+        }
+
+        if (cropHealthOutcome.status === 'rejected') {
+            console.warn('[CROP.ANALYSIS] Crop health analysis degraded:', cropHealthOutcome.reason?.message || cropHealthOutcome.reason);
+        }
+
+        const cropName = plantIdResult?.crop_name || cropHealthResult?.crop_name || 'Detected crop';
+        const mergedHealthResult = cropHealthResult || buildFallbackCropHealthResult(
+            cropName,
+            plantIdResult?.confidence
+        );
         const finalPayload = {
             crop_name: cropName,
-            confidence: cropHealthResult.confidence || plantIdResult.confidence,
-            health_status: cropHealthResult.health_status || 'Healthy',
-            disease_detected: cropHealthResult.disease_detected || 'No',
-            disease_name: cropHealthResult.disease_name || '',
-            disease_severity: cropHealthResult.disease_severity || 'None',
-            symptoms: Array.isArray(cropHealthResult.symptoms) ? cropHealthResult.symptoms : [],
-            treatment: Array.isArray(cropHealthResult.treatment) ? cropHealthResult.treatment : [],
-            care_tips: Array.isArray(cropHealthResult.care_tips) ? cropHealthResult.care_tips : [],
+            confidence: mergedHealthResult.confidence || plantIdResult?.confidence || 'Medium',
+            health_status: mergedHealthResult.health_status || 'Healthy',
+            disease_detected: mergedHealthResult.disease_detected || 'No',
+            disease_name: mergedHealthResult.disease_name || '',
+            disease_severity: mergedHealthResult.disease_severity || 'None',
+            symptoms: Array.isArray(mergedHealthResult.symptoms) ? mergedHealthResult.symptoms : [],
+            treatment: Array.isArray(mergedHealthResult.treatment) ? mergedHealthResult.treatment : [],
+            care_tips: Array.isArray(mergedHealthResult.care_tips) ? mergedHealthResult.care_tips : [],
             immediate_action: ensureMeaningfulImmediateAction(
-                cropHealthResult.immediate_action,
-                cropHealthResult.disease_detected,
-                cropHealthResult.disease_name,
+                mergedHealthResult.immediate_action,
+                mergedHealthResult.disease_detected,
+                mergedHealthResult.disease_name,
                 cropName
             ),
-            harvest_ready: cropHealthResult.harvest_ready || 'No',
-            analysis_summary: buildCropHealthSummary(cropName, cropHealthResult)
+            harvest_ready: mergedHealthResult.harvest_ready || 'No',
+            analysis_summary: buildCropHealthSummary(cropName, mergedHealthResult),
+            degraded: plantIdOutcome.status === 'rejected' || cropHealthOutcome.status === 'rejected',
+            warnings: [
+                plantIdOutcome.status === 'rejected' ? 'Plant identification provider was unavailable, so a fallback result was used.' : null,
+                cropHealthOutcome.status === 'rejected' ? 'Detailed crop health analysis was unavailable, so a basic health response was used.' : null
+            ].filter(Boolean)
         };
 
         console.log('[CROP.ANALYSIS] final crop_name before response:', cropName);

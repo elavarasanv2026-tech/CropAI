@@ -27,6 +27,7 @@ const PLANT_ID_KEY = readEnv('PLANT_ID_API_KEY');
 const KINDWISE_KEY = readEnv('KINDWISE_API_KEY');
 const PLANT_ID_API_URL = readEnv('PLANT_ID_API_URL') || 'https://api.plant.id/v3/identification';
 const CROP_HEALTH_API_URL = readEnv('CROP_HEALTH_API_URL') || 'https://plant.id/api/v3/health_assessment';
+const REQUEST_TIMEOUT_MS = Number(readEnv('EXTERNAL_API_TIMEOUT_MS')) || 15000;
 
 const externalApiConfig = {
   plantId: {
@@ -70,6 +71,18 @@ function mapExternalApiError(error, fallbackMessage) {
     error.response?.data?.error ||
     error.message;
 
+  if (error.code === 'ECONNABORTED' || /timeout/i.test(String(detail || ''))) {
+    return {
+      status: 504,
+      body: {
+        success: false,
+        error: fallbackMessage || 'External API request timed out.',
+        details: detail,
+        source
+      }
+    };
+  }
+
   if (status === 401 || status === 403) {
     if (source === 'crop.health') {
       return {
@@ -110,6 +123,62 @@ function mapExternalApiError(error, fallbackMessage) {
   };
 }
 
+function normalizeCandidateUrl(candidate) {
+  return sanitizeEnvValue(candidate).replace(/\/+$/, '');
+}
+
+function buildApiUrlCandidates(primaryUrl, fallbacks = []) {
+  const unique = new Set();
+  const ordered = [primaryUrl, ...fallbacks]
+    .map(normalizeCandidateUrl)
+    .filter(Boolean)
+    .filter((url) => {
+      if (unique.has(url)) return false;
+      unique.add(url);
+      return true;
+    });
+
+  return ordered;
+}
+
+function shouldTryNextEndpoint(error) {
+  const status = Number(error?.response?.status || 0);
+  if (!status) return true;
+  if (status === 404 || status === 408 || status === 425 || status === 429) return true;
+  return status >= 500;
+}
+
+async function postJsonWithFallbacks({ urls, payload, headers, params, sourceLabel }) {
+  const errors = [];
+
+  for (const url of urls) {
+    try {
+      const response = await axios.post(url, payload, {
+        params,
+        headers,
+        timeout: REQUEST_TIMEOUT_MS
+      });
+
+      console.log(`[${sourceLabel}] Response status from ${url}:`, response.status);
+      console.log(`[${sourceLabel}] Response data from ${url}:`, JSON.stringify(response.data));
+      return response.data;
+    } catch (error) {
+      error.externalApi = error.externalApi || sourceLabel.toLowerCase();
+      error.requestUrl = url;
+      errors.push(error);
+      console.error(`[${sourceLabel}] Request failed for ${url}:`, error.message);
+      console.error(`[${sourceLabel}] Response status:`, error.response?.status || null);
+      console.error(`[${sourceLabel}] Response data:`, JSON.stringify(error.response?.data || null));
+
+      if (!shouldTryNextEndpoint(error) || url === urls[urls.length - 1]) {
+        throw error;
+      }
+    }
+  }
+
+  throw errors[errors.length - 1] || new Error(`${sourceLabel} request failed.`);
+}
+
 async function requestCropHealthIdentification({ base64Image }) {
   if (!KINDWISE_KEY) {
     throw new Error('KINDWISE_API_KEY is missing from .env');
@@ -123,10 +192,14 @@ async function requestCropHealthIdentification({ base64Image }) {
     similar_images: true
   };
   const payloadSize = Buffer.byteLength(JSON.stringify(payload), 'utf8');
+  const candidateUrls = buildApiUrlCandidates(externalApiConfig.cropHealth.apiUrl, [
+    'https://crop.kindwise.com/api/v1/identification',
+    'https://plant.id/api/v3/health_assessment'
+  ]);
 
   console.log('[PLANT.HEALTH] Calling disease analysis API...');
   console.log('[PLANT.HEALTH] source = plant.health');
-  console.log('[PLANT.HEALTH] Request URL:', externalApiConfig.cropHealth.apiUrl);
+  console.log('[PLANT.HEALTH] Request URL candidates:', candidateUrls);
   console.log('[PLANT.HEALTH] API key exists:', KINDWISE_KEY ? 'YES' : 'NO');
   console.log('[PLANT.HEALTH] Masked key preview:', maskKey(KINDWISE_KEY));
   console.log('[PLANT.HEALTH] Header names:', ['Api-Key', 'Content-Type']);
@@ -138,30 +211,20 @@ async function requestCropHealthIdentification({ base64Image }) {
   });
 
   try {
-    const response = await axios.post(
-      externalApiConfig.cropHealth.apiUrl,
+    return await postJsonWithFallbacks({
+      urls: candidateUrls,
       payload,
-      {
-        params: {
-          details: 'disease_details,treatment'
-        },
-        headers: {
-          'Api-Key': KINDWISE_KEY,
-          'Content-Type': 'application/json'
-        },
-        timeout: 30000
-      }
-    );
-
-    console.log('[PLANT.HEALTH] Response status:', response.status);
-    console.log('[PLANT.HEALTH] Response data:', JSON.stringify(response.data));
-
-    return response.data;
+      params: {
+        details: 'disease_details,treatment'
+      },
+      headers: {
+        'Api-Key': KINDWISE_KEY,
+        'Content-Type': 'application/json'
+      },
+      sourceLabel: 'PLANT.HEALTH'
+    });
   } catch (error) {
     error.externalApi = 'plant.health';
-    console.error('[PLANT.HEALTH] Response status:', error.response?.status || null);
-    console.error('[PLANT.HEALTH] Response data:', JSON.stringify(error.response?.data || null));
-    console.error('[PLANT.HEALTH] error.response?.data:', JSON.stringify(error.response?.data || null));
     throw error;
   }
 }
@@ -176,36 +239,30 @@ async function requestPlantIdIdentification({ base64Image }) {
     similar_images: true
   };
   const payloadSize = Buffer.byteLength(JSON.stringify(payload), 'utf8');
+  const candidateUrls = buildApiUrlCandidates(externalApiConfig.plantId.apiUrl, [
+    'https://plant.id/api/v3/identification',
+    'https://api.plant.id/v3/identification'
+  ]);
 
   console.log('[PLANT.ID] Calling plant.id API...');
-  console.log('[PLANT.ID] Request URL:', externalApiConfig.plantId.apiUrl);
+  console.log('[PLANT.ID] Request URL candidates:', candidateUrls);
   console.log('[PLANT.ID] API key exists:', PLANT_ID_KEY ? 'YES' : 'NO');
   console.log('[PLANT.ID] Masked key preview:', maskKey(PLANT_ID_KEY));
   console.log('[PLANT.ID] Header names:', ['Api-Key', 'Content-Type']);
   console.log('[PLANT.ID] Request payload size:', payloadSize);
 
   try {
-    const response = await axios.post(
-      externalApiConfig.plantId.apiUrl,
+    return await postJsonWithFallbacks({
+      urls: candidateUrls,
       payload,
-      {
-        headers: {
-          'Api-Key': PLANT_ID_KEY,
-          'Content-Type': 'application/json'
-        },
-        timeout: 30000
-      }
-    );
-
-    console.log('[PLANT.ID] Response status:', response.status);
-    console.log('[PLANT.ID] Response data:', JSON.stringify(response.data));
-
-    return response.data;
+      headers: {
+        'Api-Key': PLANT_ID_KEY,
+        'Content-Type': 'application/json'
+      },
+      sourceLabel: 'PLANT.ID'
+    });
   } catch (error) {
     error.externalApi = 'plant.id';
-    console.error('[PLANT.ID] Response status:', error.response?.status || null);
-    console.error('[PLANT.ID] Response data:', JSON.stringify(error.response?.data || null));
-    console.error('[PLANT.ID] error.response?.data:', JSON.stringify(error.response?.data || null));
     throw error;
   }
 }

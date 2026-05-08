@@ -70,7 +70,7 @@
       "name": "Elavarasan V",
       "username": "ela@1031",
       "email": "elavarasanv2026@gmail.com",
-      "password": "$2a$12$w3Tbu9YQj0P8rv1.3DHH1eZuxmUELviNsCjYTeaCBYJhAWLlmu2W6",
+      "password": "$2a$10$e2v23IQH5.Dzuh7Iqo6/wOkYTpnxjkqhGSi8gHv1eNXbKaogPdI5S",
       "createdAt": "2026-02-18T04:29:34.762Z",
       "resetPasswordToken": "d134a0234ac5e045a8810dcc40ab9e8f8099574a51f49cf0dedc1d4b06705489",
       "resetPasswordExpires": 1771572584761,
@@ -330,6 +330,20 @@
       "role": "farmer",
       "createdAt": "2026-04-30T05:14:04.176Z",
       "_id": 1777526044176
+    },
+    {
+      "id": 1778064236010,
+      "name": "gokul",
+      "username": "jhon123",
+      "email": "support.cropai@gmail.com",
+      "password": "$2a$10$vDGlv/u0PMd5vqYP5JSZ5.bS0o.PTbVk8U4AhleZec8zwJ9yo/daS",
+      "phone": "6380083954",
+      "location": "332 Main Road ,Sengodampalayam, Punnam,Erode.",
+      "verificationToken": "28b1a3f92d02292ab7d2bcccbade92d079bf451c87da477deef17da36c94d0eb",
+      "isVerified": true,
+      "role": "farmer",
+      "createdAt": "2026-05-06T10:43:56.010Z",
+      "_id": 1778064236010
     }
   ]
 }
