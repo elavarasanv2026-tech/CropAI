@@ -194,15 +194,12 @@
 
         for (const base of candidates) {
             try {
-                const response = await fetch(`${base}/api/user`, {
-                    method: 'GET',
-                    credentials: 'include'
-                });
+                const response = await fetch(`${base}/api/config/google`, { method: 'GET' });
 
                 const contentType = response.headers.get('content-type') || '';
                 const looksJson = contentType.includes('application/json');
 
-                if (response.status === 401 || looksJson) {
+                if (response.ok && looksJson) {
                     safeStorageSet(API_BASE_KEY, base);
                     return base;
                 }

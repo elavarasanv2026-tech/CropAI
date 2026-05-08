@@ -3334,18 +3334,19 @@ const requireAuth = (req, res, next) => {
 app.post('/api/signup', async (req, res) => {
     try {
         const { name, username, email, password, phone, address } = req.body;
+        const normalizedName = String(name || '').trim();
+        const normalizedUsername = String(username || '').trim();
+        const normalizedEmail = String(email || '').trim().toLowerCase();
         
-        if (!name || !username || !email || !password) {
+        if (!normalizedName || !normalizedUsername || !normalizedEmail || !password) {
             return res.status(400).json({ error: 'All fields are required' });
         }
-
-        const normalizedEmail = String(email).trim().toLowerCase();
         
         // 1. Store user in database (MongoDB)
         let existingUser;
         try {
             existingUser = await User.findOne({ 
-                $or: [{ email: normalizedEmail }, { username }] 
+                $or: [{ email: normalizedEmail }, { username: normalizedUsername }] 
             });
         } catch (dbErr) {
             console.error('[AUTH] DB Check failed:', dbErr.message);
@@ -3354,7 +3355,49 @@ app.post('/api/signup', async (req, res) => {
 
         if (existingUser) {
             if (String(existingUser.email).toLowerCase() === normalizedEmail) {
-                return res.status(400).json({ error: 'Email address is already in use' });
+                if (existingUser.isVerified) {
+                    return res.status(400).json({ error: 'Email address is already in use' });
+                }
+
+                const verificationToken = crypto.randomBytes(32).toString('hex');
+                existingUser.verificationToken = verificationToken;
+
+                if (!existingUser.name && normalizedName) {
+                    existingUser.name = normalizedName;
+                }
+                if (!existingUser.username && normalizedUsername) {
+                    existingUser.username = normalizedUsername;
+                }
+
+                await existingUser.save();
+
+                const baseUrl = getAppBaseUrl(req);
+                const verifyLink = `${baseUrl}/verify.html?token=${verificationToken}`;
+                let emailSent = false;
+
+                try {
+                    if (emailTransporter) {
+                        await sendBrandedEmail({
+                            to: normalizedEmail,
+                            subject: VERIFICATION_EMAIL_SUBJECT,
+                            html: buildVerificationEmailHtml(verifyLink, existingUser.name || normalizedName)
+                        });
+                        emailSent = true;
+                        console.log(`[AUTH] Re-sent verification email during signup retry to ${normalizedEmail}`);
+                    }
+                } catch (emailErr) {
+                    console.error('[AUTH] Failed to re-send verification email during signup retry:', emailErr.message);
+                }
+
+                return res.status(200).json({
+                    message: emailSent
+                        ? 'This email is already registered but not verified. We sent a fresh verification email.'
+                        : 'This email is already registered but not verified. Email delivery is unavailable right now, so use Resend Verification later or contact support.',
+                    user: { email: normalizedEmail, name: existingUser.name || normalizedName },
+                    emailSent,
+                    existingAccount: true,
+                    requiresVerification: true
+                });
             } else {
                 return res.status(400).json({ error: 'Username is already taken' });
             }
@@ -3367,8 +3410,8 @@ app.post('/api/signup', async (req, res) => {
 
         // Create new user in DB
         const user = new User({
-            name,
-            username,
+            name: normalizedName,
+            username: normalizedUsername,
             email: normalizedEmail,
             password: hashedPassword,
             phone: phone || '',

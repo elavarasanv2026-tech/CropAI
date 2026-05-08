@@ -419,7 +419,7 @@
                 <i class="fas fa-envelope"></i>
             </div>
             <h2>Account Created</h2>
-            <p>Your account was successfully created.<br>Please check your inbox to verify your email.</p>
+            <p id="successMessage">Your account was successfully created.<br>Please check your inbox to verify your email.</p>
             <button class="modal-btn" onclick="closeSuccessModal()">Got it</button>
             <div style="margin-top:16px; display:none;" id="resendSection">
                 <button id="resendBtn" onclick="resendVerification()" style="background:transparent;border:none;color:#9ca3af;font-size:14px;padding:10px 20px;text-decoration:underline;">Resend Verification Email</button>
@@ -629,7 +629,16 @@
             if(type === 'danger') setTimeout(() => { const a = container.querySelector('.alert'); if(a) bootstrap.Alert.getOrCreateInstance(a).close(); }, 5000);
         }
 
-        function showSuccessModal() { document.getElementById('successModal').classList.add('active'); }
+        function showSuccessModal(message) {
+            const modal = document.getElementById('successModal');
+            const messageEl = document.getElementById('successMessage');
+            const resendSection = document.getElementById('resendSection');
+            const resendMsg = document.getElementById('resendMsg');
+            if (messageEl && message) messageEl.innerHTML = String(message).replace(/\n/g, '<br>');
+            if (resendSection) resendSection.style.display = 'block';
+            if (resendMsg) resendMsg.textContent = '';
+            modal.classList.add('active');
+        }
         function closeSuccessModal() { window.location.href = 'login.html'; }
 
         let _signupEmail = '';
@@ -639,7 +648,7 @@
             btn.disabled = true;
             btn.textContent = 'Sending...';
             try {
-                const res = await fetch('/api/resend-verification', {
+                const res = await fetchWithRetry('/api/resend-verification', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: _signupEmail })
@@ -680,7 +689,7 @@
                         window.CropAIAuth.setStoredLoginIdentifier(data.email);
                     }
                     _signupEmail = data.email;
-                    showSuccessModal();
+                    showSuccessModal(json.message || 'Your account was successfully created.<br>Please check your inbox to verify your email.');
                 } else { showAlert(json.error || 'Failed', 'danger'); }
             } catch(e) { showAlert('Connection error', 'danger'); } finally { btn.disabled = false; btn.innerHTML = old; }
         });
