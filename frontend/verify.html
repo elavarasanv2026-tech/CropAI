@@ -301,6 +301,7 @@
         async function submitResend() {
             const email = document.getElementById('resendEmail').value;
             const msgBox = document.getElementById('resendMessage');
+            const resendButton = document.querySelector('#resendContainer button');
             
             if (!email) {
                 msgBox.innerText = "Please enter an email.";
@@ -310,6 +311,7 @@
 
             msgBox.innerText = "Sending...";
             msgBox.style.color = "var(--text-muted)";
+            if (resendButton) resendButton.textContent = "Sending...";
 
             try {
                 const response = await fetch('/api/resend-verification', {
@@ -323,13 +325,16 @@
                 if (response.ok) {
                     msgBox.innerText = "Verification link sent! Check your inbox.";
                     msgBox.style.color = "var(--primary-color)";
+                    if (resendButton) resendButton.textContent = "Send Link";
                 } else {
                     msgBox.innerText = data.error || "Failed to resend.";
                     msgBox.style.color = "#ff5555";
+                    if (resendButton) resendButton.textContent = "Send Link";
                 }
             } catch (e) {
                 msgBox.innerText = "Network error. Try again later.";
                 msgBox.style.color = "#ff5555";
+                if (resendButton) resendButton.textContent = "Send Link";
             }
         }
     </script>

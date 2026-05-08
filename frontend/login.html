@@ -982,7 +982,12 @@
                         : `\u274c ${result && (result.error || result.message) ? (result.error || result.message) : 'Failed.'}`;
                     msg.style.color = res.ok ? '#00ff88' : '#ff5555';
                 }
-            } catch(e) { if (msg) { msg.textContent = 'Network error.'; msg.style.color = '#ff5555'; } }
+            } catch(e) {
+                if (msg) {
+                    msg.textContent = '\u274c Network error. Please try again.';
+                    msg.style.color = '#ff5555';
+                }
+            }
         }
 
         function showAlert(message, type) {

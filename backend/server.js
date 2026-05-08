@@ -2369,6 +2369,16 @@ async function sendBrandedEmail({ to, subject, html, text, replyTo }) {
     });
 }
 
+async function verifyEmailTransporterReadiness() {
+    if (!emailTransporter) return;
+    try {
+        await emailTransporter.verify();
+        console.log('[SMTP] ready');
+    } catch (err) {
+        console.error('[SMTP] verify failed:', err.message);
+    }
+}
+
 async function initEmailTransporter() {
     if (String(process.env.DISABLE_EMAIL || '').toLowerCase() === 'true') {
         emailMode = 'disabled';
@@ -2397,10 +2407,14 @@ async function initEmailTransporter() {
             host: 'smtp.sendgrid.net',
             port: 465,
             secure: true,
-            auth: { user: 'apikey', pass: sendGridApiKey }
+            auth: { user: 'apikey', pass: sendGridApiKey },
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 15000
         });
         emailMode = 'sendgrid';
         console.log('[EMAIL] SendGrid SMTP configured. Verification emails will be attempted through SendGrid.');
+        await verifyEmailTransporterReadiness();
         return;
     }
 
@@ -2409,11 +2423,15 @@ async function initEmailTransporter() {
             host: 'smtp.gmail.com',
             port: 465,
             secure: true,
-            auth: { user: gmailUser, pass: gmailPass }
+            auth: { user: gmailUser, pass: gmailPass },
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 15000
         });
 
         emailMode = 'gmail';
         console.log('[EMAIL] Gmail SMTP configured. Delivery will be attempted when an email is sent.');
+        await verifyEmailTransporterReadiness();
         return;
     }
     emailMode = 'disabled';
@@ -3534,14 +3552,14 @@ app.get('/verify/:token', handleEmailVerification);
 app.post('/api/resend-verification', async (req, res) => {
     try {
         const { email } = req.body;
-        if (!email) return res.status(400).json({ error: 'Email is required' });
+        if (!email) return res.status(400).json({ success: false, message: 'Email is required', error: 'Email is required' });
 
         const normalizedEmail = String(email).trim().toLowerCase();
         const user = await User.findOne({ email: normalizedEmail });
         console.log(`[AUTH][RESEND] lookup email=${normalizedEmail} found=${user ? 'YES' : 'NO'}`);
 
-        if (!user) return res.status(404).json({ error: 'User not found' });
-        if (isUserEmailVerified(user)) return res.status(400).json({ error: 'Email is already verified' });
+        if (!user) return res.status(404).json({ success: false, message: 'User not found', error: 'User not found' });
+        if (isUserEmailVerified(user)) return res.status(400).json({ success: false, message: 'Email is already verified', error: 'Email is already verified' });
 
         // Generate new token
         const verificationToken = crypto.randomBytes(32).toString('hex');
@@ -3554,35 +3572,32 @@ app.post('/api/resend-verification', async (req, res) => {
         const verifyLink = buildVerificationLink(verificationToken);
 
         if (emailTransporter) {
-            await sendBrandedEmail({
-                to: normalizedEmail,
-                subject: VERIFICATION_EMAIL_SUBJECT,
-                replyTo: getSupportEmail(),
-                html: buildVerificationEmailHtml(verifyLink, user.name || user.username || '')
-            });
-            console.log(`[AUTH][RESEND] verification email sent successfully to ${normalizedEmail}`);
-            res.json({ message: 'Verification email resent successfully' });
+            try {
+                console.log('[AUTH][RESEND] before sendMail');
+                const info = await sendBrandedEmail({
+                    to: normalizedEmail,
+                    subject: VERIFICATION_EMAIL_SUBJECT,
+                    replyTo: getSupportEmail(),
+                    html: buildVerificationEmailHtml(verifyLink, user.name || user.username || '')
+                });
+                console.log('[AUTH][RESEND] mail sent', info && info.messageId ? info.messageId : '<no-message-id>');
+                console.log(`[AUTH][RESEND] verification email sent successfully to ${normalizedEmail}`);
+                return res.json({ success: true, message: 'Verification email resent successfully' });
+            } catch (err) {
+                console.error('[AUTH][RESEND] sendMail failed:', err.message);
+                return res.status(500).json({ success: false, message: 'Email send failed', error: err.message });
+            }
         } else {
             console.error('[AUTH][RESEND] email transporter is not configured');
-            res.status(503).json({
+            return res.status(503).json({
+                success: false,
+                message: 'Email service is not configured',
                 error: 'Email service is not configured. Set EMAIL_USER and EMAIL_PASS, or set SENDGRID_API_KEY.'
             });
         }
     } catch (err) {
         console.error('[AUTH] Resend Verification Error:', err);
-        const isAuthError = err && (
-            err.code === 'EAUTH' ||
-            err.responseCode === 535 ||
-            /invalid login|username and password not accepted|authentication/i.test(String(err.message || ''))
-        );
-
-        if (isAuthError) {
-            return res.status(503).json({
-                error: 'SMTP authentication failed. Check EMAIL_USER and EMAIL_PASS, or use SENDGRID_API_KEY.'
-            });
-        }
-
-        res.status(500).json({ error: 'Failed to resend email' });
+        return res.status(500).json({ success: false, message: 'Email send failed', error: err.message });
     }
 });
 

@@ -645,6 +645,7 @@
         async function resendVerification() {
             const btn = document.getElementById('resendBtn');
             const msg = document.getElementById('resendMsg');
+            const defaultText = 'Resend Verification Email';
             btn.disabled = true;
             btn.textContent = 'Sending...';
             try {
@@ -661,11 +662,13 @@
                     msg.textContent = data.error || 'Failed to resend.';
                     msg.style.color = '#ff5555';
                     btn.disabled = false;
+                    btn.textContent = defaultText;
                 }
             } catch(e) {
                 msg.textContent = 'Network error. Try again.';
                 msg.style.color = '#ff5555';
                 btn.disabled = false;
+                btn.textContent = defaultText;
             }
         }
 
