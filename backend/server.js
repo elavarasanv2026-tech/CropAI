@@ -2359,14 +2359,22 @@ async function sendBrandedEmail({ to, subject, html, text, replyTo }) {
         throw new Error('Email transporter is not configured.');
     }
 
-    return emailTransporter.sendMail({
-        from: getBrandedEmailFrom(),
-        to,
-        subject,
-        html,
-        text,
-        ...(replyTo ? { replyTo } : {})
-    });
+    try {
+        console.log('[EMAIL] before sendMail');
+        const info = await emailTransporter.sendMail({
+            from: getBrandedEmailFrom(),
+            to,
+            subject,
+            html,
+            text,
+            ...(replyTo ? { replyTo } : {})
+        });
+        console.log('[EMAIL] mail sent success', info && info.messageId ? info.messageId : '<no-message-id>');
+        return info;
+    } catch (err) {
+        console.error('[EMAIL] sendMail failed error', err.message);
+        throw err;
+    }
 }
 
 async function verifyEmailTransporterReadiness() {
@@ -2421,9 +2429,13 @@ async function initEmailTransporter() {
     if (hasGmailCreds) {
         emailTransporter = nodemailer.createTransport({
             host: 'smtp.gmail.com',
-            port: 465,
-            secure: true,
-            auth: { user: gmailUser, pass: gmailPass },
+            port: 587,
+            secure: false,
+            family: 4,
+            auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+            tls: {
+                rejectUnauthorized: false
+            },
             connectionTimeout: 10000,
             greetingTimeout: 10000,
             socketTimeout: 15000
