@@ -72,10 +72,18 @@ router.post('/signup', async (req, res) => {
         });
 
         const verificationToken = createVerificationToken(user);
-        await sendVerificationEmail(user.email, verificationToken);
+        const sent = await sendVerificationEmail(user.email, verificationToken);
+
+        if (!sent) {
+            return res.status(500).json({
+                success: false,
+                message: 'Email sending failed'
+            });
+        }
 
         return res.status(201).json({
-            message: 'Signup successful. Please check your email to verify your account.'
+            success: true,
+            message: 'Verification email sent'
         });
     } catch (error) {
         console.error('Signup error:', error);
@@ -186,10 +194,18 @@ router.post('/resend-verification', async (req, res) => {
         }
 
         const verificationToken = createVerificationToken(user);
-        await sendVerificationEmail(user.email, verificationToken);
+        const sent = await sendVerificationEmail(user.email, verificationToken);
+
+        if (!sent) {
+            return res.status(500).json({
+                success: false,
+                message: 'Email sending failed'
+            });
+        }
 
         return res.status(200).json({
-            message: 'Verification email resent successfully.'
+            success: true,
+            message: 'Verification email sent'
         });
     } catch (error) {
         console.error('Resend verification error:', error);

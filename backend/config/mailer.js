@@ -1,41 +1,13 @@
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 
-/**
- * Creates a Gmail SMTP transporter using EMAIL_USER and EMAIL_PASS from .env
- */
 function getSupportEmail() {
-    return process.env.SUPPORT_EMAIL || process.env.EMAIL_FROM || process.env.EMAIL_USER || 'support.cropai@gmail.com';
+    return process.env.SUPPORT_EMAIL || process.env.FROM_EMAIL || process.env.EMAIL_FROM || 'support.cropai@gmail.com';
 }
 
-function getSmtpAuthUser() {
-    return process.env.SMTP_AUTH_USER || process.env.EMAIL_USER;
+function getVerificationBaseUrl() {
+    return String(process.env.BASE_URL || process.env.APP_URL || 'http://localhost:3000').replace(/\/+$/, '');
 }
 
-function getSmtpAuthPass() {
-    return process.env.SMTP_AUTH_PASS || process.env.EMAIL_PASS;
-}
-
-function createTransporter() {
-    const user = getSmtpAuthUser();
-    const pass = getSmtpAuthPass();
-
-    if (!user || !pass) {
-        return null;
-    }
-
-    return nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 465,
-        secure: true,
-        auth: { user, pass }
-    });
-
-    return { sent: true };
-}
-
-/**
- * Builds a beautiful, Phytelix-style HTML verification email.
- */
 function buildVerificationEmailHtml(verificationUrl, name = '') {
     const supportEmail = getSupportEmail();
     const cleanedName = String(name || '').trim();
@@ -73,7 +45,7 @@ function buildVerificationEmailHtml(verificationUrl, name = '') {
                 If you didn't sign up for CropAI, please ignore this message. No further action is required.
               </div>
               <div style="border-top:1px solid #2c2f35;padding-top:22px;text-align:center;color:#8b93a0;font-size:14px;line-height:1.8;">
-                You are receiving this email because you registered at <a href="${process.env.APP_URL || 'http://localhost:3000'}" style="color:#16a34a;text-decoration:none;">CropAI</a>.<br>
+                You are receiving this email because you registered at <a href="${getVerificationBaseUrl()}" style="color:#16a34a;text-decoration:none;">CropAI</a>.<br>
                 Need help? Contact CropAI Support<br>
                 <a href="mailto:${supportEmail}" style="color:#16a34a;text-decoration:none;">${supportEmail}</a>
               </div>
@@ -87,33 +59,37 @@ function buildVerificationEmailHtml(verificationUrl, name = '') {
 </html>`;
 }
 
-/**
- * Sends a verification email to a newly registered user.
- * @param {string} toEmail - Recipient email address
- * @param {string} verificationToken - The raw crypto token (not JWT)
- * @param {string} [name] - Optional user name for personalised greeting
- */
 async function sendVerificationEmail(toEmail, verificationToken, name = '') {
-    const transporter = createTransporter();
-    if (!transporter) {
-        return { sent: false, reason: 'email_not_configured' };
+    try {
+        const apiKey = String(process.env.SENDGRID_API_KEY || '').trim();
+        const fromEmail = String(process.env.FROM_EMAIL || '').trim();
+
+        if (!apiKey || !fromEmail) {
+            console.error('[SENDGRID] failed missing SENDGRID_API_KEY or FROM_EMAIL');
+            return false;
+        }
+
+        sgMail.setApiKey(apiKey);
+        console.log('[SENDGRID] email sending');
+
+        const verifyLink = `${getVerificationBaseUrl()}/api/verify-email?token=${verificationToken}`;
+        const msg = {
+            to: toEmail,
+            from: fromEmail,
+            subject: 'Verify your CropAI account',
+            html: buildVerificationEmailHtml(verifyLink, name)
+        };
+
+        const response = await sgMail.send(msg);
+        console.log('[SENDGRID] email sent', response[0].statusCode);
+        return true;
+    } catch (err) {
+        console.error('[SENDGRID] failed', err.message);
+        return false;
     }
-
-    const baseUrl = process.env.APP_URL || process.env.BASE_URL || 'http://localhost:3000';
-    const verificationUrl = `${baseUrl}/verify.html?token=${verificationToken}`;
-    const supportEmail = getSupportEmail();
-
-    await transporter.sendMail({
-        from: `"CropAI" <${process.env.EMAIL_FROM || supportEmail}>`,
-        replyTo: supportEmail,
-        to: toEmail,
-        subject: 'Verify your email – Welcome to CropAI 🌱',
-        html: buildVerificationEmailHtml(verificationUrl, name)
-    });
 }
 
 module.exports = {
-    createTransporter,
     buildVerificationEmailHtml,
     sendVerificationEmail
 };

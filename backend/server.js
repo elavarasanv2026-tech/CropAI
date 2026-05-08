@@ -9,7 +9,7 @@ const multer = require('multer');
 const fsModule = require('fs');
 const crypto = require('crypto');
 const sharp = require('sharp');
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 const mongoose = require('mongoose');
 const { OAuth2Client } = require('google-auth-library');
 const dotenvPath = path.join(__dirname, '.env');
@@ -120,7 +120,7 @@ async function connectMongoDB() {
         const OriginalUser = User;
         User = function(data) { return new UserInstance(data); };
         Object.assign(User, MockUser); 
-        console.log('ℹ️  Application is now running in JSON Fallback Mode.');
+        console.log('â„¹ï¸  Application is now running in JSON Fallback Mode.');
     }
 }
 
@@ -202,7 +202,7 @@ function buildDateVariantRows(baseRows, requestedDate) {
         return {
             ...row,
             price: adjustedPrice,
-            retailPrice: `₹${retailMin} - ${retailMax}`,
+            retailPrice: `â‚¹${retailMin} - ${retailMax}`,
             retailMin,
             retailMax,
             trend: priceChange > 0 ? 'up' : priceChange < 0 ? 'down' : 'stable',
@@ -440,10 +440,10 @@ function buildDatasetRecommendations(input) {
             crop,
             suitabilityScore,
             suitability: suitabilityScore >= 90 ? 'Excellent' : suitabilityScore >= 80 ? 'High' : suitabilityScore >= 70 ? 'Moderate' : 'Low',
-            description: `${crop} closely matches the dataset profile for your current NPK balance, rainfall, temperature, humidity, and pH. Similar records in the training data perform best around ${avgTemp.toFixed(1)}°C, ${avgHumidity.toFixed(0)}% humidity, and pH ${avgPh.toFixed(1)}, making it a strong fit for this farm setup.`,
+            description: `${crop} closely matches the dataset profile for your current NPK balance, rainfall, temperature, humidity, and pH. Similar records in the training data perform best around ${avgTemp.toFixed(1)}Â°C, ${avgHumidity.toFixed(0)}% humidity, and pH ${avgPh.toFixed(1)}, making it a strong fit for this farm setup.`,
             conditionSummary: `Dataset match strong, pH ${avgPh.toFixed(1)} suitable, rainfall and humidity aligned`,
             climateDetails: {
-                tempRange: `${Math.round((profile.temperatureMin ?? avgTemp) - 1)}-${Math.round((profile.temperatureMax ?? avgTemp) + 1)}°C`,
+                tempRange: `${Math.round((profile.temperatureMin ?? avgTemp) - 1)}-${Math.round((profile.temperatureMax ?? avgTemp) + 1)}Â°C`,
                 humidity: `${Math.round(profile.humidityMin ?? avgHumidity)}-${Math.round(profile.humidityMax ?? avgHumidity)}%`
             },
             soilDetails: {
@@ -461,7 +461,7 @@ function buildDatasetRecommendations(input) {
             },
             yieldRange,
             yieldUnit,
-            marketValue: `₹${marketValueNumber.toLocaleString('en-IN')}`,
+            marketValue: `â‚¹${marketValueNumber.toLocaleString('en-IN')}`,
             profitMargin,
             sustainabilityScore,
             plantingSeason,
@@ -1166,7 +1166,7 @@ function buildCultivationNotes(context = {}, cropMeta = {}, recommendation = nul
         notes.push(`Current rainfall input (${context.rainfall} mm) should be considered while planning irrigation.`);
     }
     if (Number.isFinite(context.temperature)) {
-        notes.push(`Temperature around ${context.temperature}°C should be monitored during establishment and flowering stages.`);
+        notes.push(`Temperature around ${context.temperature}Â°C should be monitored during establishment and flowering stages.`);
     }
     if (recommendation?.conditionSummary) {
         notes.push(recommendation.conditionSummary);
@@ -2253,26 +2253,16 @@ app.use((req, res, next) => {
     const start = Date.now();
     res.on('finish', () => {
         const duration = Date.now() - start;
-        console.log(`📨 ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
+        console.log(`ðŸ“¨ ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
     });
     next();
 });
 
-let emailTransporter = null;
-let emailMode = 'pending';
 const MAIL_BRAND_NAME = 'CropAI';
 const VERIFICATION_EMAIL_SUBJECT = 'Verify your CropAI Email Address';
 
 function getSupportEmail() {
-    return process.env.SUPPORT_EMAIL || process.env.EMAIL_FROM || process.env.EMAIL_USER || 'support.cropai@gmail.com';
-}
-
-function getSmtpAuthUser() {
-    return process.env.SMTP_AUTH_USER || process.env.EMAIL_USER;
-}
-
-function getSmtpAuthPass() {
-    return process.env.SMTP_AUTH_PASS || process.env.EMAIL_PASS;
+    return process.env.SUPPORT_EMAIL || process.env.FROM_EMAIL || process.env.EMAIL_FROM || 'support.cropai@gmail.com';
 }
 
 function getVerificationBaseUrl() {
@@ -2295,7 +2285,7 @@ function markUserEmailVerified(user) {
 }
 
 function getBrandedEmailFrom() {
-    const senderEmail = process.env.EMAIL_FROM || getSupportEmail();
+    const senderEmail = process.env.FROM_EMAIL || process.env.EMAIL_FROM || getSupportEmail();
     return `"${MAIL_BRAND_NAME}" <${senderEmail}>`;
 }
 
@@ -2355,99 +2345,72 @@ function buildVerificationEmailHtml(verificationUrl, name = '') {
 }
 
 async function sendBrandedEmail({ to, subject, html, text, replyTo }) {
-    if (!emailTransporter) {
-        throw new Error('Email transporter is not configured.');
+    const sendGridApiKey = String(process.env.SENDGRID_API_KEY || '').trim();
+    const fromEmail = String(process.env.FROM_EMAIL || process.env.EMAIL_FROM || '').trim();
+
+    if (!sendGridApiKey) {
+        throw new Error('SENDGRID_API_KEY is not configured.');
+    }
+    if (!fromEmail) {
+        throw new Error('FROM_EMAIL is not configured.');
     }
 
     try {
-        console.log('[EMAIL] before sendMail');
-        const info = await emailTransporter.sendMail({
-            from: getBrandedEmailFrom(),
+        sgMail.setApiKey(sendGridApiKey);
+        console.log('[SENDGRID] email sending');
+        const response = await sgMail.send({
             to,
-            subject,
+            from: fromEmail,
+            replyTo: replyTo || getSupportEmail(),
+            subject: subject || VERIFICATION_EMAIL_SUBJECT,
             html,
             text,
-            ...(replyTo ? { replyTo } : {})
         });
-        console.log('[EMAIL] mail sent success', info && info.messageId ? info.messageId : '<no-message-id>');
-        return info;
+        console.log('[SENDGRID] email sent', response[0].statusCode);
+        return response;
     } catch (err) {
-        console.error('[EMAIL] sendMail failed error', err.message);
+        console.error('[SENDGRID] failed', err.message);
         throw err;
     }
 }
 
-async function verifyEmailTransporterReadiness() {
-    if (!emailTransporter) return;
+async function verifySendGridReadiness() {
     try {
-        await emailTransporter.verify();
-        console.log('[SMTP] ready');
+        const sendGridApiKey = String(process.env.SENDGRID_API_KEY || '').trim();
+        const fromEmail = String(process.env.FROM_EMAIL || process.env.EMAIL_FROM || '').trim();
+        if (!sendGridApiKey || !fromEmail) {
+            console.log('[SENDGRID] disabled. Set SENDGRID_API_KEY and FROM_EMAIL.');
+            return;
+        }
+        sgMail.setApiKey(sendGridApiKey);
+        console.log('[SENDGRID] ready');
     } catch (err) {
-        console.error('[SMTP] verify failed:', err.message);
+        console.error('[SENDGRID] verify failed:', err.message);
     }
 }
 
 async function initEmailTransporter() {
     if (String(process.env.DISABLE_EMAIL || '').toLowerCase() === 'true') {
-        emailMode = 'disabled';
         console.log('Email delivery disabled by DISABLE_EMAIL=true');
         return;
     }
 
-    const gmailUser = getSmtpAuthUser();
-    const gmailPass = getSmtpAuthPass();
-    const hasGmailCreds = gmailUser &&
-        gmailPass &&
-        !gmailUser.includes('your_gmail') &&
-        !gmailPass.includes('your_16') &&
-        !gmailPass.includes('your_gmail_app_password');
     const sendGridApiKey = String(process.env.SENDGRID_API_KEY || '').trim();
     const hasSendGridCreds = Boolean(sendGridApiKey) && !sendGridApiKey.includes('your_');
+    const fromEmail = String(process.env.FROM_EMAIL || process.env.EMAIL_FROM || '').trim();
 
     console.log(`[EMAIL] BASE_URL=${process.env.BASE_URL || '<missing>'}`);
     console.log(`[EMAIL] APP_URL=${process.env.APP_URL || '<missing>'}`);
-    console.log(`[EMAIL] EMAIL_USER configured=${gmailUser ? 'YES' : 'NO'}`);
-    console.log(`[EMAIL] EMAIL_PASS/SMTP_AUTH_PASS configured=${gmailPass ? 'YES' : 'NO'}`);
     console.log(`[EMAIL] SENDGRID_API_KEY configured=${hasSendGridCreds ? 'YES' : 'NO'}`);
+    console.log(`[EMAIL] FROM_EMAIL configured=${fromEmail ? 'YES' : 'NO'}`);
 
-    if (hasSendGridCreds) {
-        emailTransporter = nodemailer.createTransport({
-            host: 'smtp.sendgrid.net',
-            port: 465,
-            secure: true,
-            auth: { user: 'apikey', pass: sendGridApiKey },
-            connectionTimeout: 10000,
-            greetingTimeout: 10000,
-            socketTimeout: 15000
-        });
-        emailMode = 'sendgrid';
-        console.log('[EMAIL] SendGrid SMTP configured. Verification emails will be attempted through SendGrid.');
-        await verifyEmailTransporterReadiness();
+    if (hasSendGridCreds && fromEmail) {
+        sgMail.setApiKey(sendGridApiKey);
+        console.log('[EMAIL] SendGrid Web API configured. Verification emails will be attempted through SendGrid.');
+        await verifySendGridReadiness();
         return;
     }
-
-    if (hasGmailCreds) {
-        emailTransporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 587,
-            secure: false,
-            family: 4,
-            auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-            tls: {
-                rejectUnauthorized: false
-            },
-            connectionTimeout: 10000,
-            greetingTimeout: 10000,
-            socketTimeout: 15000
-        });
-
-        emailMode = 'gmail';
-        console.log('[EMAIL] Gmail SMTP configured. Delivery will be attempted when an email is sent.');
-        await verifyEmailTransporterReadiness();
-        return;
-    }
-    emailMode = 'disabled';
-    console.log('[EMAIL] Email delivery disabled. Set EMAIL_USER + EMAIL_PASS, or SENDGRID_API_KEY, or SMTP_AUTH_USER + SMTP_AUTH_PASS.');
+    console.log('[EMAIL] Email delivery disabled. Set SENDGRID_API_KEY and FROM_EMAIL.');
 }
 
 initEmailTransporter();
@@ -3450,25 +3413,29 @@ app.post('/api/signup', async (req, res) => {
                 let emailSent = false;
 
                 try {
-                    if (emailTransporter) {
-                        await sendBrandedEmail({
-                            to: normalizedEmail,
-                            subject: VERIFICATION_EMAIL_SUBJECT,
-                            html: buildVerificationEmailHtml(verifyLink, existingUser.name || normalizedName)
-                        });
-                        emailSent = true;
-                        console.log(`[AUTH][SIGNUP] verification email re-sent successfully to ${normalizedEmail}`);
-                    }
+                    await sendBrandedEmail({
+                        to: normalizedEmail,
+                        subject: VERIFICATION_EMAIL_SUBJECT,
+                        html: buildVerificationEmailHtml(verifyLink, existingUser.name || normalizedName)
+                    });
+                    emailSent = true;
+                    console.log(`[AUTH][SIGNUP] verification email re-sent successfully to ${normalizedEmail}`);
                 } catch (emailErr) {
                     console.error(`[AUTH][SIGNUP] verification email send failed for ${normalizedEmail}:`, emailErr.message);
                 }
 
+                if (!emailSent) {
+                    return res.status(500).json({
+                        success: false,
+                        message: 'Email sending failed'
+                    });
+                }
+
                 return res.status(200).json({
-                    message: emailSent
-                        ? 'This email is already registered but not verified. We sent a fresh verification email.'
-                        : 'This email is already registered but not verified. Email delivery is unavailable right now, so use Resend Verification later or contact support.',
+                    success: true,
+                    message: 'Verification email sent',
                     user: { email: normalizedEmail, name: existingUser.name || normalizedName },
-                    emailSent,
+                    emailSent: true,
                     existingAccount: true,
                     requiresVerification: true
                 });
@@ -3504,25 +3471,29 @@ app.post('/api/signup', async (req, res) => {
 
         let emailSent = false;
         try {
-            if (emailTransporter) {
-                await sendBrandedEmail({
-                    to: normalizedEmail,
-                    subject: VERIFICATION_EMAIL_SUBJECT,
-                    html: buildVerificationEmailHtml(verifyLink, normalizedName)
-                });
-                emailSent = true;
-                console.log(`[AUTH][SIGNUP] verification email sent successfully to ${normalizedEmail}`);
-            }
+            await sendBrandedEmail({
+                to: normalizedEmail,
+                subject: VERIFICATION_EMAIL_SUBJECT,
+                html: buildVerificationEmailHtml(verifyLink, normalizedName)
+            });
+            emailSent = true;
+            console.log(`[AUTH][SIGNUP] verification email sent successfully to ${normalizedEmail}`);
         } catch (emailErr) {
             console.error(`[AUTH][SIGNUP] verification email send failed for ${normalizedEmail}:`, emailErr.message);
         }
 
+        if (!emailSent) {
+            return res.status(500).json({
+                success: false,
+                message: 'Email sending failed'
+            });
+        }
+
         res.status(201).json({
-            message: emailSent
-                ? 'Account created! Please check your inbox to verify your email.'
-                : 'Account created! (Email delivery is currently unavailable — contact support to verify.)',
+            success: true,
+            message: 'Verification email sent',
             user: { email: normalizedEmail, name: normalizedName, emailVerified: false, isVerified: false },
-            emailSent
+            emailSent: true
         });
     } catch (err) {
         console.error('Signup error:', err);
@@ -3583,29 +3554,17 @@ app.post('/api/resend-verification', async (req, res) => {
 
         const verifyLink = buildVerificationLink(verificationToken);
 
-        if (emailTransporter) {
-            try {
-                console.log('[AUTH][RESEND] before sendMail');
-                const info = await sendBrandedEmail({
-                    to: normalizedEmail,
-                    subject: VERIFICATION_EMAIL_SUBJECT,
-                    replyTo: getSupportEmail(),
-                    html: buildVerificationEmailHtml(verifyLink, user.name || user.username || '')
-                });
-                console.log('[AUTH][RESEND] mail sent', info && info.messageId ? info.messageId : '<no-message-id>');
-                console.log(`[AUTH][RESEND] verification email sent successfully to ${normalizedEmail}`);
-                return res.json({ success: true, message: 'Verification email resent successfully' });
-            } catch (err) {
-                console.error('[AUTH][RESEND] sendMail failed:', err.message);
-                return res.status(500).json({ success: false, message: 'Email send failed', error: err.message });
-            }
-        } else {
-            console.error('[AUTH][RESEND] email transporter is not configured');
-            return res.status(503).json({
-                success: false,
-                message: 'Email service is not configured',
-                error: 'Email service is not configured. Set EMAIL_USER and EMAIL_PASS, or set SENDGRID_API_KEY.'
+        try {
+            await sendBrandedEmail({
+                to: normalizedEmail,
+                subject: VERIFICATION_EMAIL_SUBJECT,
+                replyTo: getSupportEmail(),
+                html: buildVerificationEmailHtml(verifyLink, user.name || user.username || '')
             });
+            return res.json({ success: true, message: 'Verification email sent' });
+        } catch (err) {
+            console.error('[AUTH][RESEND] sendMail failed:', err.message);
+            return res.status(500).json({ success: false, message: 'Email sending failed', error: err.message });
         }
     } catch (err) {
         console.error('[AUTH] Resend Verification Error:', err);
@@ -3775,7 +3734,7 @@ app.post('/api/forgot-pass', async (req, res) => {
         const resetLink = `${getAppBaseUrl(req)}/reset-password.html?token=${token}`;
         console.log(`[AUTH] Password reset requested for ${email}. Link: ${resetLink}`);
 
-        if (emailMode === 'disabled' || !emailTransporter) {
+        if (!String(process.env.SENDGRID_API_KEY || '').trim() || !String(process.env.FROM_EMAIL || process.env.EMAIL_FROM || '').trim()) {
             return res.json({ 
                 message: `Email service offline. Use this link: ${resetLink} (Shown for testing purposes)`
             });
@@ -3787,7 +3746,7 @@ app.post('/api/forgot-pass', async (req, res) => {
             html: `
                 <div style="background-color: #050a06; font-family: 'Outfit', 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border-radius: 32px; color: #ffffff; text-align: center; border: 1px solid rgba(0, 255, 136, 0.1);">
                     <div style="margin-bottom: 30px;">
-                        <div style="font-size: 60px; color: #00ff88; margin-bottom: 15px;">🌱</div>
+                        <div style="font-size: 60px; color: #00ff88; margin-bottom: 15px;">ðŸŒ±</div>
                         <h1 style="color: #00ff88; margin: 0; font-size: 36px; font-weight: 900; letter-spacing: 2px;">CropAI</h1>
                         <p style="color: #00ff88; font-size: 14px; margin-top: 8px; opacity: 0.8; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">PASSWORD RESET REQUEST</p>
                     </div>
@@ -3802,13 +3761,13 @@ app.post('/api/forgot-pass', async (req, res) => {
                         
                         <div style="text-align: center; margin: 40px 0;">
                             <a href="${resetLink}" style="background: linear-gradient(135deg, #00ff88 0%, #00d977 100%); color: #050a06; padding: 20px 45px; text-decoration: none; border-radius: 20px; font-weight: 900; font-size: 18px; display: inline-block; box-shadow: 0 10px 30px rgba(0, 255, 136, 0.25); border: none;">
-                                🔐 Reset Your Password
+                                ðŸ” Reset Your Password
                             </a>
                         </div>
                         
                         <div style="background-color: rgba(0, 242, 255, 0.08); border-left: 5px solid #00f2ff; padding: 20px; border-radius: 12px; margin-top: 35px;">
                             <p style="margin: 0; font-size: 15px; color: #00f2ff; font-weight: 600;">
-                                ⚠️ <strong style="font-weight: 800;">Important:</strong> This link will expire in <span style="text-decoration: underline;">1 hour</span> for your security.
+                                âš ï¸ <strong style="font-weight: 800;">Important:</strong> This link will expire in <span style="text-decoration: underline;">1 hour</span> for your security.
                             </p>
                         </div>
                         
@@ -4263,16 +4222,16 @@ app.post('/api/soil-analysis', (req, res) => {
 
         let score = 70;
         const nutrients = [
-            { label: isTa ? 'தழைச்சத்து (Nitrogen)' : 'Nitrogen (N)', value: n_val, unit: 'mg/kg', percent: Math.min((n_val / 400) * 100, 100), color: 'primary' },
-            { label: isTa ? 'மணிச்சத்து (Phosphorus)' : 'Phosphorus (P)', value: p_val, unit: 'mg/kg', percent: Math.min((p_val / 50) * 100, 100), color: 'info' },
-            { label: isTa ? 'சாம்பல்சத்து (Potassium)' : 'Potassium (K)', value: k_val, unit: 'mg/kg', percent: Math.min((k_val / 500) * 100, 100), color: 'warning' }
+            { label: isTa ? 'à®¤à®´à¯ˆà®šà¯à®šà®¤à¯à®¤à¯ (Nitrogen)' : 'Nitrogen (N)', value: n_val, unit: 'mg/kg', percent: Math.min((n_val / 400) * 100, 100), color: 'primary' },
+            { label: isTa ? 'à®®à®£à®¿à®šà¯à®šà®¤à¯à®¤à¯ (Phosphorus)' : 'Phosphorus (P)', value: p_val, unit: 'mg/kg', percent: Math.min((p_val / 50) * 100, 100), color: 'info' },
+            { label: isTa ? 'à®šà®¾à®®à¯à®ªà®²à¯à®šà®¤à¯à®¤à¯ (Potassium)' : 'Potassium (K)', value: k_val, unit: 'mg/kg', percent: Math.min((k_val / 500) * 100, 100), color: 'warning' }
         ];
 
         nutrients.forEach(nt => {
-            if (nt.percent < 30) nt.level = isTa ? 'குறைவு' : 'Low';
-            else if (nt.percent > 75) nt.level = isTa ? 'அதிகம்' : 'High';
-            else nt.level = isTa ? 'சரியான அளவு' : 'Optimal';
-            if (nt.level !== (isTa ? 'சரியான அளவு' : 'Optimal')) score -= 10;
+            if (nt.percent < 30) nt.level = isTa ? 'à®•à¯à®±à¯ˆà®µà¯' : 'Low';
+            else if (nt.percent > 75) nt.level = isTa ? 'à®…à®¤à®¿à®•à®®à¯' : 'High';
+            else nt.level = isTa ? 'à®šà®°à®¿à®¯à®¾à®© à®…à®³à®µà¯' : 'Optimal';
+            if (nt.level !== (isTa ? 'à®šà®°à®¿à®¯à®¾à®© à®…à®³à®µà¯' : 'Optimal')) score -= 10;
         });
 
         if (ph_val < 6.0 || ph_val > 8.0) score -= 15;
@@ -4281,27 +4240,27 @@ app.post('/api/soil-analysis', (req, res) => {
 
         const insights = [
             {
-                title: isTa ? 'pH மேலாண்மை' : 'pH Management',
-                text: ph_val < 6.0 ? (isTa ? 'மண்ணின் அமிலத்தன்மையைக் குறைக்க சுண்ணாம்பு (Lime) சேர்க்கவும்.' : 'Apply Lime to reduce soil acidity.') :
-                    ph_val > 8.0 ? (isTa ? 'மண்ணின் காரத்தன்மையைக் குறைக்க ஜிப்சம் (Gypsum) சேர்க்கவும்.' : 'Apply Gypsum to reduce alkalinity.') :
-                        (isTa ? 'மண்ணின் pH சரியான நிலையில் உள்ளது.' : 'pH is optimal.'),
+                title: isTa ? 'pH à®®à¯‡à®²à®¾à®£à¯à®®à¯ˆ' : 'pH Management',
+                text: ph_val < 6.0 ? (isTa ? 'à®®à®£à¯à®£à®¿à®©à¯ à®…à®®à®¿à®²à®¤à¯à®¤à®©à¯à®®à¯ˆà®¯à¯ˆà®•à¯ à®•à¯à®±à¯ˆà®•à¯à®• à®šà¯à®£à¯à®£à®¾à®®à¯à®ªà¯ (Lime) à®šà¯‡à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Apply Lime to reduce soil acidity.') :
+                    ph_val > 8.0 ? (isTa ? 'à®®à®£à¯à®£à®¿à®©à¯ à®•à®¾à®°à®¤à¯à®¤à®©à¯à®®à¯ˆà®¯à¯ˆà®•à¯ à®•à¯à®±à¯ˆà®•à¯à®• à®œà®¿à®ªà¯à®šà®®à¯ (Gypsum) à®šà¯‡à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Apply Gypsum to reduce alkalinity.') :
+                        (isTa ? 'à®®à®£à¯à®£à®¿à®©à¯ pH à®šà®°à®¿à®¯à®¾à®© à®¨à®¿à®²à¯ˆà®¯à®¿à®²à¯ à®‰à®³à¯à®³à®¤à¯.' : 'pH is optimal.'),
                 icon: 'fa-vial', color: 'primary'
             },
             {
-                title: isTa ? 'ஊட்டச்சத்து திருத்தம்' : 'Nutrient Correction',
-                text: n_val < 150 ? (isTa ? 'தழைச்சத்து குறைவாக உள்ளது.' : 'Nitrogen is low.') : 'Levels are satisfactory.',
+                title: isTa ? 'à®Šà®Ÿà¯à®Ÿà®šà¯à®šà®¤à¯à®¤à¯ à®¤à®¿à®°à¯à®¤à¯à®¤à®®à¯' : 'Nutrient Correction',
+                text: n_val < 150 ? (isTa ? 'à®¤à®´à¯ˆà®šà¯à®šà®¤à¯à®¤à¯ à®•à¯à®±à¯ˆà®µà®¾à®• à®‰à®³à¯à®³à®¤à¯.' : 'Nitrogen is low.') : 'Levels are satisfactory.',
                 icon: 'fa-capsules', color: 'info'
             },
             {
-                title: isTa ? 'கரிமப் பொருள்' : 'Organic Matter',
-                text: oc_val < 0.6 ? (isTa ? 'கரிம கார்பன் குறைவாக உள்ளது.' : 'Organic carbon is low.') : 'Sufficient organic matter.',
+                title: isTa ? 'à®•à®°à®¿à®®à®ªà¯ à®ªà¯Šà®°à¯à®³à¯' : 'Organic Matter',
+                text: oc_val < 0.6 ? (isTa ? 'à®•à®°à®¿à®® à®•à®¾à®°à¯à®ªà®©à¯ à®•à¯à®±à¯ˆà®µà®¾à®• à®‰à®³à¯à®³à®¤à¯.' : 'Organic carbon is low.') : 'Sufficient organic matter.',
                 icon: 'fa-leaf', color: 'success'
             }
         ];
 
         res.json({
             score, nutrients, insights,
-            status: score > 80 ? (isTa ? 'மிக நன்று' : 'Excellent') : (isTa ? 'நன்று' : 'Good'),
+            status: score > 80 ? (isTa ? 'à®®à®¿à®• à®¨à®©à¯à®±à¯' : 'Excellent') : (isTa ? 'à®¨à®©à¯à®±à¯' : 'Good'),
             statusColor: score > 80 ? 'success' : 'primary'
         });
     } catch (e) { res.status(500).json({ error: 'Soil error' }); }
@@ -5386,7 +5345,7 @@ app.get('/api/climate-data', async (req, res) => {
 
         res.json({
             temperature: Number(current.temperature_2m.toFixed(1)),
-            temp: `${current.temperature_2m.toFixed(1)}°C`,
+            temp: `${current.temperature_2m.toFixed(1)}Â°C`,
             humidity: current.relative_humidity_2m,
             rain: `${current.precipitation.toFixed(1)}mm`,
             precipitation: Number(current.precipitation.toFixed(1)),
@@ -5402,7 +5361,7 @@ app.get('/api/climate-data', async (req, res) => {
         const mockRain = Math.random() > 0.8 ? Math.random() * 12 : 0;
         res.json({
             temperature: Number(mockTemp.toFixed(1)),
-            temp: `${mockTemp.toFixed(1)}°C`,
+            temp: `${mockTemp.toFixed(1)}Â°C`,
             humidity: Number((65 + Math.random() * 10).toFixed(1)),
             rain: `${mockRain.toFixed(1)}mm`,
             precipitation: Number(mockRain.toFixed(1)),
@@ -5418,7 +5377,7 @@ app.get('/api/climate-data', async (req, res) => {
         if (!apiKey || apiKey.includes('your-') || apiKey === '') {
             const mockTemp = 28 + Math.random() * 5;
             return res.json({
-                temp: `${mockTemp.toFixed(1)}°C`,
+                temp: `${mockTemp.toFixed(1)}Â°C`,
                 humidity: (65 + Math.random() * 15).toFixed(1),
                 rain: `${(Math.random() * 10).toFixed(1)}mm`,
                 status: 'Optimal',
@@ -5433,7 +5392,7 @@ app.get('/api/climate-data', async (req, res) => {
             console.error('Weatherstack Error:', result.error);
             const mockTemp = 28 + Math.random() * 5;
             return res.json({
-                temp: `${mockTemp.toFixed(1)}°C`,
+                temp: `${mockTemp.toFixed(1)}Â°C`,
                 humidity: (65 + Math.random() * 15).toFixed(1),
                 rain: `${(Math.random() * 10).toFixed(1)}mm`,
                 status: 'Optimal',
@@ -5442,7 +5401,7 @@ app.get('/api/climate-data', async (req, res) => {
         }
 
         res.json({
-            temp: `${result.current.temperature}°C`,
+            temp: `${result.current.temperature}Â°C`,
             humidity: result.current.humidity,
             rain: `${result.current.precip}mm`,
             status: result.current.weather_descriptions?.[0] || 'Optimal',
@@ -5555,7 +5514,7 @@ async function handleCropRecommendationLogic(req, res) {
         
         console.log(`[INFO] Generating crop recommendations for: ${normalizedInput.soilType}, ${normalizedInput.climate}, ${normalizedInput.season}, ${normalizedInput.temperature}C, ${normalizedInput.rainfall}mm`);
 
-        console.log(`[INFO] Generating crop recommendations for: ${soilType}, ${temperature}°C, ${rainfall}mm`);
+        console.log(`[INFO] Generating crop recommendations for: ${soilType}, ${temperature}Â°C, ${rainfall}mm`);
 
         let datasetRecommendations = buildDynamicDatasetRecommendations(req.body || {});
         if (!datasetRecommendations || !Array.isArray(datasetRecommendations.recommendations) || datasetRecommendations.recommendations.length === 0) {
@@ -5598,7 +5557,7 @@ async function handleCropRecommendationLogic(req, res) {
         - Soil NPK: ${n}-${p}-${k}
         - Soil pH: ${ph}
         - Rainfall: ${rainfall}mm
-        - Temperature: ${temperature}°C
+        - Temperature: ${temperature}Â°C
         - Humidity: ${humidity}%
         - Soil Type: ${soilType}
         - Climate: ${climate}
@@ -5632,11 +5591,11 @@ async function handleCropRecommendationLogic(req, res) {
                     "suitabilityScore": 90,
                     "description": "2-3 line explanation of suitability...",
                     "conditionSummary": "Temperature optimal, Soil moisture good, pH level suitable",
-                    "climateDetails": { "tempRange": "20-30°C", "humidity": "60-70%" },
+                    "climateDetails": { "tempRange": "20-30Â°C", "humidity": "60-70%" },
                     "soilDetails": { "ph": "6.0-7.0", "moisture": "Moderate", "type": "Loamy" },
                     "waterRequirements": { "level": "Medium", "advice": "Consistent moisture is key." },
                     "yieldRange": "25-35", "yieldUnit": "q/acre",
-                    "marketValue": "₹1,95,000",
+                    "marketValue": "â‚¹1,95,000",
                     "profitMargin": "216.7%",
                     "sustainabilityScore": 85,
                     "plantingSeason": "June-July", 
@@ -5710,13 +5669,13 @@ async function handleCropRecommendationLogic(req, res) {
             const fallbackRecs = [
                 { 
                     crop: 'Rice (Paddy)', suitabilityScore: 92, 
-                    description: 'Rice is perfectly suited for your soil with high moisture levels. It thrives in high temperatures (20-35°C) and the clay-rich soil on your farm provides ideal water retention for sustained growth. Expect high yield of 12-18 q/acre under current climate conditions.',
+                    description: 'Rice is perfectly suited for your soil with high moisture levels. It thrives in high temperatures (20-35Â°C) and the clay-rich soil on your farm provides ideal water retention for sustained growth. Expect high yield of 12-18 q/acre under current climate conditions.',
                     conditionSummary: 'Temperature optimal, Soil moisture excellent, pH level suitable',
-                    climateDetails: { tempRange: '20-35°C', humidity: '70-90%' },
+                    climateDetails: { tempRange: '20-35Â°C', humidity: '70-90%' },
                     soilDetails: { ph: '5.5-7.0', moisture: 'High', type: 'Clay/Loam' },
                     waterRequirements: { level: 'High', advice: 'Maintain a 5cm water level during vegetative growth.' },
                     growthConditions: 'Thrives in flooded conditions with plenty of sunshine.',
-                    yieldRange: '12-18', yieldUnit: 'q/acre', marketValue: '₹1,45,000', profitMargin: '185%', sustainabilityScore: 85,
+                    yieldRange: '12-18', yieldUnit: 'q/acre', marketValue: 'â‚¹1,45,000', profitMargin: '185%', sustainabilityScore: 85,
                     plantingSeason: 'June-July', harvestingSeason: 'November-December',
                     imageKeyword: 'lush green rice paddy field'
                 },
@@ -5724,10 +5683,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Banana (G9 Variety)', suitabilityScore: 86, 
                     description: 'Profitable tropical fruit with high water requirements. Thrives in humid climates and nitrogen-rich soil on your farm. High market demand in the local district ensures strong ROI.',
                     conditionSummary: 'Temperature ideal, Humidity high, Nitrogen response excellent',
-                    climateDetails: { tempRange: '25-30°C', humidity: '75-85%' },
+                    climateDetails: { tempRange: '25-30Â°C', humidity: '75-85%' },
                     soilDetails: { ph: '6.5-7.5', moisture: 'High', type: 'Rich Loam' },
                     waterRequirements: { level: 'High', advice: 'Heavy watering required; mulching helps retain moisture.' },
-                    yieldRange: '40-50', yieldUnit: 'tons/acre', marketValue: '₹3,50,000', profitMargin: '250%', sustainabilityScore: 70,
+                    yieldRange: '40-50', yieldUnit: 'tons/acre', marketValue: 'â‚¹3,50,000', profitMargin: '250%', sustainabilityScore: 70,
                     plantingSeason: 'October-December', harvestingSeason: 'All-year (successive)',
                     imageKeyword: 'lush green banana trees with fruit'
                 },
@@ -5735,10 +5694,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Pomegranate', suitabilityScore: 91, 
                     description: 'High-value fruit for arid regions. Very drought tolerant once established and highly resistant to alkaline soil. Market demand is high for premium exports and value-added products.',
                     conditionSummary: 'Arid climate compatible, Soil pH tolerant, Water efficient',
-                    climateDetails: { tempRange: '25-35°C', humidity: '40-50%' },
+                    climateDetails: { tempRange: '25-35Â°C', humidity: '40-50%' },
                     soilDetails: { ph: '6.5-8.5', moisture: 'Low', type: 'Sandy/Alluvial' },
                     waterRequirements: { level: 'Low', advice: 'Drip irrigation is sufficient; avoid overwatering near harvest.' },
-                    yieldRange: '5-8', yieldUnit: 'tons/acre', marketValue: '₹4,20,000', profitMargin: '300%', sustainabilityScore: 90,
+                    yieldRange: '5-8', yieldUnit: 'tons/acre', marketValue: 'â‚¹4,20,000', profitMargin: '300%', sustainabilityScore: 90,
                     plantingSeason: 'June-August', harvestingSeason: 'December-February',
                     imageKeyword: 'ripe pomegranates on bush'
                 },
@@ -5746,10 +5705,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Vanilla Orchid', suitabilityScore: 71, 
                     description: 'Extreme high-value cash crop. Requires heavy shade and high humidity settings. labor intensive pollination but yields significant financial returns per square meter.',
                     conditionSummary: 'High value, Shade required, Labor intensive',
-                    climateDetails: { tempRange: '21-32°C', humidity: '80-90%' },
+                    climateDetails: { tempRange: '21-32Â°C', humidity: '80-90%' },
                     soilDetails: { ph: '6.0-7.0', moisture: 'High', type: 'Humus Rich' },
                     waterRequirements: { level: 'High', advice: 'Consistent low-volume irrigation; avoid standing water.' },
-                    yieldRange: '150-250', yieldUnit: 'kg/acre', marketValue: '₹8,50,000', profitMargin: '420%', sustainabilityScore: 88,
+                    yieldRange: '150-250', yieldUnit: 'kg/acre', marketValue: 'â‚¹8,50,000', profitMargin: '420%', sustainabilityScore: 88,
                     plantingSeason: 'August-September', harvestingSeason: 'August-September (3y)',
                     imageKeyword: 'vanilla orchid vine with green pods'
                 },
@@ -5757,10 +5716,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Okra (Ladyfinger)', suitabilityScore: 87, 
                     description: 'Fast-growing vegetable for warm climates. Provides continuous harvest and high fiber content. Highly responsive to organic manures and regular picking.',
                     conditionSummary: 'Heat tolerant, Fast growth, Continuous yield',
-                    climateDetails: { tempRange: '25-35°C', humidity: '60-70%' },
+                    climateDetails: { tempRange: '25-35Â°C', humidity: '60-70%' },
                     soilDetails: { ph: '6.0-6.8', moisture: 'Moderate', type: 'Sandy Loam' },
                     waterRequirements: { level: 'Medium', advice: 'Regular irrigation every 3-4 days in summer.' },
-                    yieldRange: '4-6', yieldUnit: 'tons/acre', marketValue: '₹1,20,000', profitMargin: '220%', sustainabilityScore: 85,
+                    yieldRange: '4-6', yieldUnit: 'tons/acre', marketValue: 'â‚¹1,20,000', profitMargin: '220%', sustainabilityScore: 85,
                     plantingSeason: 'February-March', harvestingSeason: 'May-July',
                     imageKeyword: 'okra plant with long green pods'
                 },
@@ -5768,34 +5727,34 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Mushroom (Oyster)', suitabilityScore: 94, 
                     description: 'Indoor cultivation possible regardless of outdoor soil. High value with zero land usage if vertical. Perfect for adding revenue streams in small farming spaces.',
                     conditionSummary: 'Controlled environment, Zero land usage, High ROI',
-                    climateDetails: { tempRange: '20-30°C', humidity: '80-90%' },
+                    climateDetails: { tempRange: '20-30Â°C', humidity: '80-90%' },
                     soilDetails: { ph: '6.5-7.5', moisture: 'High', type: 'Straw Substrate' },
                     waterRequirements: { level: 'Medium', advice: 'Mist-based humidity control is essential.' },
-                    yieldRange: '12-18', yieldUnit: 'kg/sq.m', marketValue: '₹2,50,000', profitMargin: '450%', sustainabilityScore: 95,
+                    yieldRange: '12-18', yieldUnit: 'kg/sq.m', marketValue: 'â‚¹2,50,000', profitMargin: '450%', sustainabilityScore: 95,
                     plantingSeason: 'Year-round', harvestingSeason: 'Every 3-4 weeks',
                     imageKeyword: 'oyster mushrooms growing on straw bags'
                 },
                 { 
                     crop: 'Tomato', suitabilityScore: 88, 
-                    description: 'Your sandy loam soil and moderate moisture are excellent for tomato cultivation. It thrives in 18-27°C, matching your current environment for high nutrient absorption and early fruit set. Predicted market returns remain very high for this variety.',
+                    description: 'Your sandy loam soil and moderate moisture are excellent for tomato cultivation. It thrives in 18-27Â°C, matching your current environment for high nutrient absorption and early fruit set. Predicted market returns remain very high for this variety.',
                     conditionSummary: 'Temperature ideal, Soil moisture good, pH level optimal',
-                    climateDetails: { tempRange: '18-27°C', humidity: '60-70%' },
+                    climateDetails: { tempRange: '18-27Â°C', humidity: '60-70%' },
                     soilDetails: { ph: '6.0-7.0', moisture: 'Moderate', type: 'Sandy Loam' },
                     waterRequirements: { level: 'Medium', advice: 'Consistent drip irrigation is recommended to avoid rot.' },
                     growthConditions: 'Needs well-drained soil and 6-8 hours of direct sunlight.',
-                    yieldRange: '8-12', yieldUnit: 'tons/acre', marketValue: '₹1,80,000', profitMargin: '210%', sustainabilityScore: 80,
+                    yieldRange: '8-12', yieldUnit: 'tons/acre', marketValue: 'â‚¹1,80,000', profitMargin: '210%', sustainabilityScore: 80,
                     plantingSeason: 'October-November', harvestingSeason: 'January-February',
                     imageKeyword: 'ripe red tomatoes on vine'
                 },
                 { 
                     crop: 'Cotton', suitabilityScore: 84, 
-                    description: 'Cotton is a strong match for your region as it thrives in warm temperatures (21-30°C) and moderate humidity. Your current soil pH ensures deep root development and healthy boll formation during the primary seasons.',
+                    description: 'Cotton is a strong match for your region as it thrives in warm temperatures (21-30Â°C) and moderate humidity. Your current soil pH ensures deep root development and healthy boll formation during the primary seasons.',
                     conditionSummary: 'Temperature optimal, Soil moisture medium, pH level suitable',
-                    climateDetails: { tempRange: '21-30°C', humidity: '50-60%' },
+                    climateDetails: { tempRange: '21-30Â°C', humidity: '50-60%' },
                     soilDetails: { ph: '5.5-8.5', moisture: 'Low to Moderate', type: 'Black/Alluvial' },
                     waterRequirements: { level: 'Medium', advice: 'Avoid waterlogging during the flowering stage.' },
                     growthConditions: 'Requires a long frost-free period and bright sunshine.',
-                    yieldRange: '8-12', yieldUnit: 'q/acre', marketValue: '₹2,15,000', profitMargin: '195%', sustainabilityScore: 60,
+                    yieldRange: '8-12', yieldUnit: 'q/acre', marketValue: 'â‚¹2,15,000', profitMargin: '195%', sustainabilityScore: 60,
                     plantingSeason: 'May-June', harvestingSeason: 'October-December',
                     imageKeyword: 'white cotton bolls on plant'
                 },
@@ -5803,10 +5762,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Turmeric', suitabilityScore: 88, 
                     description: 'Highly profitable medicinal spice. Thrives in warm, humid climates with well-drained loamy soil and moderate rainfall. Excellent long-term storage potential for better market pricing.',
                     conditionSummary: 'Temperature optimal, Soil drainage good, Market value high',
-                    climateDetails: { tempRange: '20-30°C', humidity: '70-90%' },
+                    climateDetails: { tempRange: '20-30Â°C', humidity: '70-90%' },
                     soilDetails: { ph: '4.5-7.5', moisture: 'Moderate', type: 'Loamy/Alluvial' },
                     waterRequirements: { level: 'Medium', advice: 'Avoid waterlogging; maintain consistent moisture during rhizome development.' },
-                    yieldRange: '20-25', yieldUnit: 'q/acre', marketValue: '₹3,50,000', profitMargin: '280%', sustainabilityScore: 92,
+                    yieldRange: '20-25', yieldUnit: 'q/acre', marketValue: 'â‚¹3,50,000', profitMargin: '280%', sustainabilityScore: 92,
                     plantingSeason: 'May-June', harvestingSeason: 'January-February',
                     imageKeyword: 'fresh turmeric rhizomes and plant'
                 },
@@ -5814,10 +5773,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Carrot', suitabilityScore: 78, 
                     description: 'Root vegetable for light, loose soils. Needs deep soil preparation and cool weather for sweetness. High demand in urban markets year-round.',
                     conditionSummary: 'Soil texture critical, Cool climate needed, Market demand steady',
-                    climateDetails: { tempRange: '15-20°C', humidity: '60-70%' },
+                    climateDetails: { tempRange: '15-20Â°C', humidity: '60-70%' },
                     soilDetails: { ph: '6.0-7.0', moisture: 'Moderate', type: 'Sandy/Peaty' },
                     waterRequirements: { level: 'Medium', advice: 'Consistent moisture prevents root cracking and ensures uniform growth.' },
-                    yieldRange: '8-12', yieldUnit: 'tons/acre', marketValue: '₹1,40,000', profitMargin: '160%', sustainabilityScore: 75,
+                    yieldRange: '8-12', yieldUnit: 'tons/acre', marketValue: 'â‚¹1,40,000', profitMargin: '160%', sustainabilityScore: 75,
                     plantingSeason: 'August-September', harvestingSeason: 'November-December',
                     imageKeyword: 'carrot tops in garden soil'
                 },
@@ -5825,10 +5784,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Ginger', suitabilityScore: 85, 
                     description: 'High-value rhizome crop. Best grown in partial shade with rich organic soil and excellent drainage. Highly resistant to many common pests.',
                     conditionSummary: 'Shade tolerant, Moisture sensitive, High ROI',
-                    climateDetails: { tempRange: '25-30°C', humidity: '70-80%' },
+                    climateDetails: { tempRange: '25-30Â°C', humidity: '70-80%' },
                     soilDetails: { ph: '5.5-6.5', moisture: 'Moderate', type: 'Rich Loam' },
                     waterRequirements: { level: 'Medium', advice: 'Keep soil moist but never soggy; mulching is highly beneficial.' },
-                    yieldRange: '15-20', yieldUnit: 'q/acre', marketValue: '₹4,00,000', profitMargin: '320%', sustainabilityScore: 88,
+                    yieldRange: '15-20', yieldUnit: 'q/acre', marketValue: 'â‚¹4,00,000', profitMargin: '320%', sustainabilityScore: 88,
                     plantingSeason: 'April-May', harvestingSeason: 'December-January',
                     imageKeyword: 'ginger plants with rhizomes visible'
                 },
@@ -5836,10 +5795,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Radish', suitabilityScore: 82, 
                     description: 'Short duration crop perfect for quick cash flow between major seasons. Grows well in sandy loam with moderate nitrogen levels.',
                     conditionSummary: 'Fast growth (40 days), Soil texture fine, Quick ROI',
-                    climateDetails: { tempRange: '15-25°C', humidity: '50-70%' },
+                    climateDetails: { tempRange: '15-25Â°C', humidity: '50-70%' },
                     soilDetails: { ph: '5.5-6.8', moisture: 'Moderate', type: 'Sandy Loam' },
                     waterRequirements: { level: 'Medium', advice: 'Regular watering prevents the root from becoming too pungent.' },
-                    yieldRange: '5-7', yieldUnit: 'tons/acre', marketValue: '₹85,000', profitMargin: '140%', sustainabilityScore: 80,
+                    yieldRange: '5-7', yieldUnit: 'tons/acre', marketValue: 'â‚¹85,000', profitMargin: '140%', sustainabilityScore: 80,
                     plantingSeason: 'September-January', harvestingSeason: 'October-February',
                     imageKeyword: 'white radish roots in soil'
                 },
@@ -5847,10 +5806,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Capsicum (Bell Pepper)', suitabilityScore: 80, 
                     description: 'Premium vegetable for greenhouse or open field. High requirement for balanced NPK and specific temperature control for fruit set.',
                     conditionSummary: 'Temperature sensitive, Nutrient heavy, Market value premium',
-                    climateDetails: { tempRange: '20-25°C', humidity: '60-70%' },
+                    climateDetails: { tempRange: '20-25Â°C', humidity: '60-70%' },
                     soilDetails: { ph: '6.0-7.0', moisture: 'Moderate', type: 'Loamy' },
                     waterRequirements: { level: 'Medium', advice: 'Drip irrigation is essential for consistent fruit quality.' },
-                    yieldRange: '10-14', yieldUnit: 'tons/acre', marketValue: '₹2,80,000', profitMargin: '250%', sustainabilityScore: 78,
+                    yieldRange: '10-14', yieldUnit: 'tons/acre', marketValue: 'â‚¹2,80,000', profitMargin: '250%', sustainabilityScore: 78,
                     plantingSeason: 'September-October', harvestingSeason: 'December-February',
                     imageKeyword: 'colorful bell peppers on plant'
                 },
@@ -5858,10 +5817,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Garlic', suitabilityScore: 82, 
                     description: 'Valuable spice crop for well-drained soil. Long shelf life after harvest and high anti-microbial properties. Thrives in cool winter climates.',
                     conditionSummary: 'Soil drainage essential, High shelf life, Market stable',
-                    climateDetails: { tempRange: '12-25°C', humidity: '50-60%' },
+                    climateDetails: { tempRange: '12-25Â°C', humidity: '50-60%' },
                     soilDetails: { ph: '6.0-7.5', moisture: 'Moderate', type: 'Clay/Sandy Loam' },
                     waterRequirements: { level: 'Medium', advice: 'Reduce irrigation as the bulbs reach maturity to prevent rot.' },
-                    yieldRange: '20-25', yieldUnit: 'q/acre', marketValue: '₹2,80,000', profitMargin: '190%', sustainabilityScore: 80,
+                    yieldRange: '20-25', yieldUnit: 'q/acre', marketValue: 'â‚¹2,80,000', profitMargin: '190%', sustainabilityScore: 80,
                     plantingSeason: 'October-November', harvestingSeason: 'March-April',
                     imageKeyword: 'fresh garlic bulbs growing'
                 },
@@ -5869,10 +5828,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Potato', suitabilityScore: 84, 
                     description: 'Excellent match for loamy soil and cool nights. High yield potential with proper hilling and nitrogen management. Stable prices in local urban markets.',
                     conditionSummary: 'Temperature cool, Soil loamy, Hilling essential',
-                    climateDetails: { tempRange: '15-20°C', humidity: '60-70%' },
+                    climateDetails: { tempRange: '15-20Â°C', humidity: '60-70%' },
                     soilDetails: { ph: '5.2-6.4', moisture: 'Moderate', type: 'Loamy' },
                     waterRequirements: { level: 'Medium', advice: 'Critical water period is during tuber initiation and bulking.' },
-                    yieldRange: '20-25', yieldUnit: 'tons/acre', marketValue: '₹1,60,000', profitMargin: '170%', sustainabilityScore: 72,
+                    yieldRange: '20-25', yieldUnit: 'tons/acre', marketValue: 'â‚¹1,60,000', profitMargin: '170%', sustainabilityScore: 72,
                     plantingSeason: 'October-November', harvestingSeason: 'January-February',
                     imageKeyword: 'potato plants in hilled soil'
                 },
@@ -5880,10 +5839,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Black Pepper', suitabilityScore: 75, 
                     description: 'King of spices! Thrives in humid, tropical climates with high rainfall. Requires support trees or poles for climbing and rich organic soil.',
                     conditionSummary: 'Shade required, High humidity, Climbing support needed',
-                    climateDetails: { tempRange: '20-30°C', humidity: '70-90%' },
+                    climateDetails: { tempRange: '20-30Â°C', humidity: '70-90%' },
                     soilDetails: { ph: '5.5-6.5', moisture: 'High', type: 'Red Laterite' },
                     waterRequirements: { level: 'High', advice: 'Needs well-distributed rainfall; sensitive to prolonged drought.' },
-                    yieldRange: '500-800', yieldUnit: 'kg/acre', marketValue: '₹4,50,000', profitMargin: '380%', sustainabilityScore: 85,
+                    yieldRange: '500-800', yieldUnit: 'kg/acre', marketValue: 'â‚¹4,50,000', profitMargin: '380%', sustainabilityScore: 85,
                     plantingSeason: 'June-July', harvestingSeason: 'January-March',
                     imageKeyword: 'black pepper vines with green berries'
                 },
@@ -5891,10 +5850,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Cardamom (Green)', suitabilityScore: 72, 
                     description: 'Queen of spices. Grown in high-altitude evergreen forests under natural shade. Requires high humidity and very specific acidic soil conditions.',
                     conditionSummary: 'High altitude, Natural shade, Acidic soil',
-                    climateDetails: { tempRange: '15-25°C', humidity: '75-85%' },
+                    climateDetails: { tempRange: '15-25Â°C', humidity: '75-85%' },
                     soilDetails: { ph: '4.5-5.8', moisture: 'High', type: 'Forest Loam' },
                     waterRequirements: { level: 'High', advice: 'Requires consistent moisture; overhead irrigation helps in dry spells.' },
-                    yieldRange: '200-300', yieldUnit: 'kg/acre', marketValue: '₹6,50,000', profitMargin: '450%', sustainabilityScore: 90,
+                    yieldRange: '200-300', yieldUnit: 'kg/acre', marketValue: 'â‚¹6,50,000', profitMargin: '450%', sustainabilityScore: 90,
                     plantingSeason: 'June-August', harvestingSeason: 'September-February',
                     imageKeyword: 'green cardamom pods on plant base'
                 },
@@ -5902,10 +5861,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Mango (Alphonso)', suitabilityScore: 82, 
                     description: 'King of fruits! Thrives in well-drained deep soil with a distinct dry season for flowering. Premium variety with massive export potential.',
                     conditionSummary: 'Dry season needed, Deep soil, Export potential',
-                    climateDetails: { tempRange: '25-35°C', humidity: '50-60%' },
+                    climateDetails: { tempRange: '25-35Â°C', humidity: '50-60%' },
                     soilDetails: { ph: '5.5-7.5', moisture: 'Low', type: 'Laterite/Alluvial' },
                     waterRequirements: { level: 'Low', advice: 'Water young trees regularly; mature trees are drought-tolerant.' },
-                    yieldRange: '5-8', yieldUnit: 'tons/acre', marketValue: '₹5,50,000', profitMargin: '320%', sustainabilityScore: 75,
+                    yieldRange: '5-8', yieldUnit: 'tons/acre', marketValue: 'â‚¹5,50,000', profitMargin: '320%', sustainabilityScore: 75,
                     plantingSeason: 'July-August', harvestingSeason: 'April-June',
                     imageKeyword: 'ripe alphonso mangoes on tree'
                 },
@@ -5913,10 +5872,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Dragon Fruit', suitabilityScore: 88, 
                     description: 'Cactus-based exotic fruit. Very high water efficiency and drought tolerance. Requires concrete pole support but offers premium returns in urban markets.',
                     conditionSummary: 'Cactus type, Low water, Vertical support',
-                    climateDetails: { tempRange: '20-40°C', humidity: '40-60%' },
+                    climateDetails: { tempRange: '20-40Â°C', humidity: '40-60%' },
                     soilDetails: { ph: '6.0-7.0', moisture: 'Low', type: 'Sandy Loam' },
                     waterRequirements: { level: 'Low', advice: 'Excellent for drip irrigation; sensitive to waterlogging.' },
-                    yieldRange: '4-6', yieldUnit: 'tons/acre', marketValue: '₹8,00,000', profitMargin: '550%', sustainabilityScore: 95,
+                    yieldRange: '4-6', yieldUnit: 'tons/acre', marketValue: 'â‚¹8,00,000', profitMargin: '550%', sustainabilityScore: 95,
                     plantingSeason: 'June-July', harvestingSeason: 'June-November',
                     imageKeyword: 'dragon fruit cactus on concrete pole'
                 },
@@ -5924,10 +5883,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Passion Fruit', suitabilityScore: 79, 
                     description: 'High-value aromatic fruit vine. Thrives in sub-tropical climates with moderate rainfall. Excellent for juice and processing industries.',
                     conditionSummary: 'Vining crop, Sub-tropical, High aroma',
-                    climateDetails: { tempRange: '18-30°C', humidity: '60-70%' },
+                    climateDetails: { tempRange: '18-30Â°C', humidity: '60-70%' },
                     soilDetails: { ph: '6.5-7.5', moisture: 'Moderate', type: 'Well-drained Loam' },
                     waterRequirements: { level: 'Medium', advice: 'Needs regular watering during fruit development.' },
-                    yieldRange: '6-9', yieldUnit: 'tons/acre', marketValue: '₹3,20,000', profitMargin: '290%', sustainabilityScore: 80,
+                    yieldRange: '6-9', yieldUnit: 'tons/acre', marketValue: 'â‚¹3,20,000', profitMargin: '290%', sustainabilityScore: 80,
                     plantingSeason: 'April-May', harvestingSeason: 'August-December',
                     imageKeyword: 'purple passion fruit on vine'
                 },
@@ -5935,10 +5894,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Tea (Highland)', suitabilityScore: 70, 
                     description: 'Classic plantation crop. Requires cool climate, high rainfall, and well-drained acidic soil on slopes. Labor intensive harvest but stable industry.',
                     conditionSummary: 'Slope cultivation, Acidic soil, Cool climate',
-                    climateDetails: { tempRange: '13-21°C', humidity: '70-90%' },
+                    climateDetails: { tempRange: '13-21Â°C', humidity: '70-90%' },
                     soilDetails: { ph: '4.5-5.5', moisture: 'High', type: 'Forest Soils' },
                     waterRequirements: { level: 'High', advice: 'Requires frequent light showers; misting is beneficial.' },
-                    yieldRange: '1500-2500', yieldUnit: 'kg/acre', marketValue: '₹3,80,000', profitMargin: '210%', sustainabilityScore: 85,
+                    yieldRange: '1500-2500', yieldUnit: 'kg/acre', marketValue: 'â‚¹3,80,000', profitMargin: '210%', sustainabilityScore: 85,
                     plantingSeason: 'June-July', harvestingSeason: 'April-December',
                     imageKeyword: 'tea plantation on mountain slopes'
                 },
@@ -5946,10 +5905,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Cocoa', suitabilityScore: 72, 
                     description: 'Shade-loving tropical crop. Best as intercrop in coconut or areca nut plantations. Growing demand for artisanal chocolate industry.',
                     conditionSummary: 'Shade required, Intercropping ideal, High demand',
-                    climateDetails: { tempRange: '21-32°C', humidity: '70-80%' },
+                    climateDetails: { tempRange: '21-32Â°C', humidity: '70-80%' },
                     soilDetails: { ph: '6.5-7.5', moisture: 'High', type: 'Alluvial Loam' },
                     waterRequirements: { level: 'High', advice: 'Soil should always be moist; benefits from organic mulching.' },
-                    yieldRange: '500-800', yieldUnit: 'kg/acre', marketValue: '₹2,60,000', profitMargin: '240%', sustainabilityScore: 90,
+                    yieldRange: '500-800', yieldUnit: 'kg/acre', marketValue: 'â‚¹2,60,000', profitMargin: '240%', sustainabilityScore: 90,
                     plantingSeason: 'May-June', harvestingSeason: 'September-January',
                     imageKeyword: 'cocoa pods on tree trunk'
                 },
@@ -5957,10 +5916,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Saffron', suitabilityScore: 65, 
                     description: 'Word\'s most expensive spice! Requires very specific temperate climate with cold winters and dry summers. Rare and extremely high value.',
                     conditionSummary: 'Extreme value, Temperate climate, Precision labor',
-                    climateDetails: { tempRange: '-5-25°C', humidity: '40-50%' },
+                    climateDetails: { tempRange: '-5-25Â°C', humidity: '40-50%' },
                     soilDetails: { ph: '6.0-8.0', moisture: 'Low', type: 'Calcareous Loam' },
                     waterRequirements: { level: 'Low', advice: 'Very minimal water needed; avoid irrigation in humid months.' },
-                    yieldRange: '2-3', yieldUnit: 'kg/acre', marketValue: '₹15,00,000', profitMargin: '850%', sustainabilityScore: 95,
+                    yieldRange: '2-3', yieldUnit: 'kg/acre', marketValue: 'â‚¹15,00,000', profitMargin: '850%', sustainabilityScore: 95,
                     plantingSeason: 'August-September', harvestingSeason: 'October-November',
                     imageKeyword: 'purple saffron crocus flowers'
                 },
@@ -5968,10 +5927,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Rubber', suitabilityScore: 68, 
                     description: 'Long-term plantation investment. Thrives in heavy rainfall areas with deep soil. Tapping starts after 7 years for consistent long-term cash flow.',
                     conditionSummary: 'Long-term, Heavy rainfall, Consistent yield',
-                    climateDetails: { tempRange: '25-34°C', humidity: '80-90%' },
+                    climateDetails: { tempRange: '25-34Â°C', humidity: '80-90%' },
                     soilDetails: { ph: '4.5-6.0', moisture: 'High', type: 'Laterite' },
                     waterRequirements: { level: 'High', advice: 'Requires high atmospheric humidity more than irrigation.' },
-                    yieldRange: '600-900', yieldUnit: 'kg/acre', marketValue: '₹1,50,000', profitMargin: '120%', sustainabilityScore: 80,
+                    yieldRange: '600-900', yieldUnit: 'kg/acre', marketValue: 'â‚¹1,50,000', profitMargin: '120%', sustainabilityScore: 80,
                     plantingSeason: 'June-July', harvestingSeason: 'Year-round tapping',
                     imageKeyword: 'latex collection from rubber tree'
                 },
@@ -5979,10 +5938,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Cashew', suitabilityScore: 85, 
                     description: 'Highly resilient tree crop for waste lands. Drought tolerant and improves soil structure. Low maintenance with high export value for nuts.',
                     conditionSummary: 'Waste land suitable, Low maintenance, Drought tolerant',
-                    climateDetails: { tempRange: '20-30°C', humidity: '60-70%' },
+                    climateDetails: { tempRange: '20-30Â°C', humidity: '60-70%' },
                     soilDetails: { ph: '5.0-8.0', moisture: 'Low', type: 'Sandy/Laterite' },
                     waterRequirements: { level: 'Low', advice: 'Only young saplings need watering; mature trees survive on rain.' },
-                    yieldRange: '800-1200', yieldUnit: 'kg/acre', marketValue: '₹1,20,000', profitMargin: '180%', sustainabilityScore: 85,
+                    yieldRange: '800-1200', yieldUnit: 'kg/acre', marketValue: 'â‚¹1,20,000', profitMargin: '180%', sustainabilityScore: 85,
                     plantingSeason: 'June-August', harvestingSeason: 'February-May',
                     imageKeyword: 'cashew apple and nut on branch'
                 },
@@ -5990,10 +5949,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Watermelon', suitabilityScore: 84, 
                     description: 'Ideal summer crop for sandy river beds. Fast growth (90 days) with high market demand during hot months. Water-intensive but highly profitable.',
                     conditionSummary: 'Summer crop, Fast growth, High water need',
-                    climateDetails: { tempRange: '25-35°C', humidity: '50-60%' },
+                    climateDetails: { tempRange: '25-35Â°C', humidity: '50-60%' },
                     soilDetails: { ph: '6.0-7.0', moisture: 'Medium', type: 'Sandy Bed' },
                     waterRequirements: { level: 'High', advice: 'Frequent light irrigation is better than heavy flooding.' },
-                    yieldRange: '15-20', yieldUnit: 'tons/acre', marketValue: '₹80,000', profitMargin: '150%', sustainabilityScore: 70,
+                    yieldRange: '15-20', yieldUnit: 'tons/acre', marketValue: 'â‚¹80,000', profitMargin: '150%', sustainabilityScore: 70,
                     plantingSeason: 'January-February', harvestingSeason: 'April-May',
                     imageKeyword: 'large watermelons in field'
                 },
@@ -6001,10 +5960,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Strawberry', suitabilityScore: 75, 
                     description: 'Premium berry for cool climates or polyhouse setups. High sensitivity to soil pH and salinity. Very high margin in niche retail markets.',
                     conditionSummary: 'Cool nights required, pH sensitive, High margin',
-                    climateDetails: { tempRange: '15-25°C', humidity: '50-60%' },
+                    climateDetails: { tempRange: '15-25Â°C', humidity: '50-60%' },
                     soilDetails: { ph: '5.5-6.5', moisture: 'Moderate', type: 'Sandy Loam' },
                     waterRequirements: { level: 'Medium', advice: 'Drip irrigation with fertigation is highly recommended.' },
-                    yieldRange: '4-6', yieldUnit: 'tons/acre', marketValue: '₹3,50,000', profitMargin: '300%', sustainabilityScore: 78,
+                    yieldRange: '4-6', yieldUnit: 'tons/acre', marketValue: 'â‚¹3,50,000', profitMargin: '300%', sustainabilityScore: 78,
                     plantingSeason: 'September-October', harvestingSeason: 'December-March',
                     imageKeyword: 'ripe strawberries in basket'
                 },
@@ -6012,10 +5971,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Spinach', suitabilityScore: 92, 
                     description: 'Superfast short-duration leafy green. Possible to harvest every 30 days. High demand for organic varieties in city centers.',
                     conditionSummary: 'Superfast harvest, Nutrient rich, Urban demand',
-                    climateDetails: { tempRange: '10-25°C', humidity: '60-70%' },
+                    climateDetails: { tempRange: '10-25Â°C', humidity: '60-70%' },
                     soilDetails: { ph: '6.5-7.5', moisture: 'Moderate', type: 'Sandy/Silty Loam' },
                     waterRequirements: { level: 'Medium', advice: 'Light misting keeps leaves fresh and crisp.' },
-                    yieldRange: '2-4', yieldUnit: 'tons/acre', marketValue: '₹40,000', profitMargin: '110%', sustainabilityScore: 95,
+                    yieldRange: '2-4', yieldUnit: 'tons/acre', marketValue: 'â‚¹40,000', profitMargin: '110%', sustainabilityScore: 95,
                     plantingSeason: 'All-year', harvestingSeason: '30-45 days after sowing',
                     imageKeyword: 'lush green spinach bed'
                 },
@@ -6023,10 +5982,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Broccoli', suitabilityScore: 78, 
                     description: 'Exotic cruciferous vegetable for winter. High requirement for sulfur-based nutrients and consistent moisture level.',
                     conditionSummary: 'Winter specific, Nutrient heavy, Health food market',
-                    climateDetails: { tempRange: '15-21°C', humidity: '60-70%' },
+                    climateDetails: { tempRange: '15-21Â°C', humidity: '60-70%' },
                     soilDetails: { ph: '6.0-7.0', moisture: 'Moderate', type: 'Deep Loam' },
                     waterRequirements: { level: 'Medium', advice: 'Keep soil evenly moist to prevent early bolting.' },
-                    yieldRange: '3-5', yieldUnit: 'tons/acre', marketValue: '₹1,50,000', profitMargin: '190%', sustainabilityScore: 85,
+                    yieldRange: '3-5', yieldUnit: 'tons/acre', marketValue: 'â‚¹1,50,000', profitMargin: '190%', sustainabilityScore: 85,
                     plantingSeason: 'September-November', harvestingSeason: 'December-February',
                     imageKeyword: 'broccoli head in garden'
                 },
@@ -6034,10 +5993,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Clove', suitabilityScore: 70, 
                     description: 'Valuable spice bud. Requires humid tropical climate with moderate but well-distributed rainfall. Tree starts bearing after 7-8 years.',
                     conditionSummary: 'Long-term tree, Spice value, Humidity need',
-                    climateDetails: { tempRange: '20-30°C', humidity: '70-90%' },
+                    climateDetails: { tempRange: '20-30Â°C', humidity: '70-90%' },
                     soilDetails: { ph: '5.0-6.0', moisture: 'High', type: 'Red/Laterite' },
                     waterRequirements: { level: 'High', advice: 'Soil should have high organic content to retain moisture.' },
-                    yieldRange: '2-3', yieldUnit: 'kg/tree', marketValue: '₹4,00,000', profitMargin: '350%', sustainabilityScore: 92,
+                    yieldRange: '2-3', yieldUnit: 'kg/tree', marketValue: 'â‚¹4,00,000', profitMargin: '350%', sustainabilityScore: 92,
                     plantingSeason: 'June-July', harvestingSeason: 'September-January',
                     imageKeyword: 'clove flower buds on branch'
                 },
@@ -6045,10 +6004,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Cinnamon', suitabilityScore: 75, 
                     description: 'Bark-based spice. Thrives in sandy-loam soils with high organic matter. Periodic pruning allows for continuous bark harvest.',
                     conditionSummary: 'Bark harvest, Organic soil, Low pest issues',
-                    climateDetails: { tempRange: '25-30°C', humidity: '70-80%' },
+                    climateDetails: { tempRange: '25-30Â°C', humidity: '70-80%' },
                     soilDetails: { ph: '4.5-5.5', moisture: 'High', type: 'Sandy Loam' },
                     waterRequirements: { level: 'Medium', advice: 'Sensitive to stagnant water; needs perfect drainage.' },
-                    yieldRange: '100-150', yieldUnit: 'kg/acre', marketValue: '₹1,80,000', profitMargin: '220%', sustainabilityScore: 88,
+                    yieldRange: '100-150', yieldUnit: 'kg/acre', marketValue: 'â‚¹1,80,000', profitMargin: '220%', sustainabilityScore: 88,
                     plantingSeason: 'June-July', harvestingSeason: 'May-November',
                     imageKeyword: 'cinnamon bark being peeled'
                 },
@@ -6056,10 +6015,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Mulberry (Sericulture)', suitabilityScore: 86, 
                     description: 'Drought-tolerant tree grown primarily for silkworm rearing. Very high sustainability score and continuous foliage harvest.',
                     conditionSummary: 'Drought tolerant, Continuous foliage, Sericulture base',
-                    climateDetails: { tempRange: '20-35°C', humidity: '60-70%' },
+                    climateDetails: { tempRange: '20-35Â°C', humidity: '60-70%' },
                     soilDetails: { ph: '6.2-6.8', moisture: 'Moderate', type: 'Alluvial Loam' },
                     waterRequirements: { level: 'Low', advice: 'Needs deep pruning twice a year to maintain foliage quality.' },
-                    yieldRange: '10-15', yieldUnit: 'tons/acre', marketValue: '₹90,000', profitMargin: '130%', sustainabilityScore: 98,
+                    yieldRange: '10-15', yieldUnit: 'tons/acre', marketValue: 'â‚¹90,000', profitMargin: '130%', sustainabilityScore: 98,
                     plantingSeason: 'June-August', harvestingSeason: 'Successive leaf picking',
                     imageKeyword: 'mulberry leaves with silkworms'
                 },
@@ -6067,10 +6026,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Avocado (Hass)', suitabilityScore: 74, 
                     description: 'Superfood with booming internal demand. Requires well-drained volcanic or loamy soil and protection from frost. High sustainability with long productive life.',
                     conditionSummary: 'Well-draining vital, Frost sensitive, Long life cycle',
-                    climateDetails: { tempRange: '20-28°C', humidity: '60-70%' },
+                    climateDetails: { tempRange: '20-28Â°C', humidity: '60-70%' },
                     soilDetails: { ph: '6.0-7.0', moisture: 'Moderate', type: 'Volcanic Loam' },
                     waterRequirements: { level: 'Medium', advice: 'Sensitive to saline water and root rot; ensure perfect drainage.' },
-                    yieldRange: '4-6', yieldUnit: 'tons/acre', marketValue: '₹7,50,000', profitMargin: '480%', sustainabilityScore: 88,
+                    yieldRange: '4-6', yieldUnit: 'tons/acre', marketValue: 'â‚¹7,50,000', profitMargin: '480%', sustainabilityScore: 88,
                     plantingSeason: 'June-July', harvestingSeason: 'October-January (after 3y)',
                     imageKeyword: 'ripe avocado fruit on branch'
                 },
@@ -6078,10 +6037,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Kiwi (Green)', suitabilityScore: 68, 
                     description: 'High-value vining fruit. Requires cool temperatures with specific chilling hours during winter for fruit set. High demand in premium urban markets.',
                     conditionSummary: 'Specific chilling hours, Vining support, High urban value',
-                    climateDetails: { tempRange: '13-24°C', humidity: '60-75%' },
+                    climateDetails: { tempRange: '13-24Â°C', humidity: '60-75%' },
                     soilDetails: { ph: '5.5-6.5', moisture: 'High', type: 'Deep Sandy Loam' },
                     waterRequirements: { level: 'High', advice: 'Soil should never dry out completely during summer.' },
-                    yieldRange: '3-5', yieldUnit: 'tons/acre', marketValue: '₹6,00,000', profitMargin: '350%', sustainabilityScore: 82,
+                    yieldRange: '3-5', yieldUnit: 'tons/acre', marketValue: 'â‚¹6,00,000', profitMargin: '350%', sustainabilityScore: 82,
                     plantingSeason: 'January-February', harvestingSeason: 'October-November (after 4y)',
                     imageKeyword: 'kiwi fruits hanging from vine trellis'
                 },
@@ -6089,10 +6048,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Blueberry (Northern Highbush)', suitabilityScore: 65, 
                     description: 'Premium berry requiring very acidic soil conditions. Best grown in pots or specially prepared beds with peat moss and pine bark.',
                     conditionSummary: 'Very acidic soil, High moisture, Specialized setup',
-                    climateDetails: { tempRange: '15-25°C', humidity: '60-70%' },
+                    climateDetails: { tempRange: '15-25Â°C', humidity: '60-70%' },
                     soilDetails: { ph: '4.5-5.2', moisture: 'High', type: 'Acidic Peat' },
                     waterRequirements: { level: 'High', advice: 'Requires consistent drip irrigation with balanced pH water.' },
-                    yieldRange: '2-4', yieldUnit: 'kg/bush', marketValue: '₹12,00,000', profitMargin: '650%', sustainabilityScore: 80,
+                    yieldRange: '2-4', yieldUnit: 'kg/bush', marketValue: 'â‚¹12,00,000', profitMargin: '650%', sustainabilityScore: 80,
                     plantingSeason: 'February-March', harvestingSeason: 'June-August (after 2y)',
                     imageKeyword: 'blueberries ripening on bush'
                 },
@@ -6100,10 +6059,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Almond (Premium)', suitabilityScore: 76, 
                     description: 'High-value nut crop for dry regions with cool winters. Requires honeybee pollination for good fruit set. Very high durability and storage value.',
                     conditionSummary: 'Dry climate, Pollination dependent, High durability',
-                    climateDetails: { tempRange: '15-32°C', humidity: '40-50%' },
+                    climateDetails: { tempRange: '15-32Â°C', humidity: '40-50%' },
                     soilDetails: { ph: '7.0-8.5', moisture: 'Low', type: 'Sandy/Calcareous' },
                     waterRequirements: { level: 'Low', advice: 'Minimal water during summer; avoid humidity during flowering.' },
-                    yieldRange: '1000-1500', yieldUnit: 'kg/acre', marketValue: '₹5,80,000', profitMargin: '290%', sustainabilityScore: 85,
+                    yieldRange: '1000-1500', yieldUnit: 'kg/acre', marketValue: 'â‚¹5,80,000', profitMargin: '290%', sustainabilityScore: 85,
                     plantingSeason: 'January-February', harvestingSeason: 'August-October',
                     imageKeyword: 'almond blossoms and green nuts'
                 },
@@ -6111,10 +6070,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Walnut (English)', suitabilityScore: 70, 
                     description: 'Long-term investment for high-altitude regions. Deep root system requires deep, well-aerated soil. Premium pricing for high-quality kernels.',
                     conditionSummary: 'High altitude, Deep soil needed, Long-term gain',
-                    climateDetails: { tempRange: '10-25°C', humidity: '50-60%' },
+                    climateDetails: { tempRange: '10-25Â°C', humidity: '50-60%' },
                     soilDetails: { ph: '6.0-7.5', moisture: 'Moderate', type: 'Deep Silt Loam' },
                     waterRequirements: { level: 'Medium', advice: 'Water deeply during dry spells; sensitive to waterlogging.' },
-                    yieldRange: '1.5-2', yieldUnit: 'tons/acre', marketValue: '₹4,20,000', profitMargin: '210%', sustainabilityScore: 92,
+                    yieldRange: '1.5-2', yieldUnit: 'tons/acre', marketValue: 'â‚¹4,20,000', profitMargin: '210%', sustainabilityScore: 92,
                     plantingSeason: 'January-March', harvestingSeason: 'September-November',
                     imageKeyword: 'walnuts in green husks on tree'
                 },
@@ -6122,10 +6081,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Pistachio', suitabilityScore: 82, 
                     description: 'Extremely drought and salt tolerant nut tree. Requires distinct hot dry summers and cool winters. Possible to grow on saline/alkaline soils where other crops fail.',
                     conditionSummary: 'Saline tolerant, Drought champion, Salt tolerance',
-                    climateDetails: { tempRange: '25-45°C', humidity: '20-40%' },
+                    climateDetails: { tempRange: '25-45Â°C', humidity: '20-40%' },
                     soilDetails: { ph: '7.0-9.0', moisture: 'Extremely Low', type: 'Saline/Sandy' },
                     waterRequirements: { level: 'Extremely Low', advice: 'Requires very little irrigation once established.' },
-                    yieldRange: '800-1200', yieldUnit: 'kg/acre', marketValue: '₹8,50,000', profitMargin: '380%', sustainabilityScore: 96,
+                    yieldRange: '800-1200', yieldUnit: 'kg/acre', marketValue: 'â‚¹8,50,000', profitMargin: '380%', sustainabilityScore: 96,
                     plantingSeason: 'February-March', harvestingSeason: 'September-October',
                     imageKeyword: 'pistachio nuts ripening in clusters'
                 },
@@ -6133,10 +6092,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Cherry (Sweet)', suitabilityScore: 62, 
                     description: 'Boutique fruit for cold mountain regions. Requires high chilling hours and protection from rain during harvest to prevent skin splitting.',
                     conditionSummary: 'Cold mountain crop, Rain sensitive, Premium niche',
-                    climateDetails: { tempRange: '10-22°C', humidity: '50-60%' },
+                    climateDetails: { tempRange: '10-22Â°C', humidity: '50-60%' },
                     soilDetails: { ph: '6.0-7.0', moisture: 'Moderate', type: 'Well-drained Loam' },
                     waterRequirements: { level: 'Medium', advice: 'Consistent moisture is vital during fruit development.' },
-                    yieldRange: '3-4', yieldUnit: 'tons/acre', marketValue: '₹9,50,000', profitMargin: '500%', sustainabilityScore: 75,
+                    yieldRange: '3-4', yieldUnit: 'tons/acre', marketValue: 'â‚¹9,50,000', profitMargin: '500%', sustainabilityScore: 75,
                     plantingSeason: 'January-February', harvestingSeason: 'May-June',
                     imageKeyword: 'red cherries on tree branch'
                 },
@@ -6144,10 +6103,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Millet (Ragi/Finger)', suitabilityScore: 95, 
                     description: 'Nutritional powerhouse and climate-smart cereal. Highly resistant to drought and pests. Stable yield with minimal chemical fertilizers.',
                     conditionSummary: 'Climate smart, Low input, Pesticide free',
-                    climateDetails: { tempRange: '25-35°C', humidity: '40-60%' },
+                    climateDetails: { tempRange: '25-35Â°C', humidity: '40-60%' },
                     soilDetails: { ph: '5.0-8.2', moisture: 'Low', type: 'Red/Laterite' },
                     waterRequirements: { level: 'Low', advice: 'Can survive several weeks of drought during vegetative stage.' },
-                    yieldRange: '8-12', yieldUnit: 'q/acre', marketValue: '₹45,000', profitMargin: '120%', sustainabilityScore: 99,
+                    yieldRange: '8-12', yieldUnit: 'q/acre', marketValue: 'â‚¹45,000', profitMargin: '120%', sustainabilityScore: 99,
                     plantingSeason: 'June-July', harvestingSeason: 'October-November',
                     imageKeyword: 'ragi crop heads in field'
                 },
@@ -6155,10 +6114,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Millet (Bajra/Pearl)', suitabilityScore: 94, 
                     description: 'Champion of arid zones! Can produce grain on very low soil fertility and minimal rainfall. High demand for gluten-free health food markets.',
                     conditionSummary: 'Arid zone champion, Low fertility, Gluten free',
-                    climateDetails: { tempRange: '30-45°C', humidity: '20-40%' },
+                    climateDetails: { tempRange: '30-45Â°C', humidity: '20-40%' },
                     soilDetails: { ph: '7.0-8.5', moisture: 'Extremely Low', type: 'Sandy/Arid' },
                     waterRequirements: { level: 'Extremely Low', advice: 'Resistant to high heat; needs well-aerated sandy soil.' },
-                    yieldRange: '10-14', yieldUnit: 'q/acre', marketValue: '₹42,000', profitMargin: '140%', sustainabilityScore: 98,
+                    yieldRange: '10-14', yieldUnit: 'q/acre', marketValue: 'â‚¹42,000', profitMargin: '140%', sustainabilityScore: 98,
                     plantingSeason: 'July-August', harvestingSeason: 'October-December',
                     imageKeyword: 'bajra pearl millet in desert field'
                 },
@@ -6166,10 +6125,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Barley (Malting)', suitabilityScore: 78, 
                     description: 'Salt-tolerant cereal with high demand from brewing and animal feed industries. Shorter growing season than wheat, making it a flexible second crop.',
                     conditionSummary: 'Salt tolerant, Industrial demand, Fast growing',
-                    climateDetails: { tempRange: '15-28°C', humidity: '40-50%' },
+                    climateDetails: { tempRange: '15-28Â°C', humidity: '40-50%' },
                     soilDetails: { ph: '6.0-8.0', moisture: 'Moderate', type: 'Loamy/Silty' },
                     waterRequirements: { level: 'Medium', advice: 'Avoid overhead irrigation during flowering to stay disease-free.' },
-                    yieldRange: '12-16', yieldUnit: 'q/acre', marketValue: '₹38,000', profitMargin: '110%', sustainabilityScore: 82,
+                    yieldRange: '12-16', yieldUnit: 'q/acre', marketValue: 'â‚¹38,000', profitMargin: '110%', sustainabilityScore: 82,
                     plantingSeason: 'October-November', harvestingSeason: 'March-April',
                     imageKeyword: 'golden barley heads'
                 },
@@ -6177,10 +6136,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Lavender', suitabilityScore: 84, 
                     description: 'Aromatic medicinal plant with massive demand from essential oil and cosmetic industries. Highly drought tolerant once established and survives in poor soils.',
                     conditionSummary: 'Oil value, Poor soil suitable, Drought champion',
-                    climateDetails: { tempRange: '20-35°C', humidity: '30-50%' },
+                    climateDetails: { tempRange: '20-35Â°C', humidity: '30-50%' },
                     soilDetails: { ph: '6.5-8.5', moisture: 'Low', type: 'Sandy/Calcareous' },
                     waterRequirements: { level: 'Low', advice: 'Excellent drainage is vital; susceptible to root rot if wet.' },
-                    yieldRange: '15-20', yieldUnit: 'kg/acre (oil)', marketValue: '₹5,00,000', profitMargin: '420%', sustainabilityScore: 98,
+                    yieldRange: '15-20', yieldUnit: 'kg/acre (oil)', marketValue: 'â‚¹5,00,000', profitMargin: '420%', sustainabilityScore: 98,
                     plantingSeason: 'November-December', harvestingSeason: 'June-July',
                     imageKeyword: 'purple lavender field'
                 },
@@ -6188,10 +6147,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Peppermint', suitabilityScore: 88, 
                     description: 'Fast-growing herb for essential oil. Requires constant moisture and organic-rich soil. Continuous harvesting possible during the growing season.',
                     conditionSummary: 'Essential oil, Fast growth, High moisture',
-                    climateDetails: { tempRange: '20-30°C', humidity: '70-80%' },
+                    climateDetails: { tempRange: '20-30Â°C', humidity: '70-80%' },
                     soilDetails: { ph: '6.0-7.0', moisture: 'High', type: 'Rich Alluvial' },
                     waterRequirements: { level: 'High', advice: 'Needs soil to be consistently wet; mulch helps significantly.' },
-                    yieldRange: '20-30', yieldUnit: 'kg/acre (oil)', marketValue: '₹3,20,000', profitMargin: '350%', sustainabilityScore: 90,
+                    yieldRange: '20-30', yieldUnit: 'kg/acre (oil)', marketValue: 'â‚¹3,20,000', profitMargin: '350%', sustainabilityScore: 90,
                     plantingSeason: 'February-March', harvestingSeason: 'Successive harvesting',
                     imageKeyword: 'fresh mint leaf field'
                 },
@@ -6199,10 +6158,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Coriander (Seed)', suitabilityScore: 86, 
                     description: 'Dual-purpose spice and herb. Fast duration (90 days). Thrives in well-distributed light rainfall and loamy soil. Growing export demand for seeds.',
                     conditionSummary: 'Short duration, Export potential, Dual purpose',
-                    climateDetails: { tempRange: '18-28°C', humidity: '50-60%' },
+                    climateDetails: { tempRange: '18-28Â°C', humidity: '50-60%' },
                     soilDetails: { ph: '6.0-7.5', moisture: 'Moderate', type: 'Loamy' },
                     waterRequirements: { level: 'Medium', advice: 'Maintain soil moisture during flowering and seed set.' },
-                    yieldRange: '400-600', yieldUnit: 'kg/acre', marketValue: '₹1,20,000', profitMargin: '210%', sustainabilityScore: 85,
+                    yieldRange: '400-600', yieldUnit: 'kg/acre', marketValue: 'â‚¹1,20,000', profitMargin: '210%', sustainabilityScore: 85,
                     plantingSeason: 'October-November', harvestingSeason: 'January-February',
                     imageKeyword: 'coriander seed production field'
                 },
@@ -6210,10 +6169,10 @@ async function handleCropRecommendationLogic(req, res) {
                     crop: 'Cumin (Spice)', suitabilityScore: 72, 
                     description: 'Extremely high value but sensitive spice. Requires cold dry winters and sandy soil. High sensitivity to frost and excessive humidity at harvest.',
                     conditionSummary: 'Sensitivity high, Cold dry winter, High market value',
-                    climateDetails: { tempRange: '15-25°C', humidity: '20-40%' },
+                    climateDetails: { tempRange: '15-25Â°C', humidity: '20-40%' },
                     soilDetails: { ph: '7.0-8.5', moisture: 'Extremely Low', type: 'Sandy Loam' },
                     waterRequirements: { level: 'Low', advice: 'Apply only minimal irrigation; susceptible to wilt.' },
-                    yieldRange: '300-500', yieldUnit: 'kg/acre', marketValue: '₹4,50,000', profitMargin: '380%', sustainabilityScore: 82,
+                    yieldRange: '300-500', yieldUnit: 'kg/acre', marketValue: 'â‚¹4,50,000', profitMargin: '380%', sustainabilityScore: 82,
                     plantingSeason: 'November-December', harvestingSeason: 'February-March',
                     imageKeyword: 'cumin spice plants in arid field'
                 }
@@ -6448,11 +6407,11 @@ app.get('/api/market-insights', async (req, res) => {
         }
 
         const fallbackRows = [
-            { name: 'Onion Big', displayName: 'Onion Big', price: 21, retailPrice: '₹25 - 32', retailMin: 25, retailMax: 32, units: '1kg', imageUrl: '/resource/images/vegetables/onionbig-64.png', trend: 'stable', priceChange: 0 },
-            { name: 'Onion Small', displayName: 'Onion Small', price: 40, retailPrice: '₹48 - 60', retailMin: 48, retailMax: 60, units: '1kg', imageUrl: '/resource/images/vegetables/onionsmall-64.png', trend: 'stable', priceChange: 0 },
-            { name: 'Tomato', displayName: 'Tomato', price: 16, retailPrice: '₹19 - 24', retailMin: 19, retailMax: 24, units: '1kg', imageUrl: '/resource/images/vegetables/tomato-64.png', trend: 'stable', priceChange: 0 },
-            { name: 'Green Chilli', displayName: 'Green Chilli', price: 40, retailPrice: '₹48 - 60', retailMin: 48, retailMax: 60, units: '1kg', imageUrl: '/resource/images/vegetables/greenchilli-64.png', trend: 'stable', priceChange: 0 },
-            { name: 'Beetroot', displayName: 'Beetroot', price: 26, retailPrice: '₹31 - 39', retailMin: 31, retailMax: 39, units: '1kg', imageUrl: '/resource/images/vegetables/beetroot-64.png', trend: 'stable', priceChange: 0 }
+            { name: 'Onion Big', displayName: 'Onion Big', price: 21, retailPrice: 'â‚¹25 - 32', retailMin: 25, retailMax: 32, units: '1kg', imageUrl: '/resource/images/vegetables/onionbig-64.png', trend: 'stable', priceChange: 0 },
+            { name: 'Onion Small', displayName: 'Onion Small', price: 40, retailPrice: 'â‚¹48 - 60', retailMin: 48, retailMax: 60, units: '1kg', imageUrl: '/resource/images/vegetables/onionsmall-64.png', trend: 'stable', priceChange: 0 },
+            { name: 'Tomato', displayName: 'Tomato', price: 16, retailPrice: 'â‚¹19 - 24', retailMin: 19, retailMax: 24, units: '1kg', imageUrl: '/resource/images/vegetables/tomato-64.png', trend: 'stable', priceChange: 0 },
+            { name: 'Green Chilli', displayName: 'Green Chilli', price: 40, retailPrice: 'â‚¹48 - 60', retailMin: 48, retailMax: 60, units: '1kg', imageUrl: '/resource/images/vegetables/greenchilli-64.png', trend: 'stable', priceChange: 0 },
+            { name: 'Beetroot', displayName: 'Beetroot', price: 26, retailPrice: 'â‚¹31 - 39', retailMin: 31, retailMax: 39, units: '1kg', imageUrl: '/resource/images/vegetables/beetroot-64.png', trend: 'stable', priceChange: 0 }
         ];
 
         const cachedData = marketDataCache.requestedDate === requestedDate ? marketDataCache.data : null;
@@ -6491,11 +6450,11 @@ app.get('/api/market-insights', async (req, res) => {
             sentiment: "Bullish",
             topGainer: {
                 name: topGainerRow?.displayName || topGainerRow?.name || 'Onion Big',
-                change: topGainerRow?.priceChange > 0 ? `+₹${topGainerRow.priceChange}` : `₹${topGainerRow?.price || 0}`
+                change: topGainerRow?.priceChange > 0 ? `+â‚¹${topGainerRow.priceChange}` : `â‚¹${topGainerRow?.price || 0}`
             },
             topLoser: {
                 name: topLoserRow?.displayName || topLoserRow?.name || 'Potato',
-                change: topLoserRow?.priceChange < 0 ? `-₹${Math.abs(topLoserRow.priceChange)}` : `₹${topLoserRow?.price || 0}`
+                change: topLoserRow?.priceChange < 0 ? `-â‚¹${Math.abs(topLoserRow.priceChange)}` : `â‚¹${topLoserRow?.price || 0}`
             },
             harvestValue: averagePrice * Math.max(liveRows.length, 1) * 50,
             source: {
@@ -6515,11 +6474,11 @@ app.get('/api/market-insights', async (req, res) => {
         console.error('Market Insights Endpoint Error:', e);
         const requestedDate = req.query.date || 'today';
         const fallbackRows = buildDateVariantRows([
-            { name: 'Onion Big', displayName: 'Onion Big', price: 21, retailPrice: '₹25 - 32', retailMin: 25, retailMax: 32, units: '1kg', imageUrl: '/resource/images/vegetables/onionbig-64.png', trend: 'stable', priceChange: 0 },
-            { name: 'Onion Small', displayName: 'Onion Small', price: 40, retailPrice: '₹48 - 60', retailMin: 48, retailMax: 60, units: '1kg', imageUrl: '/resource/images/vegetables/onionsmall-64.png', trend: 'stable', priceChange: 0 },
-            { name: 'Tomato', displayName: 'Tomato', price: 16, retailPrice: '₹19 - 24', retailMin: 19, retailMax: 24, units: '1kg', imageUrl: '/resource/images/vegetables/tomato-64.png', trend: 'stable', priceChange: 0 },
-            { name: 'Green Chilli', displayName: 'Green Chilli', price: 40, retailPrice: '₹48 - 60', retailMin: 48, retailMax: 60, units: '1kg', imageUrl: '/resource/images/vegetables/greenchilli-64.png', trend: 'stable', priceChange: 0 },
-            { name: 'Beetroot', displayName: 'Beetroot', price: 26, retailPrice: '₹31 - 39', retailMin: 31, retailMax: 39, units: '1kg', imageUrl: '/resource/images/vegetables/beetroot-64.png', trend: 'stable', priceChange: 0 }
+            { name: 'Onion Big', displayName: 'Onion Big', price: 21, retailPrice: 'â‚¹25 - 32', retailMin: 25, retailMax: 32, units: '1kg', imageUrl: '/resource/images/vegetables/onionbig-64.png', trend: 'stable', priceChange: 0 },
+            { name: 'Onion Small', displayName: 'Onion Small', price: 40, retailPrice: 'â‚¹48 - 60', retailMin: 48, retailMax: 60, units: '1kg', imageUrl: '/resource/images/vegetables/onionsmall-64.png', trend: 'stable', priceChange: 0 },
+            { name: 'Tomato', displayName: 'Tomato', price: 16, retailPrice: 'â‚¹19 - 24', retailMin: 19, retailMax: 24, units: '1kg', imageUrl: '/resource/images/vegetables/tomato-64.png', trend: 'stable', priceChange: 0 },
+            { name: 'Green Chilli', displayName: 'Green Chilli', price: 40, retailPrice: 'â‚¹48 - 60', retailMin: 48, retailMax: 60, units: '1kg', imageUrl: '/resource/images/vegetables/greenchilli-64.png', trend: 'stable', priceChange: 0 },
+            { name: 'Beetroot', displayName: 'Beetroot', price: 26, retailPrice: 'â‚¹31 - 39', retailMin: 31, retailMax: 39, units: '1kg', imageUrl: '/resource/images/vegetables/beetroot-64.png', trend: 'stable', priceChange: 0 }
         ], requestedDate);
         res.json({
             livePrices: fallbackRows.map(row => ({
@@ -6534,11 +6493,11 @@ app.get('/api/market-insights', async (req, res) => {
             sentiment: 'Neutral',
             topGainer: {
                 name: fallbackRows[0]?.displayName || fallbackRows[0]?.name || 'Onion Big',
-                change: `₹${fallbackRows[0]?.price || 0}`
+                change: `â‚¹${fallbackRows[0]?.price || 0}`
             },
             topLoser: {
                 name: fallbackRows[fallbackRows.length - 1]?.displayName || fallbackRows[fallbackRows.length - 1]?.name || 'Beetroot',
-                change: `₹${fallbackRows[fallbackRows.length - 1]?.price || 0}`
+                change: `â‚¹${fallbackRows[fallbackRows.length - 1]?.price || 0}`
             },
             harvestValue: fallbackRows.reduce((sum, row) => sum + Number(row.price || 0), 0) * 10,
             source: {
@@ -6682,42 +6641,42 @@ app.get('/api/disease-care', (req, res) => {
 
     const diseaseAliases = {
         'blast': 'blast',
-        'குமிழி நோய்': 'blast',
+        'à®•à¯à®®à®¿à®´à®¿ à®¨à¯‹à®¯à¯': 'blast',
         'sheath rot': 'sheath rot',
-        'உறையழுகல் நோய்': 'sheath rot',
+        'à®‰à®±à¯ˆà®¯à®´à¯à®•à®²à¯ à®¨à¯‹à®¯à¯': 'sheath rot',
         'udbatta disease': 'udbatta disease',
-        'உத்பாட்டா நோய்': 'udbatta disease',
+        'à®‰à®¤à¯à®ªà®¾à®Ÿà¯à®Ÿà®¾ à®¨à¯‹à®¯à¯': 'udbatta disease',
         'rust': 'rust',
-        'துரு நோய்': 'rust',
+        'à®¤à¯à®°à¯ à®¨à¯‹à®¯à¯': 'rust',
         'wheat rust': 'rust',
         'loose smut': 'loose smut',
         'smut': 'loose smut',
-        'கரிப்பூட்டை நோய்': 'loose smut',
+        'à®•à®°à®¿à®ªà¯à®ªà¯‚à®Ÿà¯à®Ÿà¯ˆ à®¨à¯‹à®¯à¯': 'loose smut',
         'early blight': 'early blight',
-        'ஆரம்பகால கருகல்': 'early blight',
-        'ஆரம்ப கால கருகல்': 'early blight',
+        'à®†à®°à®®à¯à®ªà®•à®¾à®² à®•à®°à¯à®•à®²à¯': 'early blight',
+        'à®†à®°à®®à¯à®ª à®•à®¾à®² à®•à®°à¯à®•à®²à¯': 'early blight',
         'fusarium wilt': 'fusarium wilt',
-        'பியூசேரியம் வாடல்': 'fusarium wilt',
+        'à®ªà®¿à®¯à¯‚à®šà¯‡à®°à®¿à®¯à®®à¯ à®µà®¾à®Ÿà®²à¯': 'fusarium wilt',
         'late blight': 'late blight',
-        'லேட் பிளைட்': 'late blight',
+        'à®²à¯‡à®Ÿà¯ à®ªà®¿à®³à¯ˆà®Ÿà¯': 'late blight',
         'maize leaf blight': 'maize leaf blight',
-        'சோள இலைக்கருகல்': 'maize leaf blight',
+        'à®šà¯‹à®³ à®‡à®²à¯ˆà®•à¯à®•à®°à¯à®•à®²à¯': 'maize leaf blight',
         'maize smut': 'maize smut',
-        'சோளக் கரிப்பூட்டை': 'maize smut',
+        'à®šà¯‹à®³à®•à¯ à®•à®°à®¿à®ªà¯à®ªà¯‚à®Ÿà¯à®Ÿà¯ˆ': 'maize smut',
         'red rot': 'red rot',
-        'செவ்வழுகல் நோய்': 'red rot',
+        'à®šà¯†à®µà¯à®µà®´à¯à®•à®²à¯ à®¨à¯‹à®¯à¯': 'red rot',
         'sugarcane smut': 'sugarcane smut',
-        'கரும்பு கரிப்பூட்டை': 'sugarcane smut',
+        'à®•à®°à¯à®®à¯à®ªà¯ à®•à®°à®¿à®ªà¯à®ªà¯‚à®Ÿà¯à®Ÿà¯ˆ': 'sugarcane smut',
         'bacterial blight': 'bacterial blight',
-        'பாக்டீரியா கருகல்': 'bacterial blight',
+        'à®ªà®¾à®•à¯à®Ÿà¯€à®°à®¿à®¯à®¾ à®•à®°à¯à®•à®²à¯': 'bacterial blight',
         'root rot': 'root rot',
-        'வேர் அழுகல் நோய்': 'root rot',
+        'à®µà¯‡à®°à¯ à®…à®´à¯à®•à®²à¯ à®¨à¯‹à®¯à¯': 'root rot',
         'leaf spot': 'leaf spot',
-        'இலைப்புள்ளி நோய்': 'leaf spot',
+        'à®‡à®²à¯ˆà®ªà¯à®ªà¯à®³à¯à®³à®¿ à®¨à¯‹à®¯à¯': 'leaf spot',
         'anthracnose': 'anthracnose',
-        'ஆந்த்ராக்னோஸ்': 'anthracnose',
+        'à®†à®¨à¯à®¤à¯à®°à®¾à®•à¯à®©à¯‹à®¸à¯': 'anthracnose',
         'purple blotch': 'purple blotch',
-        'ஊதா கறை நோய்': 'purple blotch',
+        'à®Šà®¤à®¾ à®•à®±à¯ˆ à®¨à¯‹à®¯à¯': 'purple blotch',
         'ascochyta blight': 'ascochyta blight',
         'collar rot': 'collar rot',
         'alternaria leaf spot': 'alternaria leaf spot',
@@ -6761,556 +6720,556 @@ app.get('/api/disease-care', (req, res) => {
     const cropData = {
         'Rice/Paddy': {
             prevention: [
-                isTa ? 'சான்றிதழ் பெற்ற நோய் தாக்காத விதைகளைப் பயன்படுத்தவும்.' : 'Use certified disease-free seeds.',
-                isTa ? 'வயலை சுத்தமாக வைத்திருந்து முந்தைய பயிர் எச்சங்களை அகற்றவும்.' : 'Keep the field clean and remove previous crop residues.',
-                isTa ? 'தழைச்சத்தை (Nitrogen) பிரித்து இடவும்.' : 'Apply nitrogenous fertilizers in split doses.',
-                isTa ? 'வயலில் சீரான அளவில் நீரை நிறுத்தவும்.' : 'Maintain a thin film of water in the field.'
+                isTa ? 'à®šà®¾à®©à¯à®±à®¿à®¤à®´à¯ à®ªà¯†à®±à¯à®± à®¨à¯‹à®¯à¯ à®¤à®¾à®•à¯à®•à®¾à®¤ à®µà®¿à®¤à¯ˆà®•à®³à¯ˆà®ªà¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use certified disease-free seeds.',
+                isTa ? 'à®µà®¯à®²à¯ˆ à®šà¯à®¤à¯à®¤à®®à®¾à®• à®µà¯ˆà®¤à¯à®¤à®¿à®°à¯à®¨à¯à®¤à¯ à®®à¯à®¨à¯à®¤à¯ˆà®¯ à®ªà®¯à®¿à®°à¯ à®Žà®šà¯à®šà®™à¯à®•à®³à¯ˆ à®…à®•à®±à¯à®±à®µà¯à®®à¯.' : 'Keep the field clean and remove previous crop residues.',
+                isTa ? 'à®¤à®´à¯ˆà®šà¯à®šà®¤à¯à®¤à¯ˆ (Nitrogen) à®ªà®¿à®°à®¿à®¤à¯à®¤à¯ à®‡à®Ÿà®µà¯à®®à¯.' : 'Apply nitrogenous fertilizers in split doses.',
+                isTa ? 'à®µà®¯à®²à®¿à®²à¯ à®šà¯€à®°à®¾à®© à®…à®³à®µà®¿à®²à¯ à®¨à¯€à®°à¯ˆ à®¨à®¿à®±à¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Maintain a thin film of water in the field.'
             ],
             treatment: [
-                isTa ? 'குமிழி நோய்க்கு (Blast) ட்ரைசைக்ளோசோல் தெளிக்கவும்.' : 'Spray Tricyclazole for Blast disease.',
-                isTa ? 'சரியான உர மேலாண்மை மூலம் எதிர்ப்புத் திறனை அதிகரிக்கவும்.' : 'Increase resistance through balanced fertilizer management.',
-                isTa ? 'உறையழுகல் நோய்க்கு (Sheath rot) கார்பெண்டாசிம் பயன்படுத்தவும்.' : 'Apply Carbendazim for Sheath rot.'
+                isTa ? 'à®•à¯à®®à®¿à®´à®¿ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ (Blast) à®Ÿà¯à®°à¯ˆà®šà¯ˆà®•à¯à®³à¯‹à®šà¯‹à®²à¯ à®¤à¯†à®³à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Spray Tricyclazole for Blast disease.',
+                isTa ? 'à®šà®°à®¿à®¯à®¾à®© à®‰à®° à®®à¯‡à®²à®¾à®£à¯à®®à¯ˆ à®®à¯‚à®²à®®à¯ à®Žà®¤à®¿à®°à¯à®ªà¯à®ªà¯à®¤à¯ à®¤à®¿à®±à®©à¯ˆ à®…à®¤à®¿à®•à®°à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Increase resistance through balanced fertilizer management.',
+                isTa ? 'à®‰à®±à¯ˆà®¯à®´à¯à®•à®²à¯ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ (Sheath rot) à®•à®¾à®°à¯à®ªà¯†à®£à¯à®Ÿà®¾à®šà®¿à®®à¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Apply Carbendazim for Sheath rot.'
             ],
             careTips: [
-                isTa ? 'நடவு செய்த முதல் வாரத்தில் 2-3 செ.மீ நீரை பராமரிக்கவும்.' : 'Maintain 2-3 cm water level during the first week after transplanting.',
-                isTa ? 'வாரம் ஒருமுறை பயிர் வளர்ச்சியை கண்காணிக்கவும்.' : 'Monitor crop growth once a week.',
-                isTa ? 'பயிருக்கு கயிறு தேய்த்து இலைத் தேய்ப்பு பூச்சிகளைக் கட்டுப்படுத்தலாம்.' : 'Use a rope to disturb and control leaf folders.'
+                isTa ? 'à®¨à®Ÿà®µà¯ à®šà¯†à®¯à¯à®¤ à®®à¯à®¤à®²à¯ à®µà®¾à®°à®¤à¯à®¤à®¿à®²à¯ 2-3 à®šà¯†.à®®à¯€ à®¨à¯€à®°à¯ˆ à®ªà®°à®¾à®®à®°à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Maintain 2-3 cm water level during the first week after transplanting.',
+                isTa ? 'à®µà®¾à®°à®®à¯ à®’à®°à¯à®®à¯à®±à¯ˆ à®ªà®¯à®¿à®°à¯ à®µà®³à®°à¯à®šà¯à®šà®¿à®¯à¯ˆ à®•à®£à¯à®•à®¾à®£à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Monitor crop growth once a week.',
+                isTa ? 'à®ªà®¯à®¿à®°à¯à®•à¯à®•à¯ à®•à®¯à®¿à®±à¯ à®¤à¯‡à®¯à¯à®¤à¯à®¤à¯ à®‡à®²à¯ˆà®¤à¯ à®¤à¯‡à®¯à¯à®ªà¯à®ªà¯ à®ªà¯‚à®šà¯à®šà®¿à®•à®³à¯ˆà®•à¯ à®•à®Ÿà¯à®Ÿà¯à®ªà¯à®ªà®Ÿà¯à®¤à¯à®¤à®²à®¾à®®à¯.' : 'Use a rope to disturb and control leaf folders.'
             ],
             harvestingTips: [
-                isTa ? 'தானியங்கள் 80-85% முதிர்ந்தவுடன் அறுவடை செய்யவும்.' : 'Harvest when 80-85% of the grains are mature.',
-                isTa ? 'காலை நேரங்களில் அறுவடை செய்வதைத் தவிர்க்கவும்.' : 'Avoid harvesting during morning hours with dew.'
+                isTa ? 'à®¤à®¾à®©à®¿à®¯à®™à¯à®•à®³à¯ 80-85% à®®à¯à®¤à®¿à®°à¯à®¨à¯à®¤à®µà¯à®Ÿà®©à¯ à®…à®±à¯à®µà®Ÿà¯ˆ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Harvest when 80-85% of the grains are mature.',
+                isTa ? 'à®•à®¾à®²à¯ˆ à®¨à¯‡à®°à®™à¯à®•à®³à®¿à®²à¯ à®…à®±à¯à®µà®Ÿà¯ˆ à®šà¯†à®¯à¯à®µà®¤à¯ˆà®¤à¯ à®¤à®µà®¿à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Avoid harvesting during morning hours with dew.'
             ],
             sustainablePractices: [
-                isTa ? 'பசுந்தாள் உரங்களைப் பயன்படுத்தவும்.' : 'Use green manure crops.',
-                isTa ? 'வேப்பம் புண்ணாக்கை உரமாக இடுங்கள்.' : 'Apply neem cake as fertilizer.'
+                isTa ? 'à®ªà®šà¯à®¨à¯à®¤à®¾à®³à¯ à®‰à®°à®™à¯à®•à®³à¯ˆà®ªà¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use green manure crops.',
+                isTa ? 'à®µà¯‡à®ªà¯à®ªà®®à¯ à®ªà¯à®£à¯à®£à®¾à®•à¯à®•à¯ˆ à®‰à®°à®®à®¾à®• à®‡à®Ÿà¯à®™à¯à®•à®³à¯.' : 'Apply neem cake as fertilizer.'
             ],
             irrigationStrategies: [
-                isTa ? 'மாற்று ஈர மற்றும் உலர் நீர்ப்பாசன முறையை (AWD) பின்பற்றவும்.' : 'Follow Alternate Wetting and Drying (AWD) method.',
-                isTa ? 'நீரை வீணாக்காமல் குழாய்கள் மூலம் பாய்ச்சவும்.' : 'Use pipes to carry water without wastage.'
+                isTa ? 'à®®à®¾à®±à¯à®±à¯ à®ˆà®° à®®à®±à¯à®±à¯à®®à¯ à®‰à®²à®°à¯ à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®© à®®à¯à®±à¯ˆà®¯à¯ˆ (AWD) à®ªà®¿à®©à¯à®ªà®±à¯à®±à®µà¯à®®à¯.' : 'Follow Alternate Wetting and Drying (AWD) method.',
+                isTa ? 'à®¨à¯€à®°à¯ˆ à®µà¯€à®£à®¾à®•à¯à®•à®¾à®®à®²à¯ à®•à¯à®´à®¾à®¯à¯à®•à®³à¯ à®®à¯‚à®²à®®à¯ à®ªà®¾à®¯à¯à®šà¯à®šà®µà¯à®®à¯.' : 'Use pipes to carry water without wastage.'
             ],
             agriculturalInputs: [
-                isTa ? 'யூரியா' : 'Urea',
-                isTa ? 'டி.ஏ.பி' : 'DAP',
-                isTa ? 'பொட்டாஷ்' : 'Potash',
-                isTa ? 'நுண்ணூட்டச்சத்து கலவை' : 'Micronutrient Mixture'
+                isTa ? 'à®¯à¯‚à®°à®¿à®¯à®¾' : 'Urea',
+                isTa ? 'à®Ÿà®¿.à®.à®ªà®¿' : 'DAP',
+                isTa ? 'à®ªà¯Šà®Ÿà¯à®Ÿà®¾à®·à¯' : 'Potash',
+                isTa ? 'à®¨à¯à®£à¯à®£à¯‚à®Ÿà¯à®Ÿà®šà¯à®šà®¤à¯à®¤à¯ à®•à®²à®µà¯ˆ' : 'Micronutrient Mixture'
             ],
             diseases: [
-                { name: isTa ? 'குமிழி நோய் (Blast)' : 'Rice Blast', symptoms: isTa ? 'இலைகளில் கண் வடிவப் புள்ளிகள் தோன்றும்.' : 'Eye-shaped spots appear on leaves.' },
-                { name: isTa ? 'உறையழுகல் நோய் (Sheath Rot)' : 'Sheath Rot', symptoms: isTa ? 'மேல் இலை உரைகளில் பழுப்பு நிறப் புள்ளிகள்.' : 'Brownish spots on upper leaf sheaths.' },
-                { name: isTa ? 'உத்பாட்டா நோய்' : 'Udbatta Disease', symptoms: isTa ? 'கதிர்கள் ஊசி போன்ற வடிவத்தில் மாறும்.' : 'Panicles transformed into needle-like structures.' }
+                { name: isTa ? 'à®•à¯à®®à®¿à®´à®¿ à®¨à¯‹à®¯à¯ (Blast)' : 'Rice Blast', symptoms: isTa ? 'à®‡à®²à¯ˆà®•à®³à®¿à®²à¯ à®•à®£à¯ à®µà®Ÿà®¿à®µà®ªà¯ à®ªà¯à®³à¯à®³à®¿à®•à®³à¯ à®¤à¯‹à®©à¯à®±à¯à®®à¯.' : 'Eye-shaped spots appear on leaves.' },
+                { name: isTa ? 'à®‰à®±à¯ˆà®¯à®´à¯à®•à®²à¯ à®¨à¯‹à®¯à¯ (Sheath Rot)' : 'Sheath Rot', symptoms: isTa ? 'à®®à¯‡à®²à¯ à®‡à®²à¯ˆ à®‰à®°à¯ˆà®•à®³à®¿à®²à¯ à®ªà®´à¯à®ªà¯à®ªà¯ à®¨à®¿à®±à®ªà¯ à®ªà¯à®³à¯à®³à®¿à®•à®³à¯.' : 'Brownish spots on upper leaf sheaths.' },
+                { name: isTa ? 'à®‰à®¤à¯à®ªà®¾à®Ÿà¯à®Ÿà®¾ à®¨à¯‹à®¯à¯' : 'Udbatta Disease', symptoms: isTa ? 'à®•à®¤à®¿à®°à¯à®•à®³à¯ à®Šà®šà®¿ à®ªà¯‹à®©à¯à®± à®µà®Ÿà®¿à®µà®¤à¯à®¤à®¿à®²à¯ à®®à®¾à®±à¯à®®à¯.' : 'Panicles transformed into needle-like structures.' }
             ]
         },
         'Wheat': {
             prevention: [
-                isTa ? 'முன்கூட்டியே விதைப்பதைத் தவிர்க்கவும்.' : 'Avoid early sowing to prevent rust.',
-                isTa ? 'நோய் எதிர்ப்புத் திறன் கொண்ட ரகங்களைத் தேர்ந்தெடுக்கவும்.' : 'Select rust-resistant varieties.',
-                isTa ? 'விதை நேர்த்தி செய்ய கார்பாக்சின் பயன்படுத்தவும்.' : 'Use Carboxin for seed treatment.'
+                isTa ? 'à®®à¯à®©à¯à®•à¯‚à®Ÿà¯à®Ÿà®¿à®¯à¯‡ à®µà®¿à®¤à¯ˆà®ªà¯à®ªà®¤à¯ˆà®¤à¯ à®¤à®µà®¿à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Avoid early sowing to prevent rust.',
+                isTa ? 'à®¨à¯‹à®¯à¯ à®Žà®¤à®¿à®°à¯à®ªà¯à®ªà¯à®¤à¯ à®¤à®¿à®±à®©à¯ à®•à¯Šà®£à¯à®Ÿ à®°à®•à®™à¯à®•à®³à¯ˆà®¤à¯ à®¤à¯‡à®°à¯à®¨à¯à®¤à¯†à®Ÿà¯à®•à¯à®•à®µà¯à®®à¯.' : 'Select rust-resistant varieties.',
+                isTa ? 'à®µà®¿à®¤à¯ˆ à®¨à¯‡à®°à¯à®¤à¯à®¤à®¿ à®šà¯†à®¯à¯à®¯ à®•à®¾à®°à¯à®ªà®¾à®•à¯à®šà®¿à®©à¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use Carboxin for seed treatment.'
             ],
             treatment: [
-                isTa ? 'துரு நோய்க்கு (Rust) புரோபிகோனசோல் தெளிக்கவும்.' : 'Spray Propiconazole for Rust disease.',
-                isTa ? 'கரிப்பூட்டை நோய்க்கு (Smut) முறையான விதை நேர்த்தியே தீர்வு.' : 'Proper seed treatment is the key for Smut.'
+                isTa ? 'à®¤à¯à®°à¯ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ (Rust) à®ªà¯à®°à¯‹à®ªà®¿à®•à¯‹à®©à®šà¯‹à®²à¯ à®¤à¯†à®³à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Spray Propiconazole for Rust disease.',
+                isTa ? 'à®•à®°à®¿à®ªà¯à®ªà¯‚à®Ÿà¯à®Ÿà¯ˆ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ (Smut) à®®à¯à®±à¯ˆà®¯à®¾à®© à®µà®¿à®¤à¯ˆ à®¨à¯‡à®°à¯à®¤à¯à®¤à®¿à®¯à¯‡ à®¤à¯€à®°à¯à®µà¯.' : 'Proper seed treatment is the key for Smut.'
             ],
             careTips: [
-                isTa ? 'முக்கியமான வளர்ச்சி நிலைகளில் நீர்ப்பாசனம் செய்யவும்.' : 'Irrigate during critical growth stages (e.g. CRI).',
-                isTa ? 'களைகளைக் கட்டுப்படுத்துவது மகசூலுக்கு முக்கியம்.' : 'Weed management is crucial for yield.'
+                isTa ? 'à®®à¯à®•à¯à®•à®¿à®¯à®®à®¾à®© à®µà®³à®°à¯à®šà¯à®šà®¿ à®¨à®¿à®²à¯ˆà®•à®³à®¿à®²à¯ à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®®à¯ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Irrigate during critical growth stages (e.g. CRI).',
+                isTa ? 'à®•à®³à¯ˆà®•à®³à¯ˆà®•à¯ à®•à®Ÿà¯à®Ÿà¯à®ªà¯à®ªà®Ÿà¯à®¤à¯à®¤à¯à®µà®¤à¯ à®®à®•à®šà¯‚à®²à¯à®•à¯à®•à¯ à®®à¯à®•à¯à®•à®¿à®¯à®®à¯.' : 'Weed management is crucial for yield.'
             ],
             harvestingTips: [
-                isTa ? 'தானியங்கள் கடினமான பிறகு அறுவடை செய்யவும்.' : 'Harvest when grains are hard and dry.',
-                isTa ? 'அறுவடைக்கு பின் மட்கும் இயந்திரங்களைப் பயன்படுத்தவும்.' : 'Use threshing machines after harvest.'
+                isTa ? 'à®¤à®¾à®©à®¿à®¯à®™à¯à®•à®³à¯ à®•à®Ÿà®¿à®©à®®à®¾à®© à®ªà®¿à®±à®•à¯ à®…à®±à¯à®µà®Ÿà¯ˆ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Harvest when grains are hard and dry.',
+                isTa ? 'à®…à®±à¯à®µà®Ÿà¯ˆà®•à¯à®•à¯ à®ªà®¿à®©à¯ à®®à®Ÿà¯à®•à¯à®®à¯ à®‡à®¯à®¨à¯à®¤à®¿à®°à®™à¯à®•à®³à¯ˆà®ªà¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use threshing machines after harvest.'
             ],
             sustainablePractices: [
-                isTa ? 'பயிர் சுழற்சி முறையைப் பின்பற்றவும்.' : 'Follow crop rotation practices.',
-                isTa ? 'மண் வளத்தைப் பாதுகாக்க தழை உரமிடுதல்.' : 'Mulching to preserve soil moisture.'
+                isTa ? 'à®ªà®¯à®¿à®°à¯ à®šà¯à®´à®±à¯à®šà®¿ à®®à¯à®±à¯ˆà®¯à¯ˆà®ªà¯ à®ªà®¿à®©à¯à®ªà®±à¯à®±à®µà¯à®®à¯.' : 'Follow crop rotation practices.',
+                isTa ? 'à®®à®£à¯ à®µà®³à®¤à¯à®¤à¯ˆà®ªà¯ à®ªà®¾à®¤à¯à®•à®¾à®•à¯à®• à®¤à®´à¯ˆ à®‰à®°à®®à®¿à®Ÿà¯à®¤à®²à¯.' : 'Mulching to preserve soil moisture.'
             ],
             irrigationStrategies: [
-                isTa ? 'தெளிப்பு நீர்ப்பாசனம் சிறந்தது.' : 'Sprinkler irrigation is effective.',
-                isTa ? 'வேர் பகுதிகளில் ஈரம் இருப்பதை உறுதி செய்யவும்.' : 'Ensure moisture at the root zone.'
+                isTa ? 'à®¤à¯†à®³à®¿à®ªà¯à®ªà¯ à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®®à¯ à®šà®¿à®±à®¨à¯à®¤à®¤à¯.' : 'Sprinkler irrigation is effective.',
+                isTa ? 'à®µà¯‡à®°à¯ à®ªà®•à¯à®¤à®¿à®•à®³à®¿à®²à¯ à®ˆà®°à®®à¯ à®‡à®°à¯à®ªà¯à®ªà®¤à¯ˆ à®‰à®±à¯à®¤à®¿ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Ensure moisture at the root zone.'
             ],
             agriculturalInputs: [
-                isTa ? 'N-P-K கலவை' : 'N-P-K Fertilizer',
-                isTa ? 'துத்தநாக சல்பேட்' : 'Zinc Sulphate',
-                isTa ? 'ஜிப்சம்' : 'Gypsum'
+                isTa ? 'N-P-K à®•à®²à®µà¯ˆ' : 'N-P-K Fertilizer',
+                isTa ? 'à®¤à¯à®¤à¯à®¤à®¨à®¾à®• à®šà®²à¯à®ªà¯‡à®Ÿà¯' : 'Zinc Sulphate',
+                isTa ? 'à®œà®¿à®ªà¯à®šà®®à¯' : 'Gypsum'
             ],
             diseases: [
-                { name: isTa ? 'கோதுமை துரு நோய்' : 'Wheat Rust', symptoms: isTa ? 'இலைகளில் ஆரஞ்சு அல்லது கருப்பு பொட்டுக்கள்.' : 'Orange or black pustules on leaves.' },
-                { name: isTa ? 'கரிப்பூட்டை நோய்' : 'Loose Smut', symptoms: isTa ? 'கதிர்களில் கருப்பு நிறத் தூள்கள் தோன்றும்.' : 'Black powdery mass on panicles.' }
+                { name: isTa ? 'à®•à¯‹à®¤à¯à®®à¯ˆ à®¤à¯à®°à¯ à®¨à¯‹à®¯à¯' : 'Wheat Rust', symptoms: isTa ? 'à®‡à®²à¯ˆà®•à®³à®¿à®²à¯ à®†à®°à®žà¯à®šà¯ à®…à®²à¯à®²à®¤à¯ à®•à®°à¯à®ªà¯à®ªà¯ à®ªà¯Šà®Ÿà¯à®Ÿà¯à®•à¯à®•à®³à¯.' : 'Orange or black pustules on leaves.' },
+                { name: isTa ? 'à®•à®°à®¿à®ªà¯à®ªà¯‚à®Ÿà¯à®Ÿà¯ˆ à®¨à¯‹à®¯à¯' : 'Loose Smut', symptoms: isTa ? 'à®•à®¤à®¿à®°à¯à®•à®³à®¿à®²à¯ à®•à®°à¯à®ªà¯à®ªà¯ à®¨à®¿à®±à®¤à¯ à®¤à¯‚à®³à¯à®•à®³à¯ à®¤à¯‹à®©à¯à®±à¯à®®à¯.' : 'Black powdery mass on panicles.' }
             ]
         },
         'Tomato': {
             prevention: [
-                isTa ? 'வயலில் தண்ணீர் தேங்குவதைத் தவிர்க்கவும்.' : 'Avoid waterlogging in the field.',
-                isTa ? 'நடும் முன் வேர் முனைகளில் பூஞ்சான் கொல்லி நேர்த்தி.' : 'Root dip treatment before transplanting.'
+                isTa ? 'à®µà®¯à®²à®¿à®²à¯ à®¤à®£à¯à®£à¯€à®°à¯ à®¤à¯‡à®™à¯à®•à¯à®µà®¤à¯ˆà®¤à¯ à®¤à®µà®¿à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Avoid waterlogging in the field.',
+                isTa ? 'à®¨à®Ÿà¯à®®à¯ à®®à¯à®©à¯ à®µà¯‡à®°à¯ à®®à¯à®©à¯ˆà®•à®³à®¿à®²à¯ à®ªà¯‚à®žà¯à®šà®¾à®©à¯ à®•à¯Šà®²à¯à®²à®¿ à®¨à¯‡à®°à¯à®¤à¯à®¤à®¿.' : 'Root dip treatment before transplanting.'
             ],
             treatment: [
-                isTa ? 'வாடல் நோய்க்கு காப்பர் ஆக்ஸிகுளோரைடு பயன்படுத்தவும்.' : 'Apply Copper Oxychloride for wilt diseases.',
-                isTa ? 'இலைத் தேமல் நோய்க்கு வேம்பு எண்ணெய் தெளிக்கவும்.' : 'Spray Neem oil for leaf curl virus vector control.'
+                isTa ? 'à®µà®¾à®Ÿà®²à¯ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®•à®¾à®ªà¯à®ªà®°à¯ à®†à®•à¯à®¸à®¿à®•à¯à®³à¯‹à®°à¯ˆà®Ÿà¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Apply Copper Oxychloride for wilt diseases.',
+                isTa ? 'à®‡à®²à¯ˆà®¤à¯ à®¤à¯‡à®®à®²à¯ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®µà¯‡à®®à¯à®ªà¯ à®Žà®£à¯à®£à¯†à®¯à¯ à®¤à¯†à®³à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Spray Neem oil for leaf curl virus vector control.'
             ],
             careTips: [
-                 isTa ? 'செடிகளுக்கு முட்டுக்கொடுத்து நேராக வளர்க்கவும்.' : 'Provide staking support for vertical growth.',
-                 isTa ? 'அடிப்பகுதி இலைகளை அகற்றி காற்றோட்டத்தை அதிகரிக்கவும்.' : 'Prune lower leaves to increase aeration.'
+                 isTa ? 'à®šà¯†à®Ÿà®¿à®•à®³à¯à®•à¯à®•à¯ à®®à¯à®Ÿà¯à®Ÿà¯à®•à¯à®•à¯Šà®Ÿà¯à®¤à¯à®¤à¯ à®¨à¯‡à®°à®¾à®• à®µà®³à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Provide staking support for vertical growth.',
+                 isTa ? 'à®…à®Ÿà®¿à®ªà¯à®ªà®•à¯à®¤à®¿ à®‡à®²à¯ˆà®•à®³à¯ˆ à®…à®•à®±à¯à®±à®¿ à®•à®¾à®±à¯à®±à¯‹à®Ÿà¯à®Ÿà®¤à¯à®¤à¯ˆ à®…à®¤à®¿à®•à®°à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Prune lower leaves to increase aeration.'
             ],
             harvestingTips: [
-                isTa ? 'தூரம் கொண்டு செல்ல வேண்டிய பழங்களை முதிர்ந்த பச்சை நிலையில் பறிக்கவும்.' : 'Harvest at mature green stage for long-distance transport.',
-                isTa ? 'உள்ளூர் சந்தைக்கு எனில் முழு சிவந்த நிலையில் பறிக்கவும்.' : 'Harvest at fully ripe stage for local markets.'
+                isTa ? 'à®¤à¯‚à®°à®®à¯ à®•à¯Šà®£à¯à®Ÿà¯ à®šà¯†à®²à¯à®² à®µà¯‡à®£à¯à®Ÿà®¿à®¯ à®ªà®´à®™à¯à®•à®³à¯ˆ à®®à¯à®¤à®¿à®°à¯à®¨à¯à®¤ à®ªà®šà¯à®šà¯ˆ à®¨à®¿à®²à¯ˆà®¯à®¿à®²à¯ à®ªà®±à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Harvest at mature green stage for long-distance transport.',
+                isTa ? 'à®‰à®³à¯à®³à¯‚à®°à¯ à®šà®¨à¯à®¤à¯ˆà®•à¯à®•à¯ à®Žà®©à®¿à®²à¯ à®®à¯à®´à¯ à®šà®¿à®µà®¨à¯à®¤ à®¨à®¿à®²à¯ˆà®¯à®¿à®²à¯ à®ªà®±à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Harvest at fully ripe stage for local markets.'
             ],
             sustainablePractices: [
-                 isTa ? 'பூச்சி விரட்ட சாமந்தி செடிகளை ஊடுபயிராக நடவும்.' : 'Intercrop with Marigold to repel pests.',
-                 isTa ? 'கரிமக் கம்போஸ்ட் அதிகளவில் பயன்படுத்தவும்.' : 'Use organic compost generously.'
+                 isTa ? 'à®ªà¯‚à®šà¯à®šà®¿ à®µà®¿à®°à®Ÿà¯à®Ÿ à®šà®¾à®®à®¨à¯à®¤à®¿ à®šà¯†à®Ÿà®¿à®•à®³à¯ˆ à®Šà®Ÿà¯à®ªà®¯à®¿à®°à®¾à®• à®¨à®Ÿà®µà¯à®®à¯.' : 'Intercrop with Marigold to repel pests.',
+                 isTa ? 'à®•à®°à®¿à®®à®•à¯ à®•à®®à¯à®ªà¯‹à®¸à¯à®Ÿà¯ à®…à®¤à®¿à®•à®³à®µà®¿à®²à¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use organic compost generously.'
             ],
             irrigationStrategies: [
-                 isTa ? 'சொட்டு நீர்ப்பாசனம் (Drip) மூலம் நோய் பரவலைக் குறைக்கலாம்.' : 'Drip irrigation reduces disease spread.',
-                 isTa ? 'மாலையி்ல் நீர்ப்பாய்ச்சுவதைத் தவிர்க்கவும்.' : 'Avoid late evening irrigation.'
+                 isTa ? 'à®šà¯Šà®Ÿà¯à®Ÿà¯ à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®®à¯ (Drip) à®®à¯‚à®²à®®à¯ à®¨à¯‹à®¯à¯ à®ªà®°à®µà®²à¯ˆà®•à¯ à®•à¯à®±à¯ˆà®•à¯à®•à®²à®¾à®®à¯.' : 'Drip irrigation reduces disease spread.',
+                 isTa ? 'à®®à®¾à®²à¯ˆà®¯à®¿à¯à®²à¯ à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®¯à¯à®šà¯à®šà¯à®µà®¤à¯ˆà®¤à¯ à®¤à®µà®¿à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Avoid late evening irrigation.'
             ],
             agriculturalInputs: [
-                isTa ? 'வெர்மிகம்போஸ்ட்' : 'Vermicompost',
-                isTa ? 'வேப்பம் புண்ணாக்கு' : 'Neem Cake',
-                isTa ? 'கால்சியம் நைட்ரேட்' : 'Calcium Nitrate'
+                isTa ? 'à®µà¯†à®°à¯à®®à®¿à®•à®®à¯à®ªà¯‹à®¸à¯à®Ÿà¯' : 'Vermicompost',
+                isTa ? 'à®µà¯‡à®ªà¯à®ªà®®à¯ à®ªà¯à®£à¯à®£à®¾à®•à¯à®•à¯' : 'Neem Cake',
+                isTa ? 'à®•à®¾à®²à¯à®šà®¿à®¯à®®à¯ à®¨à¯ˆà®Ÿà¯à®°à¯‡à®Ÿà¯' : 'Calcium Nitrate'
             ],
             diseases: [
-                { name: isTa ? 'ஆரம்பகால கருகல்' : 'Early Blight', symptoms: isTa ? 'கீழ் இலைகளில் பழுப்பு நிற வளையங்கள்.' : 'Concentric brown rings on lower leaves.' },
-                { name: isTa ? 'பியூசேரியம் வாடல்' : 'Fusarium Wilt', symptoms: isTa ? 'செடி முழுவதும் வாடி காய்ந்துவிடும்.' : 'Rapid yellowing and wilting of the whole plant.' }
+                { name: isTa ? 'à®†à®°à®®à¯à®ªà®•à®¾à®² à®•à®°à¯à®•à®²à¯' : 'Early Blight', symptoms: isTa ? 'à®•à¯€à®´à¯ à®‡à®²à¯ˆà®•à®³à®¿à®²à¯ à®ªà®´à¯à®ªà¯à®ªà¯ à®¨à®¿à®± à®µà®³à¯ˆà®¯à®™à¯à®•à®³à¯.' : 'Concentric brown rings on lower leaves.' },
+                { name: isTa ? 'à®ªà®¿à®¯à¯‚à®šà¯‡à®°à®¿à®¯à®®à¯ à®µà®¾à®Ÿà®²à¯' : 'Fusarium Wilt', symptoms: isTa ? 'à®šà¯†à®Ÿà®¿ à®®à¯à®´à¯à®µà®¤à¯à®®à¯ à®µà®¾à®Ÿà®¿ à®•à®¾à®¯à¯à®¨à¯à®¤à¯à®µà®¿à®Ÿà¯à®®à¯.' : 'Rapid yellowing and wilting of the whole plant.' }
             ]
         },
         'Maize/Corn': {
             prevention: [
-                isTa ? 'விதைகளைத் தேர்ந்தெடுத்து விதை நேர்த்தி செய்யவும்.' : 'Treat seeds with fungicides before sowing.',
-                isTa ? 'முறையான பயிர் சுழற்சி முறையைப் பின்பற்றவும்.' : 'Implement proper crop rotation.',
-                isTa ? 'வயலைச் சுற்றியுள்ள களைகளை அகற்றவும்.' : 'Remove weeds around the field boundaries.'
+                isTa ? 'à®µà®¿à®¤à¯ˆà®•à®³à¯ˆà®¤à¯ à®¤à¯‡à®°à¯à®¨à¯à®¤à¯†à®Ÿà¯à®¤à¯à®¤à¯ à®µà®¿à®¤à¯ˆ à®¨à¯‡à®°à¯à®¤à¯à®¤à®¿ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Treat seeds with fungicides before sowing.',
+                isTa ? 'à®®à¯à®±à¯ˆà®¯à®¾à®© à®ªà®¯à®¿à®°à¯ à®šà¯à®´à®±à¯à®šà®¿ à®®à¯à®±à¯ˆà®¯à¯ˆà®ªà¯ à®ªà®¿à®©à¯à®ªà®±à¯à®±à®µà¯à®®à¯.' : 'Implement proper crop rotation.',
+                isTa ? 'à®µà®¯à®²à¯ˆà®šà¯ à®šà¯à®±à¯à®±à®¿à®¯à¯à®³à¯à®³ à®•à®³à¯ˆà®•à®³à¯ˆ à®…à®•à®±à¯à®±à®µà¯à®®à¯.' : 'Remove weeds around the field boundaries.'
             ],
             treatment: [
-                isTa ? 'இலைக்கருகல் நோய்க்கு மேன்கோசெப் தெளிக்கவும்.' : 'Spray Mancozeb for leaf blight.',
-                isTa ? 'தண்டு அழுகல் நோய்க்கு முறையான வடிகால் வசதி தேவை.' : 'Ensure proper drainage for stalk rot management.'
+                isTa ? 'à®‡à®²à¯ˆà®•à¯à®•à®°à¯à®•à®²à¯ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®®à¯‡à®©à¯à®•à¯‹à®šà¯†à®ªà¯ à®¤à¯†à®³à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Spray Mancozeb for leaf blight.',
+                isTa ? 'à®¤à®£à¯à®Ÿà¯ à®…à®´à¯à®•à®²à¯ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®®à¯à®±à¯ˆà®¯à®¾à®© à®µà®Ÿà®¿à®•à®¾à®²à¯ à®µà®šà®¤à®¿ à®¤à¯‡à®µà¯ˆ.' : 'Ensure proper drainage for stalk rot management.'
             ],
             careTips: [
-                isTa ? 'பூக்கும் பருவத்தில் நீர் பற்றாக்குறை இல்லாமல் பார்த்துக்கொள்ளவும்.' : 'Avoid water stress during the flowering stage.',
-                isTa ? 'மண்ணில் போதிய அளவு தழைச்சத்து இருப்பதை உறுதி செய்யவும்.' : 'Ensure adequate nitrogen levels in the soil.'
+                isTa ? 'à®ªà¯‚à®•à¯à®•à¯à®®à¯ à®ªà®°à¯à®µà®¤à¯à®¤à®¿à®²à¯ à®¨à¯€à®°à¯ à®ªà®±à¯à®±à®¾à®•à¯à®•à¯à®±à¯ˆ à®‡à®²à¯à®²à®¾à®®à®²à¯ à®ªà®¾à®°à¯à®¤à¯à®¤à¯à®•à¯à®•à¯Šà®³à¯à®³à®µà¯à®®à¯.' : 'Avoid water stress during the flowering stage.',
+                isTa ? 'à®®à®£à¯à®£à®¿à®²à¯ à®ªà¯‹à®¤à®¿à®¯ à®…à®³à®µà¯ à®¤à®´à¯ˆà®šà¯à®šà®¤à¯à®¤à¯ à®‡à®°à¯à®ªà¯à®ªà®¤à¯ˆ à®‰à®±à¯à®¤à®¿ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Ensure adequate nitrogen levels in the soil.'
             ],
             harvestingTips: [
-                isTa ? 'கதிர்கள் நன்கு காய்ந்த பிறகு அறுவடை செய்யவும்.' : 'Harvest when the husks are dry and grains are hard.',
-                isTa ? 'தானியங்களில் ஈரப்பதம் 12-14% இருக்குமாறு காயவைக்கவும்.' : 'Dry the grains to 12-14% moisture content.'
+                isTa ? 'à®•à®¤à®¿à®°à¯à®•à®³à¯ à®¨à®©à¯à®•à¯ à®•à®¾à®¯à¯à®¨à¯à®¤ à®ªà®¿à®±à®•à¯ à®…à®±à¯à®µà®Ÿà¯ˆ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Harvest when the husks are dry and grains are hard.',
+                isTa ? 'à®¤à®¾à®©à®¿à®¯à®™à¯à®•à®³à®¿à®²à¯ à®ˆà®°à®ªà¯à®ªà®¤à®®à¯ 12-14% à®‡à®°à¯à®•à¯à®•à¯à®®à®¾à®±à¯ à®•à®¾à®¯à®µà¯ˆà®•à¯à®•à®µà¯à®®à¯.' : 'Dry the grains to 12-14% moisture content.'
             ],
             sustainablePractices: [
-                isTa ? 'இயற்கை உரங்களை அதிகளவில் பயன்படுத்தவும்.' : 'Use organic fertilizers extensively.',
-                isTa ? 'உயிரி பூச்சிக்கொல்லிகளை முன்னுரிமை அளிக்கவும்.' : 'Prioritize the use of bio-pesticides.'
+                isTa ? 'à®‡à®¯à®±à¯à®•à¯ˆ à®‰à®°à®™à¯à®•à®³à¯ˆ à®…à®¤à®¿à®•à®³à®µà®¿à®²à¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use organic fertilizers extensively.',
+                isTa ? 'à®‰à®¯à®¿à®°à®¿ à®ªà¯‚à®šà¯à®šà®¿à®•à¯à®•à¯Šà®²à¯à®²à®¿à®•à®³à¯ˆ à®®à¯à®©à¯à®©à¯à®°à®¿à®®à¯ˆ à®…à®³à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Prioritize the use of bio-pesticides.'
             ],
             irrigationStrategies: [
-                isTa ? 'வயலில் தண்ணீர் தேங்குவதைத் தவிர்க்கவும்.' : 'Prevent waterlogging in the maize field.',
-                isTa ? 'முக்கிய வளர்ச்சி நிலைகளில் தவறாமல் நீர்ப்பாசனம் செய்யவும்.' : 'Irrigate regularly during critical growth stages.'
+                isTa ? 'à®µà®¯à®²à®¿à®²à¯ à®¤à®£à¯à®£à¯€à®°à¯ à®¤à¯‡à®™à¯à®•à¯à®µà®¤à¯ˆà®¤à¯ à®¤à®µà®¿à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Prevent waterlogging in the maize field.',
+                isTa ? 'à®®à¯à®•à¯à®•à®¿à®¯ à®µà®³à®°à¯à®šà¯à®šà®¿ à®¨à®¿à®²à¯ˆà®•à®³à®¿à®²à¯ à®¤à®µà®±à®¾à®®à®²à¯ à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®®à¯ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Irrigate regularly during critical growth stages.'
             ],
             agriculturalInputs: [
-                isTa ? 'யூரியா' : 'Urea',
-                isTa ? 'சூப்பர் பாஸ்பேட்' : 'Single Super Phosphate (SSP)',
-                isTa ? 'துத்தநாக சல்பேட்' : 'Zinc Sulphate'
+                isTa ? 'à®¯à¯‚à®°à®¿à®¯à®¾' : 'Urea',
+                isTa ? 'à®šà¯‚à®ªà¯à®ªà®°à¯ à®ªà®¾à®¸à¯à®ªà¯‡à®Ÿà¯' : 'Single Super Phosphate (SSP)',
+                isTa ? 'à®¤à¯à®¤à¯à®¤à®¨à®¾à®• à®šà®²à¯à®ªà¯‡à®Ÿà¯' : 'Zinc Sulphate'
             ],
             diseases: [
-                { name: isTa ? 'சோள இலைக்கருகல்' : 'Maize Leaf Blight', symptoms: isTa ? 'இலைகளில் நீண்ட பழுப்பு நிறப் புள்ளிகள்.' : 'Long, elliptical, grayish-green or tan lesions on leaves.' },
-                { name: isTa ? 'சோளக் கரிப்பூட்டை' : 'Maize Smut', symptoms: isTa ? 'கதிர்களில் வெள்ளை நிறப் பைகள் தோன்றி கருப்பாக மாறும்.' : 'White galls on ears that turn into black powdery mass.' }
+                { name: isTa ? 'à®šà¯‹à®³ à®‡à®²à¯ˆà®•à¯à®•à®°à¯à®•à®²à¯' : 'Maize Leaf Blight', symptoms: isTa ? 'à®‡à®²à¯ˆà®•à®³à®¿à®²à¯ à®¨à¯€à®£à¯à®Ÿ à®ªà®´à¯à®ªà¯à®ªà¯ à®¨à®¿à®±à®ªà¯ à®ªà¯à®³à¯à®³à®¿à®•à®³à¯.' : 'Long, elliptical, grayish-green or tan lesions on leaves.' },
+                { name: isTa ? 'à®šà¯‹à®³à®•à¯ à®•à®°à®¿à®ªà¯à®ªà¯‚à®Ÿà¯à®Ÿà¯ˆ' : 'Maize Smut', symptoms: isTa ? 'à®•à®¤à®¿à®°à¯à®•à®³à®¿à®²à¯ à®µà¯†à®³à¯à®³à¯ˆ à®¨à®¿à®±à®ªà¯ à®ªà¯ˆà®•à®³à¯ à®¤à¯‹à®©à¯à®±à®¿ à®•à®°à¯à®ªà¯à®ªà®¾à®• à®®à®¾à®±à¯à®®à¯.' : 'White galls on ears that turn into black powdery mass.' }
             ]
         },
         'Sugarcane': {
              prevention: [
-                isTa ? 'நோய் தாக்காத கரணைகளைத் தேர்ந்தெடுக்கவும்.' : 'Select disease-free setts for planting.',
-                isTa ? 'கரணைகளை நடும் முன் சுடு நீர் நேர்த்தி செய்யவும்.' : 'Treat setts with hot water before planting.'
+                isTa ? 'à®¨à¯‹à®¯à¯ à®¤à®¾à®•à¯à®•à®¾à®¤ à®•à®°à®£à¯ˆà®•à®³à¯ˆà®¤à¯ à®¤à¯‡à®°à¯à®¨à¯à®¤à¯†à®Ÿà¯à®•à¯à®•à®µà¯à®®à¯.' : 'Select disease-free setts for planting.',
+                isTa ? 'à®•à®°à®£à¯ˆà®•à®³à¯ˆ à®¨à®Ÿà¯à®®à¯ à®®à¯à®©à¯ à®šà¯à®Ÿà¯ à®¨à¯€à®°à¯ à®¨à¯‡à®°à¯à®¤à¯à®¤à®¿ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Treat setts with hot water before planting.'
             ],
             treatment: [
-                isTa ? 'செவ்வழுகல் நோயைக் கட்டுப்படுத்த கார்பெண்டாசிம் பயன்படுத்தவும்.' : 'Use Carbendazim for red rot management.',
-                isTa ? 'பாதிக்கப்பட்ட தூர்களை உடனே அகற்றி எரிக்கவும்.' : 'Remove and burn infected clumps immediately.'
+                isTa ? 'à®šà¯†à®µà¯à®µà®´à¯à®•à®²à¯ à®¨à¯‹à®¯à¯ˆà®•à¯ à®•à®Ÿà¯à®Ÿà¯à®ªà¯à®ªà®Ÿà¯à®¤à¯à®¤ à®•à®¾à®°à¯à®ªà¯†à®£à¯à®Ÿà®¾à®šà®¿à®®à¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use Carbendazim for red rot management.',
+                isTa ? 'à®ªà®¾à®¤à®¿à®•à¯à®•à®ªà¯à®ªà®Ÿà¯à®Ÿ à®¤à¯‚à®°à¯à®•à®³à¯ˆ à®‰à®Ÿà®©à¯‡ à®…à®•à®±à¯à®±à®¿ à®Žà®°à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Remove and burn infected clumps immediately.'
             ],
             careTips: [
-                 isTa ? 'பயிர்களுக்கு மண் அணைத்தல் (Earthing up) வேலையைச் செய்யவும்.' : 'Perform timely earthing up operations.',
-                 isTa ? 'சோகை உரித்தல் மூலம் பூச்சித் தாக்குதலைக் குறைக்கலாம்.' : 'Detach old leaves (detrashing) to reduce pest hiding spots.'
+                 isTa ? 'à®ªà®¯à®¿à®°à¯à®•à®³à¯à®•à¯à®•à¯ à®®à®£à¯ à®…à®£à¯ˆà®¤à¯à®¤à®²à¯ (Earthing up) à®µà¯‡à®²à¯ˆà®¯à¯ˆà®šà¯ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Perform timely earthing up operations.',
+                 isTa ? 'à®šà¯‹à®•à¯ˆ à®‰à®°à®¿à®¤à¯à®¤à®²à¯ à®®à¯‚à®²à®®à¯ à®ªà¯‚à®šà¯à®šà®¿à®¤à¯ à®¤à®¾à®•à¯à®•à¯à®¤à®²à¯ˆà®•à¯ à®•à¯à®±à¯ˆà®•à¯à®•à®²à®¾à®®à¯.' : 'Detach old leaves (detrashing) to reduce pest hiding spots.'
             ],
             harvestingTips: [
-                isTa ? 'சர்க்கரை அளவு உச்சத்தில் இருக்கும்போது அறுவடை செய்யவும்.' : 'Harvest when sugar content (Brix) is at its peak.',
-                isTa ? 'அறுவடை செய்தவுடன் ஆலைக்கு அனுப்பவும்.' : 'Transport to the factory immediately after harvest.'
+                isTa ? 'à®šà®°à¯à®•à¯à®•à®°à¯ˆ à®…à®³à®µà¯ à®‰à®šà¯à®šà®¤à¯à®¤à®¿à®²à¯ à®‡à®°à¯à®•à¯à®•à¯à®®à¯à®ªà¯‹à®¤à¯ à®…à®±à¯à®µà®Ÿà¯ˆ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Harvest when sugar content (Brix) is at its peak.',
+                isTa ? 'à®…à®±à¯à®µà®Ÿà¯ˆ à®šà¯†à®¯à¯à®¤à®µà¯à®Ÿà®©à¯ à®†à®²à¯ˆà®•à¯à®•à¯ à®…à®©à¯à®ªà¯à®ªà®µà¯à®®à¯.' : 'Transport to the factory immediately after harvest.'
             ],
             sustainablePractices: [
-                 isTa ? 'தோகைகளை எரிக்காமல் மண்ணில் மட்கச் செய்யவும்.' : 'Trash mulching instead of burning crop residues.',
-                 isTa ? 'ஊடுபயிராக பயறு வகைகளை விளைவிக்கவும்.' : 'Grow legumes as an intercrop.'
+                 isTa ? 'à®¤à¯‹à®•à¯ˆà®•à®³à¯ˆ à®Žà®°à®¿à®•à¯à®•à®¾à®®à®²à¯ à®®à®£à¯à®£à®¿à®²à¯ à®®à®Ÿà¯à®•à®šà¯ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Trash mulching instead of burning crop residues.',
+                 isTa ? 'à®Šà®Ÿà¯à®ªà®¯à®¿à®°à®¾à®• à®ªà®¯à®±à¯ à®µà®•à¯ˆà®•à®³à¯ˆ à®µà®¿à®³à¯ˆà®µà®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Grow legumes as an intercrop.'
             ],
             irrigationStrategies: [
-                 isTa ? 'கரும்புக்கு சொட்டு நீர்ப்பாசனம் மேலானது.' : 'Drip irrigation is highly efficient for sugarcane.',
-                 isTa ? 'வறட்சி காலங்களில் நீண்ட இடைவெளியைத் தவிர்க்கவும்.' : 'Avoid long irrigation intervals during summer.'
+                 isTa ? 'à®•à®°à¯à®®à¯à®ªà¯à®•à¯à®•à¯ à®šà¯Šà®Ÿà¯à®Ÿà¯ à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®®à¯ à®®à¯‡à®²à®¾à®©à®¤à¯.' : 'Drip irrigation is highly efficient for sugarcane.',
+                 isTa ? 'à®µà®±à®Ÿà¯à®šà®¿ à®•à®¾à®²à®™à¯à®•à®³à®¿à®²à¯ à®¨à¯€à®£à¯à®Ÿ à®‡à®Ÿà¯ˆà®µà¯†à®³à®¿à®¯à¯ˆà®¤à¯ à®¤à®µà®¿à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Avoid long irrigation intervals during summer.'
             ],
             agriculturalInputs: [
-                isTa ? 'தொழு உரம்' : 'Farm Yard Manure (FYM)',
-                isTa ? 'திரவ பயோ உரங்கள்' : 'Liquid Bio-fertilizers',
-                isTa ? 'நுண்ணூட்டச்சத்து கலவை' : 'Micronutrient Mixture'
+                isTa ? 'à®¤à¯Šà®´à¯ à®‰à®°à®®à¯' : 'Farm Yard Manure (FYM)',
+                isTa ? 'à®¤à®¿à®°à®µ à®ªà®¯à¯‹ à®‰à®°à®™à¯à®•à®³à¯' : 'Liquid Bio-fertilizers',
+                isTa ? 'à®¨à¯à®£à¯à®£à¯‚à®Ÿà¯à®Ÿà®šà¯à®šà®¤à¯à®¤à¯ à®•à®²à®µà¯ˆ' : 'Micronutrient Mixture'
             ],
             diseases: [
-                { name: isTa ? 'செவ்வழுகல் நோய்' : 'Red Rot', symptoms: isTa ? 'தண்டின் உள்ளே சிவப்பு நிறக் கோடுகள்.' : 'Reddish lesions and acidic smell inside the stalk.' },
-                { name: isTa ? 'கரும்பு கரிப்பூட்டை' : 'Sugarcane Smut', symptoms: isTa ? 'உச்சிக் குருத்தில் இருந்து கசையடித்தது போன்ற கருப்புத் தண்டு.' : 'Whip-like black structure from the shoot apex.' }
+                { name: isTa ? 'à®šà¯†à®µà¯à®µà®´à¯à®•à®²à¯ à®¨à¯‹à®¯à¯' : 'Red Rot', symptoms: isTa ? 'à®¤à®£à¯à®Ÿà®¿à®©à¯ à®‰à®³à¯à®³à¯‡ à®šà®¿à®µà®ªà¯à®ªà¯ à®¨à®¿à®±à®•à¯ à®•à¯‹à®Ÿà¯à®•à®³à¯.' : 'Reddish lesions and acidic smell inside the stalk.' },
+                { name: isTa ? 'à®•à®°à¯à®®à¯à®ªà¯ à®•à®°à®¿à®ªà¯à®ªà¯‚à®Ÿà¯à®Ÿà¯ˆ' : 'Sugarcane Smut', symptoms: isTa ? 'à®‰à®šà¯à®šà®¿à®•à¯ à®•à¯à®°à¯à®¤à¯à®¤à®¿à®²à¯ à®‡à®°à¯à®¨à¯à®¤à¯ à®•à®šà¯ˆà®¯à®Ÿà®¿à®¤à¯à®¤à®¤à¯ à®ªà¯‹à®©à¯à®± à®•à®°à¯à®ªà¯à®ªà¯à®¤à¯ à®¤à®£à¯à®Ÿà¯.' : 'Whip-like black structure from the shoot apex.' }
             ]
         },
         'Cotton': {
             prevention: [
-                isTa ? 'சான்றிதழ் பெற்ற விதைகளை மட்டும் பயன்படுத்தவும்.' : 'Use only certified and treated seeds.',
-                isTa ? 'பருத்திக்கு பின் அதே இனம் அல்லாத பயிரைப் பயிரிடவும்.' : 'Follow crop rotation with non-host crops.'
+                isTa ? 'à®šà®¾à®©à¯à®±à®¿à®¤à®´à¯ à®ªà¯†à®±à¯à®± à®µà®¿à®¤à¯ˆà®•à®³à¯ˆ à®®à®Ÿà¯à®Ÿà¯à®®à¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use only certified and treated seeds.',
+                isTa ? 'à®ªà®°à¯à®¤à¯à®¤à®¿à®•à¯à®•à¯ à®ªà®¿à®©à¯ à®…à®¤à¯‡ à®‡à®©à®®à¯ à®…à®²à¯à®²à®¾à®¤ à®ªà®¯à®¿à®°à¯ˆà®ªà¯ à®ªà®¯à®¿à®°à®¿à®Ÿà®µà¯à®®à¯.' : 'Follow crop rotation with non-host crops.'
             ],
             treatment: [
-                isTa ? 'பாக்டீரியல் வாடல் நோய்க்கு ஸ்டரெப்டோமைசின் பயன்படுத்தவும்.' : 'Use Streptokinase/Streptomycin for bacterial blight.',
-                isTa ? 'வேர் அழுகல் நோய்க்கு டிரைக்கோடெர்மா விரிடி பயன்படுத்தவும்.' : 'Apply Trichoderma viride for root rot control.'
+                isTa ? 'à®ªà®¾à®•à¯à®Ÿà¯€à®°à®¿à®¯à®²à¯ à®µà®¾à®Ÿà®²à¯ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®¸à¯à®Ÿà®°à¯†à®ªà¯à®Ÿà¯‹à®®à¯ˆà®šà®¿à®©à¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use Streptokinase/Streptomycin for bacterial blight.',
+                isTa ? 'à®µà¯‡à®°à¯ à®…à®´à¯à®•à®²à¯ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®Ÿà®¿à®°à¯ˆà®•à¯à®•à¯‹à®Ÿà¯†à®°à¯à®®à®¾ à®µà®¿à®°à®¿à®Ÿà®¿ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Apply Trichoderma viride for root rot control.'
             ],
             careTips: [
-                 isTa ? 'முனைக் கிள்ளுதல் மூலம் பக்கக் கிளைகளை அதிகரிக்கலாம்.' : 'Perform topping to encourage lateral branching.',
-                 isTa ? 'களைகளைக் கட்டுப்படுத்துவது பருத்திக்கு மிகவும் அவசியம்.' : 'Manual weeding is essential for healthy cotton growth.'
+                 isTa ? 'à®®à¯à®©à¯ˆà®•à¯ à®•à®¿à®³à¯à®³à¯à®¤à®²à¯ à®®à¯‚à®²à®®à¯ à®ªà®•à¯à®•à®•à¯ à®•à®¿à®³à¯ˆà®•à®³à¯ˆ à®…à®¤à®¿à®•à®°à®¿à®•à¯à®•à®²à®¾à®®à¯.' : 'Perform topping to encourage lateral branching.',
+                 isTa ? 'à®•à®³à¯ˆà®•à®³à¯ˆà®•à¯ à®•à®Ÿà¯à®Ÿà¯à®ªà¯à®ªà®Ÿà¯à®¤à¯à®¤à¯à®µà®¤à¯ à®ªà®°à¯à®¤à¯à®¤à®¿à®•à¯à®•à¯ à®®à®¿à®•à®µà¯à®®à¯ à®…à®µà®šà®¿à®¯à®®à¯.' : 'Manual weeding is essential for healthy cotton growth.'
             ],
             harvestingTips: [
-                isTa ? 'வெடித்த பருத்திக் காய்களை காலை நேரத்தில் பறிக்கவும்.' : 'Pick matured bolls during early morning to avoid trash.',
-                isTa ? 'தூய்மையான பருத்தியை மட்டும் தனியாகச் சேகரிக்கவும்.' : 'Store clean cotton separately from stained one.'
+                isTa ? 'à®µà¯†à®Ÿà®¿à®¤à¯à®¤ à®ªà®°à¯à®¤à¯à®¤à®¿à®•à¯ à®•à®¾à®¯à¯à®•à®³à¯ˆ à®•à®¾à®²à¯ˆ à®¨à¯‡à®°à®¤à¯à®¤à®¿à®²à¯ à®ªà®±à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Pick matured bolls during early morning to avoid trash.',
+                isTa ? 'à®¤à¯‚à®¯à¯à®®à¯ˆà®¯à®¾à®© à®ªà®°à¯à®¤à¯à®¤à®¿à®¯à¯ˆ à®®à®Ÿà¯à®Ÿà¯à®®à¯ à®¤à®©à®¿à®¯à®¾à®•à®šà¯ à®šà¯‡à®•à®°à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Store clean cotton separately from stained one.'
             ],
             sustainablePractices: [
-                 isTa ? 'பூச்சிகளைக் கவர இனக்கவர்ச்சிப் பொறிகளைப் பயன்படுத்தவும்.' : 'Install pheromone traps for pest monitoring.',
-                 isTa ? 'வேப்பம் எண்ணெயைத் தெளிக்கவும்.' : 'Use neem-based sprays as repellent.'
+                 isTa ? 'à®ªà¯‚à®šà¯à®šà®¿à®•à®³à¯ˆà®•à¯ à®•à®µà®° à®‡à®©à®•à¯à®•à®µà®°à¯à®šà¯à®šà®¿à®ªà¯ à®ªà¯Šà®±à®¿à®•à®³à¯ˆà®ªà¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Install pheromone traps for pest monitoring.',
+                 isTa ? 'à®µà¯‡à®ªà¯à®ªà®®à¯ à®Žà®£à¯à®£à¯†à®¯à¯ˆà®¤à¯ à®¤à¯†à®³à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Use neem-based sprays as repellent.'
             ],
             irrigationStrategies: [
-                 isTa ? 'பூக்கும் மற்றும் காய் பிடிக்கும் பருவத்தில் அதிக நீர் தேவை.' : 'High water demand during flowering and boll formation.',
-                 isTa ? 'வாய்க்கால் பாசனத்தை விட சொட்டு நீர் பாசனம் சிறந்தது.' : 'Drip irrigation is preferred over furrow irrigation.'
+                 isTa ? 'à®ªà¯‚à®•à¯à®•à¯à®®à¯ à®®à®±à¯à®±à¯à®®à¯ à®•à®¾à®¯à¯ à®ªà®¿à®Ÿà®¿à®•à¯à®•à¯à®®à¯ à®ªà®°à¯à®µà®¤à¯à®¤à®¿à®²à¯ à®…à®¤à®¿à®• à®¨à¯€à®°à¯ à®¤à¯‡à®µà¯ˆ.' : 'High water demand during flowering and boll formation.',
+                 isTa ? 'à®µà®¾à®¯à¯à®•à¯à®•à®¾à®²à¯ à®ªà®¾à®šà®©à®¤à¯à®¤à¯ˆ à®µà®¿à®Ÿ à®šà¯Šà®Ÿà¯à®Ÿà¯ à®¨à¯€à®°à¯ à®ªà®¾à®šà®©à®®à¯ à®šà®¿à®±à®¨à¯à®¤à®¤à¯.' : 'Drip irrigation is preferred over furrow irrigation.'
             ],
             agriculturalInputs: [
-                isTa ? 'நுண்ணூட்டச்சத்து மாத்திரைகள்' : 'Micronutrient Pellets',
-                isTa ? 'இயற்கை பூச்சி விரட்டிகள்' : 'Bio-pesticides',
-                isTa ? 'திரவ உரம்' : 'Liquid Fertilizer'
+                isTa ? 'à®¨à¯à®£à¯à®£à¯‚à®Ÿà¯à®Ÿà®šà¯à®šà®¤à¯à®¤à¯ à®®à®¾à®¤à¯à®¤à®¿à®°à¯ˆà®•à®³à¯' : 'Micronutrient Pellets',
+                isTa ? 'à®‡à®¯à®±à¯à®•à¯ˆ à®ªà¯‚à®šà¯à®šà®¿ à®µà®¿à®°à®Ÿà¯à®Ÿà®¿à®•à®³à¯' : 'Bio-pesticides',
+                isTa ? 'à®¤à®¿à®°à®µ à®‰à®°à®®à¯' : 'Liquid Fertilizer'
             ],
             diseases: [
-                { name: isTa ? 'பாக்டீரியா கருகல்' : 'Bacterial Blight', symptoms: isTa ? 'இலைகளில் முக்கோண வடிவ பழுப்புப் புள்ளிகள்.' : 'Angular water-soaked lesions on leaves and bolls.' },
-                { name: isTa ? 'வேர் அழுகல் நோய்' : 'Root Rot', symptoms: isTa ? 'செடிகள் திடீரென வாடி காய்ந்துவிடும்.' : 'Sudden wilting and death of plants, roots turn dark.' }
+                { name: isTa ? 'à®ªà®¾à®•à¯à®Ÿà¯€à®°à®¿à®¯à®¾ à®•à®°à¯à®•à®²à¯' : 'Bacterial Blight', symptoms: isTa ? 'à®‡à®²à¯ˆà®•à®³à®¿à®²à¯ à®®à¯à®•à¯à®•à¯‹à®£ à®µà®Ÿà®¿à®µ à®ªà®´à¯à®ªà¯à®ªà¯à®ªà¯ à®ªà¯à®³à¯à®³à®¿à®•à®³à¯.' : 'Angular water-soaked lesions on leaves and bolls.' },
+                { name: isTa ? 'à®µà¯‡à®°à¯ à®…à®´à¯à®•à®²à¯ à®¨à¯‹à®¯à¯' : 'Root Rot', symptoms: isTa ? 'à®šà¯†à®Ÿà®¿à®•à®³à¯ à®¤à®¿à®Ÿà¯€à®°à¯†à®© à®µà®¾à®Ÿà®¿ à®•à®¾à®¯à¯à®¨à¯à®¤à¯à®µà®¿à®Ÿà¯à®®à¯.' : 'Sudden wilting and death of plants, roots turn dark.' }
             ]
         },
         'Potato': {
             prevention: [
-                isTa ? 'நோய் தாக்காத விதைக் கிழங்குகளைப் பயன்படுத்தவும்.' : 'Use certified disease-free seed tubers.',
-                isTa ? 'கிழங்குகளை நடும் முன் பூஞ்சான் கொல்லி நேர்த்தி.' : 'Treat tubers with fungicides before planting.'
+                isTa ? 'à®¨à¯‹à®¯à¯ à®¤à®¾à®•à¯à®•à®¾à®¤ à®µà®¿à®¤à¯ˆà®•à¯ à®•à®¿à®´à®™à¯à®•à¯à®•à®³à¯ˆà®ªà¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use certified disease-free seed tubers.',
+                isTa ? 'à®•à®¿à®´à®™à¯à®•à¯à®•à®³à¯ˆ à®¨à®Ÿà¯à®®à¯ à®®à¯à®©à¯ à®ªà¯‚à®žà¯à®šà®¾à®©à¯ à®•à¯Šà®²à¯à®²à®¿ à®¨à¯‡à®°à¯à®¤à¯à®¤à®¿.' : 'Treat tubers with fungicides before planting.'
             ],
             treatment: [
-                isTa ? 'பிந்தைய கருகல் நோய்க்கு மெட்டாலாக்ஸில் தெளிக்கவும்.' : 'Spray Metalaxyl for late blight control.',
-                isTa ? 'முறையான பயிர் இடைவெளி மூலம் நோய் பரவலைத் தவிர்க்கவும்.' : 'Maintain proper spacing to reduce humidity around plants.'
+                isTa ? 'à®ªà®¿à®¨à¯à®¤à¯ˆà®¯ à®•à®°à¯à®•à®²à¯ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®®à¯†à®Ÿà¯à®Ÿà®¾à®²à®¾à®•à¯à®¸à®¿à®²à¯ à®¤à¯†à®³à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Spray Metalaxyl for late blight control.',
+                isTa ? 'à®®à¯à®±à¯ˆà®¯à®¾à®© à®ªà®¯à®¿à®°à¯ à®‡à®Ÿà¯ˆà®µà¯†à®³à®¿ à®®à¯‚à®²à®®à¯ à®¨à¯‹à®¯à¯ à®ªà®°à®µà®²à¯ˆà®¤à¯ à®¤à®µà®¿à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Maintain proper spacing to reduce humidity around plants.'
             ],
             careTips: [
-                 isTa ? 'முறையாக மண் அணைத்தல் (Earthing up) செய்ய வேண்டும்.' : 'Timely earthing up is crucial for tuber development.',
-                 isTa ? 'செப்புகளுக்கு நைட்ரஜன் உரத்தை பிரித்து இடவும்.' : 'Apply nitrogen in split doses.'
+                 isTa ? 'à®®à¯à®±à¯ˆà®¯à®¾à®• à®®à®£à¯ à®…à®£à¯ˆà®¤à¯à®¤à®²à¯ (Earthing up) à®šà¯†à®¯à¯à®¯ à®µà¯‡à®£à¯à®Ÿà¯à®®à¯.' : 'Timely earthing up is crucial for tuber development.',
+                 isTa ? 'à®šà¯†à®ªà¯à®ªà¯à®•à®³à¯à®•à¯à®•à¯ à®¨à¯ˆà®Ÿà¯à®°à®œà®©à¯ à®‰à®°à®¤à¯à®¤à¯ˆ à®ªà®¿à®°à®¿à®¤à¯à®¤à¯ à®‡à®Ÿà®µà¯à®®à¯.' : 'Apply nitrogen in split doses.'
             ],
             harvestingTips: [
-                isTa ? 'அறுவடைக்கு முன் செடிகளின் மேல் பாகத்தை அகற்றி (Dehaulming) 10 நாட்கள் கழித்து அறுவடை செய்யவும்.' : 'Perform dehaulming 10-14 days before harvesting.',
-                isTa ? 'கிழங்குகளில் சிராய்ப்பு ஏற்படாமல் கவனமாகத் தோண்டவும்.' : 'Avoid mechanical damage to tubers during digging.'
+                isTa ? 'à®…à®±à¯à®µà®Ÿà¯ˆà®•à¯à®•à¯ à®®à¯à®©à¯ à®šà¯†à®Ÿà®¿à®•à®³à®¿à®©à¯ à®®à¯‡à®²à¯ à®ªà®¾à®•à®¤à¯à®¤à¯ˆ à®…à®•à®±à¯à®±à®¿ (Dehaulming) 10 à®¨à®¾à®Ÿà¯à®•à®³à¯ à®•à®´à®¿à®¤à¯à®¤à¯ à®…à®±à¯à®µà®Ÿà¯ˆ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Perform dehaulming 10-14 days before harvesting.',
+                isTa ? 'à®•à®¿à®´à®™à¯à®•à¯à®•à®³à®¿à®²à¯ à®šà®¿à®°à®¾à®¯à¯à®ªà¯à®ªà¯ à®à®±à¯à®ªà®Ÿà®¾à®®à®²à¯ à®•à®µà®©à®®à®¾à®•à®¤à¯ à®¤à¯‹à®£à¯à®Ÿà®µà¯à®®à¯.' : 'Avoid mechanical damage to tubers during digging.'
             ],
             sustainablePractices: [
-                 isTa ? 'உயிரி பூஞ்சான் கொல்லிகளைப் பயன்படுத்தவும்.' : 'Incorporate bio-fungicides like Trichoderma.',
-                 isTa ? 'நிழலான இடங்களில் கிழங்குகளைச் சேமிக்கவும்.' : 'Store tubers in cool, dark ventilated places.'
+                 isTa ? 'à®‰à®¯à®¿à®°à®¿ à®ªà¯‚à®žà¯à®šà®¾à®©à¯ à®•à¯Šà®²à¯à®²à®¿à®•à®³à¯ˆà®ªà¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Incorporate bio-fungicides like Trichoderma.',
+                 isTa ? 'à®¨à®¿à®´à®²à®¾à®© à®‡à®Ÿà®™à¯à®•à®³à®¿à®²à¯ à®•à®¿à®´à®™à¯à®•à¯à®•à®³à¯ˆà®šà¯ à®šà¯‡à®®à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Store tubers in cool, dark ventilated places.'
             ],
             irrigationStrategies: [
-                 isTa ? 'கிழங்கு உருவாகும் போது சமமான ஈரம் தேவை.' : 'Maintain uniform moisture during tuber initiation.',
-                 isTa ? 'மாலையி்ல் நீர் பாய்ச்சுவதைத் தவிர்க்கவும்.' : 'Avoid late evening irrigation to prevent blight.'
+                 isTa ? 'à®•à®¿à®´à®™à¯à®•à¯ à®‰à®°à¯à®µà®¾à®•à¯à®®à¯ à®ªà¯‹à®¤à¯ à®šà®®à®®à®¾à®© à®ˆà®°à®®à¯ à®¤à¯‡à®µà¯ˆ.' : 'Maintain uniform moisture during tuber initiation.',
+                 isTa ? 'à®®à®¾à®²à¯ˆà®¯à®¿à¯à®²à¯ à®¨à¯€à®°à¯ à®ªà®¾à®¯à¯à®šà¯à®šà¯à®µà®¤à¯ˆà®¤à¯ à®¤à®µà®¿à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Avoid late evening irrigation to prevent blight.'
             ],
             agriculturalInputs: [
-                isTa ? 'MOP (பொட்டாஷ்)' : 'Muriate of Potash (MOP)',
-                isTa ? 'வெர்மிகம்போஸ்ட்' : 'Vermicompost',
-                isTa ? 'துத்தநாக சல்பேட்' : 'Zinc Sulphate'
+                isTa ? 'MOP (à®ªà¯Šà®Ÿà¯à®Ÿà®¾à®·à¯)' : 'Muriate of Potash (MOP)',
+                isTa ? 'à®µà¯†à®°à¯à®®à®¿à®•à®®à¯à®ªà¯‹à®¸à¯à®Ÿà¯' : 'Vermicompost',
+                isTa ? 'à®¤à¯à®¤à¯à®¤à®¨à®¾à®• à®šà®²à¯à®ªà¯‡à®Ÿà¯' : 'Zinc Sulphate'
             ],
             diseases: [
-                { name: isTa ? 'ஆரம்ப கால கருகல்' : 'Early Blight', symptoms: isTa ? 'இலைகளில் பழுப்பு நிற வளையங்கள்.' : 'Target-like brown spots on lower leaves.' },
-                { name: isTa ? 'லேட் பிளைட் (பிந்தைய கருகல்)' : 'Late Blight', symptoms: isTa ? 'இலைகளின் அடியில் வெள்ளை நிறப் பூஞ்சை வளர்ச்சி.' : 'Water-soaked spots with white fungal growth underneath.' }
+                { name: isTa ? 'à®†à®°à®®à¯à®ª à®•à®¾à®² à®•à®°à¯à®•à®²à¯' : 'Early Blight', symptoms: isTa ? 'à®‡à®²à¯ˆà®•à®³à®¿à®²à¯ à®ªà®´à¯à®ªà¯à®ªà¯ à®¨à®¿à®± à®µà®³à¯ˆà®¯à®™à¯à®•à®³à¯.' : 'Target-like brown spots on lower leaves.' },
+                { name: isTa ? 'à®²à¯‡à®Ÿà¯ à®ªà®¿à®³à¯ˆà®Ÿà¯ (à®ªà®¿à®¨à¯à®¤à¯ˆà®¯ à®•à®°à¯à®•à®²à¯)' : 'Late Blight', symptoms: isTa ? 'à®‡à®²à¯ˆà®•à®³à®¿à®©à¯ à®…à®Ÿà®¿à®¯à®¿à®²à¯ à®µà¯†à®³à¯à®³à¯ˆ à®¨à®¿à®±à®ªà¯ à®ªà¯‚à®žà¯à®šà¯ˆ à®µà®³à®°à¯à®šà¯à®šà®¿.' : 'Water-soaked spots with white fungal growth underneath.' }
             ]
         },
         'Groundnut': {
             prevention: [
-                isTa ? 'சான்றிதழ் பெற்ற விதைகளை மட்டும் பயன்படுத்தவும்.' : 'Use only certified and treated seeds.',
-                isTa ? 'பயிர் சுழற்சி முறையைப் பின்பற்றவும்.' : 'Follow crop rotation to reduce soil-borne diseases.',
-                isTa ? 'முறையான வடிகால் வசதி செய்யவும்.' : 'Ensure proper drainage to prevent waterlogging.'
+                isTa ? 'à®šà®¾à®©à¯à®±à®¿à®¤à®´à¯ à®ªà¯†à®±à¯à®± à®µà®¿à®¤à¯ˆà®•à®³à¯ˆ à®®à®Ÿà¯à®Ÿà¯à®®à¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use only certified and treated seeds.',
+                isTa ? 'à®ªà®¯à®¿à®°à¯ à®šà¯à®´à®±à¯à®šà®¿ à®®à¯à®±à¯ˆà®¯à¯ˆà®ªà¯ à®ªà®¿à®©à¯à®ªà®±à¯à®±à®µà¯à®®à¯.' : 'Follow crop rotation to reduce soil-borne diseases.',
+                isTa ? 'à®®à¯à®±à¯ˆà®¯à®¾à®© à®µà®Ÿà®¿à®•à®¾à®²à¯ à®µà®šà®¤à®¿ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Ensure proper drainage to prevent waterlogging.'
             ],
             treatment: [
-                isTa ? 'இலைப்புள்ளி நோய்க்கு மேன்கோசெப் தெளிக்கவும்.' : 'Spray Mancozeb for leaf spot control.',
-                isTa ? 'இலை நோய்களுக்கு கார்பெண்டாசிம் கலவையை தெளிக்கவும்.' : 'Apply Carbendazim mixture for foliar diseases.'
+                isTa ? 'à®‡à®²à¯ˆà®ªà¯à®ªà¯à®³à¯à®³à®¿ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®®à¯‡à®©à¯à®•à¯‹à®šà¯†à®ªà¯ à®¤à¯†à®³à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Spray Mancozeb for leaf spot control.',
+                isTa ? 'à®‡à®²à¯ˆ à®¨à¯‹à®¯à¯à®•à®³à¯à®•à¯à®•à¯ à®•à®¾à®°à¯à®ªà¯†à®£à¯à®Ÿà®¾à®šà®¿à®®à¯ à®•à®²à®µà¯ˆà®¯à¯ˆ à®¤à¯†à®³à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Apply Carbendazim mixture for foliar diseases.'
             ],
             careTips: [
-                isTa ? 'பூக்கும் நேரத்தில் நீர்ப்பாசனம் செய்யவும்.' : 'Ensure irrigation during flowering and pod formation.',
-                isTa ? 'கிப்சம் உரமிடுவது நிலக்கடலை மகசூலுக்கு நல்லது.' : 'Apply Gypsum to improve pod filling.'
+                isTa ? 'à®ªà¯‚à®•à¯à®•à¯à®®à¯ à®¨à¯‡à®°à®¤à¯à®¤à®¿à®²à¯ à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®®à¯ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Ensure irrigation during flowering and pod formation.',
+                isTa ? 'à®•à®¿à®ªà¯à®šà®®à¯ à®‰à®°à®®à®¿à®Ÿà¯à®µà®¤à¯ à®¨à®¿à®²à®•à¯à®•à®Ÿà®²à¯ˆ à®®à®•à®šà¯‚à®²à¯à®•à¯à®•à¯ à®¨à®²à¯à®²à®¤à¯.' : 'Apply Gypsum to improve pod filling.'
             ],
             harvestingTips: [
-                isTa ? 'இலைகள் மஞ்சளடையும் போது அறுவடை செய்யவும்.' : 'Harvest when leaves turn yellow and pods are mature.',
-                isTa ? 'அறுவடைக்கு பின் நிலக்கடலையை நிழலில் காயவைக்கவும்.' : 'Dry pods in shade after harvesting.'
+                isTa ? 'à®‡à®²à¯ˆà®•à®³à¯ à®®à®žà¯à®šà®³à®Ÿà¯ˆà®¯à¯à®®à¯ à®ªà¯‹à®¤à¯ à®…à®±à¯à®µà®Ÿà¯ˆ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Harvest when leaves turn yellow and pods are mature.',
+                isTa ? 'à®…à®±à¯à®µà®Ÿà¯ˆà®•à¯à®•à¯ à®ªà®¿à®©à¯ à®¨à®¿à®²à®•à¯à®•à®Ÿà®²à¯ˆà®¯à¯ˆ à®¨à®¿à®´à®²à®¿à®²à¯ à®•à®¾à®¯à®µà¯ˆà®•à¯à®•à®µà¯à®®à¯.' : 'Dry pods in shade after harvesting.'
             ],
             sustainablePractices: [
-                isTa ? 'பசுந்தாள் உரங்களை ஊடுபயிராக நடவும்.' : 'Grow green manure as intercrop.',
-                isTa ? 'ரைசோபியம் கலாச்சாரத்தை விதை நேர்த்தியில் பயன்படுத்தவும்.' : 'Use Rhizobium culture as seed inoculant.'
+                isTa ? 'à®ªà®šà¯à®¨à¯à®¤à®¾à®³à¯ à®‰à®°à®™à¯à®•à®³à¯ˆ à®Šà®Ÿà¯à®ªà®¯à®¿à®°à®¾à®• à®¨à®Ÿà®µà¯à®®à¯.' : 'Grow green manure as intercrop.',
+                isTa ? 'à®°à¯ˆà®šà¯‹à®ªà®¿à®¯à®®à¯ à®•à®²à®¾à®šà¯à®šà®¾à®°à®¤à¯à®¤à¯ˆ à®µà®¿à®¤à¯ˆ à®¨à¯‡à®°à¯à®¤à¯à®¤à®¿à®¯à®¿à®²à¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use Rhizobium culture as seed inoculant.'
             ],
             irrigationStrategies: [
-                isTa ? 'சொட்டு நீர்ப்பாசன முறையை பயன்படுத்தவும்.' : 'Use drip irrigation for water efficiency.',
-                isTa ? 'மாலை நேர நீர்ப்பாசனத்தை தவிர்க்கவும்.' : 'Avoid evening irrigation to prevent fungal growth.'
+                isTa ? 'à®šà¯Šà®Ÿà¯à®Ÿà¯ à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®© à®®à¯à®±à¯ˆà®¯à¯ˆ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use drip irrigation for water efficiency.',
+                isTa ? 'à®®à®¾à®²à¯ˆ à®¨à¯‡à®° à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®¤à¯à®¤à¯ˆ à®¤à®µà®¿à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Avoid evening irrigation to prevent fungal growth.'
             ],
             agriculturalInputs: [
-                isTa ? 'கிப்சம்' : 'Gypsum',
-                isTa ? 'ரைசோபியம்' : 'Rhizobium Inoculant',
+                isTa ? 'à®•à®¿à®ªà¯à®šà®®à¯' : 'Gypsum',
+                isTa ? 'à®°à¯ˆà®šà¯‹à®ªà®¿à®¯à®®à¯' : 'Rhizobium Inoculant',
                 isTa ? 'DAP' : 'Di-Ammonium Phosphate (DAP)'
             ],
             diseases: [
-                { name: isTa ? 'இலைப்புள்ளி நோய்' : 'Groundnut Leaf Spot', symptoms: isTa ? 'இலைகளில் வட்டமான பழுப்பு நிறப் புள்ளிகள்.' : 'Circular brown spots on leaves causing premature defoliation.' },
-                { name: isTa ? 'மகுட் அழுகல் (Collar Rot)' : 'Collar Rot', symptoms: isTa ? 'செடியின் அடிப்பகுதியில் அழுகல் ஏற்படும்.' : 'Rotting at the base of the stem near the soil level.' }
+                { name: isTa ? 'à®‡à®²à¯ˆà®ªà¯à®ªà¯à®³à¯à®³à®¿ à®¨à¯‹à®¯à¯' : 'Groundnut Leaf Spot', symptoms: isTa ? 'à®‡à®²à¯ˆà®•à®³à®¿à®²à¯ à®µà®Ÿà¯à®Ÿà®®à®¾à®© à®ªà®´à¯à®ªà¯à®ªà¯ à®¨à®¿à®±à®ªà¯ à®ªà¯à®³à¯à®³à®¿à®•à®³à¯.' : 'Circular brown spots on leaves causing premature defoliation.' },
+                { name: isTa ? 'à®®à®•à¯à®Ÿà¯ à®…à®´à¯à®•à®²à¯ (Collar Rot)' : 'Collar Rot', symptoms: isTa ? 'à®šà¯†à®Ÿà®¿à®¯à®¿à®©à¯ à®…à®Ÿà®¿à®ªà¯à®ªà®•à¯à®¤à®¿à®¯à®¿à®²à¯ à®…à®´à¯à®•à®²à¯ à®à®±à¯à®ªà®Ÿà¯à®®à¯.' : 'Rotting at the base of the stem near the soil level.' }
             ]
         },
         'Chickpea': {
             prevention: [
-                isTa ? 'நோய் எதிர்ப்பு ரகங்களைத் தேர்ந்தெடுக்கவும்.' : 'Select disease-resistant varieties.',
-                isTa ? 'ட்ரைக்கோடெர்மா விரிடி மூலம் விதை நேர்த்தி செய்யவும்.' : 'Treat seeds with Trichoderma viride before sowing.',
-                isTa ? 'நன்கு வடிகால் கொண்ட மண்ணில் பயிரிடவும்.' : 'Sow in well-drained soils to prevent root/collar rot.'
+                isTa ? 'à®¨à¯‹à®¯à¯ à®Žà®¤à®¿à®°à¯à®ªà¯à®ªà¯ à®°à®•à®™à¯à®•à®³à¯ˆà®¤à¯ à®¤à¯‡à®°à¯à®¨à¯à®¤à¯†à®Ÿà¯à®•à¯à®•à®µà¯à®®à¯.' : 'Select disease-resistant varieties.',
+                isTa ? 'à®Ÿà¯à®°à¯ˆà®•à¯à®•à¯‹à®Ÿà¯†à®°à¯à®®à®¾ à®µà®¿à®°à®¿à®Ÿà®¿ à®®à¯‚à®²à®®à¯ à®µà®¿à®¤à¯ˆ à®¨à¯‡à®°à¯à®¤à¯à®¤à®¿ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Treat seeds with Trichoderma viride before sowing.',
+                isTa ? 'à®¨à®©à¯à®•à¯ à®µà®Ÿà®¿à®•à®¾à®²à¯ à®•à¯Šà®£à¯à®Ÿ à®®à®£à¯à®£à®¿à®²à¯ à®ªà®¯à®¿à®°à®¿à®Ÿà®µà¯à®®à¯.' : 'Sow in well-drained soils to prevent root/collar rot.'
             ],
             treatment: [
-                isTa ? 'அஸ்கோகைட்டா கருகல் நோய்க்கு மேன்கோசெப் தெளிக்கவும்.' : 'Spray Mancozeb for Ascochyta blight management.',
-                isTa ? 'வேர் அழுகல் நோய்க்கு டிரைக்கோடெர்மா கரைசலை மண்ணில் ஊற்றவும்.' : 'Drench soil with Trichoderma solution for root/collar rot.'
+                isTa ? 'à®…à®¸à¯à®•à¯‹à®•à¯ˆà®Ÿà¯à®Ÿà®¾ à®•à®°à¯à®•à®²à¯ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®®à¯‡à®©à¯à®•à¯‹à®šà¯†à®ªà¯ à®¤à¯†à®³à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Spray Mancozeb for Ascochyta blight management.',
+                isTa ? 'à®µà¯‡à®°à¯ à®…à®´à¯à®•à®²à¯ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®Ÿà®¿à®°à¯ˆà®•à¯à®•à¯‹à®Ÿà¯†à®°à¯à®®à®¾ à®•à®°à¯ˆà®šà®²à¯ˆ à®®à®£à¯à®£à®¿à®²à¯ à®Šà®±à¯à®±à®µà¯à®®à¯.' : 'Drench soil with Trichoderma solution for root/collar rot.'
             ],
             careTips: [
-                isTa ? 'அதிகப்படியான நைட்ரஜன் உரத்தை தவிர்க்கவும்.' : 'Avoid excess nitrogen which promotes vegetative growth over pods.',
-                isTa ? 'பூக்கும் பருவத்தில் நீர் அழுத்தம் கூடாது.' : 'Avoid water stress during the flowering stage.'
+                isTa ? 'à®…à®¤à®¿à®•à®ªà¯à®ªà®Ÿà®¿à®¯à®¾à®© à®¨à¯ˆà®Ÿà¯à®°à®œà®©à¯ à®‰à®°à®¤à¯à®¤à¯ˆ à®¤à®µà®¿à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Avoid excess nitrogen which promotes vegetative growth over pods.',
+                isTa ? 'à®ªà¯‚à®•à¯à®•à¯à®®à¯ à®ªà®°à¯à®µà®¤à¯à®¤à®¿à®²à¯ à®¨à¯€à®°à¯ à®…à®´à¯à®¤à¯à®¤à®®à¯ à®•à¯‚à®Ÿà®¾à®¤à¯.' : 'Avoid water stress during the flowering stage.'
             ],
             harvestingTips: [
-                isTa ? 'கூடுகள் பழுத்தவுடன் (90% பழுப்பு) அறுவடை செய்யவும்.' : 'Harvest when 90% of pods turn brown and dry.',
-                isTa ? 'காலை நேரத்தில் அறுவடை செய்வது கூடு உடைவதை தடுக்கும்.' : 'Early morning harvesting reduces pod shattering.'
+                isTa ? 'à®•à¯‚à®Ÿà¯à®•à®³à¯ à®ªà®´à¯à®¤à¯à®¤à®µà¯à®Ÿà®©à¯ (90% à®ªà®´à¯à®ªà¯à®ªà¯) à®…à®±à¯à®µà®Ÿà¯ˆ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Harvest when 90% of pods turn brown and dry.',
+                isTa ? 'à®•à®¾à®²à¯ˆ à®¨à¯‡à®°à®¤à¯à®¤à®¿à®²à¯ à®…à®±à¯à®µà®Ÿà¯ˆ à®šà¯†à®¯à¯à®µà®¤à¯ à®•à¯‚à®Ÿà¯ à®‰à®Ÿà¯ˆà®µà®¤à¯ˆ à®¤à®Ÿà¯à®•à¯à®•à¯à®®à¯.' : 'Early morning harvesting reduces pod shattering.'
             ],
             sustainablePractices: [
-                isTa ? 'பயறு வகை பயிர் சுழற்சி நடைமுறையைப் பின்பற்றவும்.' : 'Follow legume-based crop rotation practices.',
-                isTa ? 'இயற்கை பூச்சி விரட்டிகளை (நீம்) பயன்படுத்தவும்.' : 'Use botanical pesticides like neem extract.'
+                isTa ? 'à®ªà®¯à®±à¯ à®µà®•à¯ˆ à®ªà®¯à®¿à®°à¯ à®šà¯à®´à®±à¯à®šà®¿ à®¨à®Ÿà¯ˆà®®à¯à®±à¯ˆà®¯à¯ˆà®ªà¯ à®ªà®¿à®©à¯à®ªà®±à¯à®±à®µà¯à®®à¯.' : 'Follow legume-based crop rotation practices.',
+                isTa ? 'à®‡à®¯à®±à¯à®•à¯ˆ à®ªà¯‚à®šà¯à®šà®¿ à®µà®¿à®°à®Ÿà¯à®Ÿà®¿à®•à®³à¯ˆ (à®¨à¯€à®®à¯) à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use botanical pesticides like neem extract.'
             ],
             irrigationStrategies: [
-                isTa ? 'அதிகப்படியான நீர்ப்பாசனம் நோய்க்கு வழிவகுக்கும்.' : 'Avoid excess irrigation which promotes fungal diseases.',
-                isTa ? 'பூக்கும் நேரத்தில் மட்டும் நீர்ப்பாசனம் செய்யவும்.' : 'Irrigate only at critical stages like flowering.'
+                isTa ? 'à®…à®¤à®¿à®•à®ªà¯à®ªà®Ÿà®¿à®¯à®¾à®© à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®®à¯ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®µà®´à®¿à®µà®•à¯à®•à¯à®•à¯à®®à¯.' : 'Avoid excess irrigation which promotes fungal diseases.',
+                isTa ? 'à®ªà¯‚à®•à¯à®•à¯à®®à¯ à®¨à¯‡à®°à®¤à¯à®¤à®¿à®²à¯ à®®à®Ÿà¯à®Ÿà¯à®®à¯ à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®®à¯ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Irrigate only at critical stages like flowering.'
             ],
             agriculturalInputs: [
-                isTa ? 'ட்ரைக்கோடெர்மா' : 'Trichoderma viride',
-                isTa ? 'சூப்பர் பாஸ்பேட்' : 'Single Super Phosphate',
-                isTa ? 'ரைசோபியம்' : 'Rhizobium culture'
+                isTa ? 'à®Ÿà¯à®°à¯ˆà®•à¯à®•à¯‹à®Ÿà¯†à®°à¯à®®à®¾' : 'Trichoderma viride',
+                isTa ? 'à®šà¯‚à®ªà¯à®ªà®°à¯ à®ªà®¾à®¸à¯à®ªà¯‡à®Ÿà¯' : 'Single Super Phosphate',
+                isTa ? 'à®°à¯ˆà®šà¯‹à®ªà®¿à®¯à®®à¯' : 'Rhizobium culture'
             ],
             diseases: [
-                { name: isTa ? 'அஸ்கோகைட்டா கருகல்' : 'Chickpea Ascochyta Blight', symptoms: isTa ? 'இலை, தண்டு மற்றும் கூடுகளில் தவிட்டு நிற புள்ளிகள்.' : 'Tan lesions with dark borders on leaves, stems and pods.' },
-                { name: isTa ? 'பியூசேரியம் வாடல்' : 'Chickpea Fusarium Wilt', symptoms: isTa ? 'செடி திடீரென வாடுகிறது; தண்டின் உட்புறம் பழுப்பாகும்.' : 'Sudden wilting; internal stem discolouration to brown/dark.' },
-                { name: isTa ? 'காலர் அழுகல்' : 'Chickpea Collar Rot', symptoms: isTa ? 'அடிமரத்தில் அழுகல்; நடவு கட்டத்தில் செடி இறக்கும்.' : 'Rotting at soil level; seedling death in early stages.' }
+                { name: isTa ? 'à®…à®¸à¯à®•à¯‹à®•à¯ˆà®Ÿà¯à®Ÿà®¾ à®•à®°à¯à®•à®²à¯' : 'Chickpea Ascochyta Blight', symptoms: isTa ? 'à®‡à®²à¯ˆ, à®¤à®£à¯à®Ÿà¯ à®®à®±à¯à®±à¯à®®à¯ à®•à¯‚à®Ÿà¯à®•à®³à®¿à®²à¯ à®¤à®µà®¿à®Ÿà¯à®Ÿà¯ à®¨à®¿à®± à®ªà¯à®³à¯à®³à®¿à®•à®³à¯.' : 'Tan lesions with dark borders on leaves, stems and pods.' },
+                { name: isTa ? 'à®ªà®¿à®¯à¯‚à®šà¯‡à®°à®¿à®¯à®®à¯ à®µà®¾à®Ÿà®²à¯' : 'Chickpea Fusarium Wilt', symptoms: isTa ? 'à®šà¯†à®Ÿà®¿ à®¤à®¿à®Ÿà¯€à®°à¯†à®© à®µà®¾à®Ÿà¯à®•à®¿à®±à®¤à¯; à®¤à®£à¯à®Ÿà®¿à®©à¯ à®‰à®Ÿà¯à®ªà¯à®±à®®à¯ à®ªà®´à¯à®ªà¯à®ªà®¾à®•à¯à®®à¯.' : 'Sudden wilting; internal stem discolouration to brown/dark.' },
+                { name: isTa ? 'à®•à®¾à®²à®°à¯ à®…à®´à¯à®•à®²à¯' : 'Chickpea Collar Rot', symptoms: isTa ? 'à®…à®Ÿà®¿à®®à®°à®¤à¯à®¤à®¿à®²à¯ à®…à®´à¯à®•à®²à¯; à®¨à®Ÿà®µà¯ à®•à®Ÿà¯à®Ÿà®¤à¯à®¤à®¿à®²à¯ à®šà¯†à®Ÿà®¿ à®‡à®±à®•à¯à®•à¯à®®à¯.' : 'Rotting at soil level; seedling death in early stages.' }
             ]
         },
         'Onion': {
             prevention: [
-                isTa ? 'நோய் தாக்காத நாற்றுகளைத் தேர்ந்தெடுக்கவும்.' : 'Use disease-free seedlings for transplanting.',
-                isTa ? 'மேன்கோசெப் மூலம் விதை மற்றும் நாற்று நேர்த்தி செய்யவும்.' : 'Treat seedlings with Mancozeb before transplanting.',
-                isTa ? 'நடவுகள் நேரத்தில் மண்ணில் ஆழமாக நடாமல் பார்க்கவும்.' : 'Avoid deep planting to reduce basal rot risk.'
+                isTa ? 'à®¨à¯‹à®¯à¯ à®¤à®¾à®•à¯à®•à®¾à®¤ à®¨à®¾à®±à¯à®±à¯à®•à®³à¯ˆà®¤à¯ à®¤à¯‡à®°à¯à®¨à¯à®¤à¯†à®Ÿà¯à®•à¯à®•à®µà¯à®®à¯.' : 'Use disease-free seedlings for transplanting.',
+                isTa ? 'à®®à¯‡à®©à¯à®•à¯‹à®šà¯†à®ªà¯ à®®à¯‚à®²à®®à¯ à®µà®¿à®¤à¯ˆ à®®à®±à¯à®±à¯à®®à¯ à®¨à®¾à®±à¯à®±à¯ à®¨à¯‡à®°à¯à®¤à¯à®¤à®¿ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Treat seedlings with Mancozeb before transplanting.',
+                isTa ? 'à®¨à®Ÿà®µà¯à®•à®³à¯ à®¨à¯‡à®°à®¤à¯à®¤à®¿à®²à¯ à®®à®£à¯à®£à®¿à®²à¯ à®†à®´à®®à®¾à®• à®¨à®Ÿà®¾à®®à®²à¯ à®ªà®¾à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Avoid deep planting to reduce basal rot risk.'
             ],
             treatment: [
-                isTa ? 'ஊதா தழும்பு நோய்க்கு இப்ரோடையோன் தெளிக்கவும்.' : 'Spray Iprodione for purple blotch management.',
-                isTa ? 'பாக்டீரியல் நோய்க்கு காப்பர் ஆக்ஸிகுளோரைடு பயன்படுத்தவும்.' : 'Use Copper Oxychloride for bacterial diseases.'
+                isTa ? 'à®Šà®¤à®¾ à®¤à®´à¯à®®à¯à®ªà¯ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®‡à®ªà¯à®°à¯‹à®Ÿà¯ˆà®¯à¯‹à®©à¯ à®¤à¯†à®³à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Spray Iprodione for purple blotch management.',
+                isTa ? 'à®ªà®¾à®•à¯à®Ÿà¯€à®°à®¿à®¯à®²à¯ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®•à®¾à®ªà¯à®ªà®°à¯ à®†à®•à¯à®¸à®¿à®•à¯à®³à¯‹à®°à¯ˆà®Ÿà¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use Copper Oxychloride for bacterial diseases.'
             ],
             careTips: [
-                isTa ? 'அதிக தழைச்சத்து இடுவதை தவிர்க்கவும்.' : 'Avoid excessive nitrogen to prevent soft bulbs.',
-                isTa ? 'களைகளை விரைவாக அகற்றவும்.' : 'Remove weeds promptly to reduce disease spread.'
+                isTa ? 'à®…à®¤à®¿à®• à®¤à®´à¯ˆà®šà¯à®šà®¤à¯à®¤à¯ à®‡à®Ÿà¯à®µà®¤à¯ˆ à®¤à®µà®¿à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Avoid excessive nitrogen to prevent soft bulbs.',
+                isTa ? 'à®•à®³à¯ˆà®•à®³à¯ˆ à®µà®¿à®°à¯ˆà®µà®¾à®• à®…à®•à®±à¯à®±à®µà¯à®®à¯.' : 'Remove weeds promptly to reduce disease spread.'
             ],
             harvestingTips: [
-                isTa ? 'இலைகள் விழும்போது அறுவடை செய்யவும்.' : 'Harvest when the tops naturally fall over.',
-                isTa ? 'அறுவடைக்கு பின் 2-3 நாட்கள் வயலிலேயே காயவிடவும்.' : 'Cure bulbs in the field for 2-3 days before storage.'
+                isTa ? 'à®‡à®²à¯ˆà®•à®³à¯ à®µà®¿à®´à¯à®®à¯à®ªà¯‹à®¤à¯ à®…à®±à¯à®µà®Ÿà¯ˆ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Harvest when the tops naturally fall over.',
+                isTa ? 'à®…à®±à¯à®µà®Ÿà¯ˆà®•à¯à®•à¯ à®ªà®¿à®©à¯ 2-3 à®¨à®¾à®Ÿà¯à®•à®³à¯ à®µà®¯à®²à®¿à®²à¯‡à®¯à¯‡ à®•à®¾à®¯à®µà®¿à®Ÿà®µà¯à®®à¯.' : 'Cure bulbs in the field for 2-3 days before storage.'
             ],
             sustainablePractices: [
-                isTa ? 'உயிரி பூஞ்சான் கொல்லிகளை ஊக்குவிக்கவும்.' : 'Promote the use of bio-fungicides.',
-                isTa ? 'பயிர் சுழற்சி மூலம் மண் வாழ் நோய்களை கட்டுப்படுத்தவும்.' : 'Control soil-borne diseases through crop rotation.'
+                isTa ? 'à®‰à®¯à®¿à®°à®¿ à®ªà¯‚à®žà¯à®šà®¾à®©à¯ à®•à¯Šà®²à¯à®²à®¿à®•à®³à¯ˆ à®Šà®•à¯à®•à¯à®µà®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Promote the use of bio-fungicides.',
+                isTa ? 'à®ªà®¯à®¿à®°à¯ à®šà¯à®´à®±à¯à®šà®¿ à®®à¯‚à®²à®®à¯ à®®à®£à¯ à®µà®¾à®´à¯ à®¨à¯‹à®¯à¯à®•à®³à¯ˆ à®•à®Ÿà¯à®Ÿà¯à®ªà¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Control soil-borne diseases through crop rotation.'
             ],
             irrigationStrategies: [
-                isTa ? 'மழை நேரத்தில் நீர்ப்பாசனத்தை நிறுத்தவும்.' : 'Withhold irrigation during rainy periods.',
-                isTa ? 'அறுவடைக்கு 15 நாட்கள் முன்பு நீர்ப்பாசனம் நிறுத்தவும்.' : 'Stop irrigation 15 days before harvest for better curing.'
+                isTa ? 'à®®à®´à¯ˆ à®¨à¯‡à®°à®¤à¯à®¤à®¿à®²à¯ à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®¤à¯à®¤à¯ˆ à®¨à®¿à®±à¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Withhold irrigation during rainy periods.',
+                isTa ? 'à®…à®±à¯à®µà®Ÿà¯ˆà®•à¯à®•à¯ 15 à®¨à®¾à®Ÿà¯à®•à®³à¯ à®®à¯à®©à¯à®ªà¯ à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®®à¯ à®¨à®¿à®±à¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Stop irrigation 15 days before harvest for better curing.'
             ],
             agriculturalInputs: [
-                isTa ? 'போரான்' : 'Boron Micronutrient',
-                isTa ? 'காப்பர் சல்பேட்' : 'Copper Sulphate',
-                isTa ? 'N-P-K கலவை' : 'N-P-K Fertilizer'
+                isTa ? 'à®ªà¯‹à®°à®¾à®©à¯' : 'Boron Micronutrient',
+                isTa ? 'à®•à®¾à®ªà¯à®ªà®°à¯ à®šà®²à¯à®ªà¯‡à®Ÿà¯' : 'Copper Sulphate',
+                isTa ? 'N-P-K à®•à®²à®µà¯ˆ' : 'N-P-K Fertilizer'
             ],
             diseases: [
-                { name: isTa ? 'ஊதா தழும்பு நோய்' : 'Onion Purple Blotch', symptoms: isTa ? 'இலைகளில் ஊதா நிற, நடுவில் வெள்ளை நிற புள்ளிகள் தோன்றும்.' : 'Elliptical, purple-centred lesions with whitish centres on leaves.' },
-                { name: isTa ? 'இலைப்புள்ளி நோய்' : 'Leaf Spot', symptoms: isTa ? 'இலைகளில் சிறு மஞ்சள் அல்லது பழுப்பு நிற புள்ளிகள்.' : 'Small yellow or brown spots on leaves leading to tip dieback.' }
+                { name: isTa ? 'à®Šà®¤à®¾ à®¤à®´à¯à®®à¯à®ªà¯ à®¨à¯‹à®¯à¯' : 'Onion Purple Blotch', symptoms: isTa ? 'à®‡à®²à¯ˆà®•à®³à®¿à®²à¯ à®Šà®¤à®¾ à®¨à®¿à®±, à®¨à®Ÿà¯à®µà®¿à®²à¯ à®µà¯†à®³à¯à®³à¯ˆ à®¨à®¿à®± à®ªà¯à®³à¯à®³à®¿à®•à®³à¯ à®¤à¯‹à®©à¯à®±à¯à®®à¯.' : 'Elliptical, purple-centred lesions with whitish centres on leaves.' },
+                { name: isTa ? 'à®‡à®²à¯ˆà®ªà¯à®ªà¯à®³à¯à®³à®¿ à®¨à¯‹à®¯à¯' : 'Leaf Spot', symptoms: isTa ? 'à®‡à®²à¯ˆà®•à®³à®¿à®²à¯ à®šà®¿à®±à¯ à®®à®žà¯à®šà®³à¯ à®…à®²à¯à®²à®¤à¯ à®ªà®´à¯à®ªà¯à®ªà¯ à®¨à®¿à®± à®ªà¯à®³à¯à®³à®¿à®•à®³à¯.' : 'Small yellow or brown spots on leaves leading to tip dieback.' }
             ]
         },
         'Chili': {
             prevention: [
-                isTa ? 'சான்றிதழ் பெற்ற நோய் எதிர்ப்பு விதைகளைப் பயன்படுத்தவும்.' : 'Use certified disease-resistant seeds.',
-                isTa ? 'விதை நேர்த்திக்கு திரம் பயன்படுத்தவும்.' : 'Treat seeds with Thiram before sowing.',
-                isTa ? 'தேமல் நோய் பரவலை தடுக்க திட்டுகளை ஆய்வு செய்யவும்.' : 'Scout fields regularly to detect and remove virus-infected plants.'
+                isTa ? 'à®šà®¾à®©à¯à®±à®¿à®¤à®´à¯ à®ªà¯†à®±à¯à®± à®¨à¯‹à®¯à¯ à®Žà®¤à®¿à®°à¯à®ªà¯à®ªà¯ à®µà®¿à®¤à¯ˆà®•à®³à¯ˆà®ªà¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use certified disease-resistant seeds.',
+                isTa ? 'à®µà®¿à®¤à¯ˆ à®¨à¯‡à®°à¯à®¤à¯à®¤à®¿à®•à¯à®•à¯ à®¤à®¿à®°à®®à¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Treat seeds with Thiram before sowing.',
+                isTa ? 'à®¤à¯‡à®®à®²à¯ à®¨à¯‹à®¯à¯ à®ªà®°à®µà®²à¯ˆ à®¤à®Ÿà¯à®•à¯à®• à®¤à®¿à®Ÿà¯à®Ÿà¯à®•à®³à¯ˆ à®†à®¯à¯à®µà¯ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Scout fields regularly to detect and remove virus-infected plants.'
             ],
             treatment: [
-                isTa ? 'ஊடுகொல்லி (Anthracnose) நோய்க்கு கார்பெண்டாசிம் தெளிக்கவும்.' : 'Spray Carbendazim for Anthracnose (die-back) control.',
-                isTa ? 'ஃபைட்டோஃப்தோரா அழுகல் நோய்க்கு மெட்டாலாக்ஸில்+மேன்கோசெப் தெளிக்கவும்.' : 'Apply Metalaxyl+Mancozeb for Phytophthora blight.'
+                isTa ? 'à®Šà®Ÿà¯à®•à¯Šà®²à¯à®²à®¿ (Anthracnose) à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®•à®¾à®°à¯à®ªà¯†à®£à¯à®Ÿà®¾à®šà®¿à®®à¯ à®¤à¯†à®³à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Spray Carbendazim for Anthracnose (die-back) control.',
+                isTa ? 'à®ƒà®ªà¯ˆà®Ÿà¯à®Ÿà¯‹à®ƒà®ªà¯à®¤à¯‹à®°à®¾ à®…à®´à¯à®•à®²à¯ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®®à¯†à®Ÿà¯à®Ÿà®¾à®²à®¾à®•à¯à®¸à®¿à®²à¯+à®®à¯‡à®©à¯à®•à¯‹à®šà¯†à®ªà¯ à®¤à¯†à®³à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Apply Metalaxyl+Mancozeb for Phytophthora blight.'
             ],
             careTips: [
-                isTa ? 'பூக்கும் காலத்தில் நீர் அழுத்தம் கூடாது.' : 'Ensure no water stress during flowering stage.',
-                isTa ? 'பூச்சி கட்டுப்பாட்டுக்கு மஞ்சள் நிற ஒட்டுப் பொறிகளை வைக்கவும்.' : 'Use yellow sticky traps to monitor and control thrips.'
+                isTa ? 'à®ªà¯‚à®•à¯à®•à¯à®®à¯ à®•à®¾à®²à®¤à¯à®¤à®¿à®²à¯ à®¨à¯€à®°à¯ à®…à®´à¯à®¤à¯à®¤à®®à¯ à®•à¯‚à®Ÿà®¾à®¤à¯.' : 'Ensure no water stress during flowering stage.',
+                isTa ? 'à®ªà¯‚à®šà¯à®šà®¿ à®•à®Ÿà¯à®Ÿà¯à®ªà¯à®ªà®¾à®Ÿà¯à®Ÿà¯à®•à¯à®•à¯ à®®à®žà¯à®šà®³à¯ à®¨à®¿à®± à®’à®Ÿà¯à®Ÿà¯à®ªà¯ à®ªà¯Šà®±à®¿à®•à®³à¯ˆ à®µà¯ˆà®•à¯à®•à®µà¯à®®à¯.' : 'Use yellow sticky traps to monitor and control thrips.'
             ],
             harvestingTips: [
-                isTa ? 'பழங்கள் திட்டமான சிவப்பு நிறமடைந்தவுடன் பறிக்கவும்.' : 'Harvest when fruits attain full red colour.',
-                isTa ? 'கணக்கான இடைவெளியில் பறிக்கவும்.' : 'Harvest at regular intervals to encourage new fruit set.'
+                isTa ? 'à®ªà®´à®™à¯à®•à®³à¯ à®¤à®¿à®Ÿà¯à®Ÿà®®à®¾à®© à®šà®¿à®µà®ªà¯à®ªà¯ à®¨à®¿à®±à®®à®Ÿà¯ˆà®¨à¯à®¤à®µà¯à®Ÿà®©à¯ à®ªà®±à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Harvest when fruits attain full red colour.',
+                isTa ? 'à®•à®£à®•à¯à®•à®¾à®© à®‡à®Ÿà¯ˆà®µà¯†à®³à®¿à®¯à®¿à®²à¯ à®ªà®±à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Harvest at regular intervals to encourage new fruit set.'
             ],
             sustainablePractices: [
-                isTa ? 'வேம்பு எண்ணெயை இயற்கை பூச்சி கட்டுப்பாட்டிற்கு பயன்படுத்தவும்.' : 'Use neem oil spray as an organic pesticide.',
-                isTa ? 'ஊடுபயிர் முறையில் மக்காச்சோளம் நடவும்.' : 'Intercrop with maize as a windbreak to reduce virus spread.'
+                isTa ? 'à®µà¯‡à®®à¯à®ªà¯ à®Žà®£à¯à®£à¯†à®¯à¯ˆ à®‡à®¯à®±à¯à®•à¯ˆ à®ªà¯‚à®šà¯à®šà®¿ à®•à®Ÿà¯à®Ÿà¯à®ªà¯à®ªà®¾à®Ÿà¯à®Ÿà®¿à®±à¯à®•à¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use neem oil spray as an organic pesticide.',
+                isTa ? 'à®Šà®Ÿà¯à®ªà®¯à®¿à®°à¯ à®®à¯à®±à¯ˆà®¯à®¿à®²à¯ à®®à®•à¯à®•à®¾à®šà¯à®šà¯‹à®³à®®à¯ à®¨à®Ÿà®µà¯à®®à¯.' : 'Intercrop with maize as a windbreak to reduce virus spread.'
             ],
             irrigationStrategies: [
-                isTa ? 'சொட்டு நீர்ப்பாசனம் மிளகாய்க்கு உகந்தது.' : 'Drip irrigation is most suitable for chili cultivation.',
-                isTa ? 'வடிகால் வசதி இல்லாத நிலத்தில் பயிரிட வேண்டாம்.' : 'Avoid cultivating in poorly drained soils.'
+                isTa ? 'à®šà¯Šà®Ÿà¯à®Ÿà¯ à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®®à¯ à®®à®¿à®³à®•à®¾à®¯à¯à®•à¯à®•à¯ à®‰à®•à®¨à¯à®¤à®¤à¯.' : 'Drip irrigation is most suitable for chili cultivation.',
+                isTa ? 'à®µà®Ÿà®¿à®•à®¾à®²à¯ à®µà®šà®¤à®¿ à®‡à®²à¯à®²à®¾à®¤ à®¨à®¿à®²à®¤à¯à®¤à®¿à®²à¯ à®ªà®¯à®¿à®°à®¿à®Ÿ à®µà¯‡à®£à¯à®Ÿà®¾à®®à¯.' : 'Avoid cultivating in poorly drained soils.'
             ],
             agriculturalInputs: [
-                isTa ? 'கால்சியம் நைட்ரேட்' : 'Calcium Nitrate',
-                isTa ? 'போரான்' : 'Boron',
-                isTa ? 'வேம்பு எண்ணெய்' : 'Neem Oil'
+                isTa ? 'à®•à®¾à®²à¯à®šà®¿à®¯à®®à¯ à®¨à¯ˆà®Ÿà¯à®°à¯‡à®Ÿà¯' : 'Calcium Nitrate',
+                isTa ? 'à®ªà¯‹à®°à®¾à®©à¯' : 'Boron',
+                isTa ? 'à®µà¯‡à®®à¯à®ªà¯ à®Žà®£à¯à®£à¯†à®¯à¯' : 'Neem Oil'
             ],
             diseases: [
-                { name: isTa ? 'ஊடுகொல்லி நோய் (Anthracnose)' : 'Chili Anthracnose', symptoms: isTa ? 'பழங்களில் ஆழமான வட்டமான சிவப்பு-பழுப்பு புண்கள்.' : 'Sunken, circular reddish-brown lesions on ripening fruits.' },
-                { name: isTa ? 'மிளகாய் இலைத்தேமல்' : 'Leaf Spot', symptoms: isTa ? 'இலைகளில் சிறிய வட்டமான பழுப்பு புள்ளிகள்.' : 'Small circular brown spots with yellow halos on leaves.' }
+                { name: isTa ? 'à®Šà®Ÿà¯à®•à¯Šà®²à¯à®²à®¿ à®¨à¯‹à®¯à¯ (Anthracnose)' : 'Chili Anthracnose', symptoms: isTa ? 'à®ªà®´à®™à¯à®•à®³à®¿à®²à¯ à®†à®´à®®à®¾à®© à®µà®Ÿà¯à®Ÿà®®à®¾à®© à®šà®¿à®µà®ªà¯à®ªà¯-à®ªà®´à¯à®ªà¯à®ªà¯ à®ªà¯à®£à¯à®•à®³à¯.' : 'Sunken, circular reddish-brown lesions on ripening fruits.' },
+                { name: isTa ? 'à®®à®¿à®³à®•à®¾à®¯à¯ à®‡à®²à¯ˆà®¤à¯à®¤à¯‡à®®à®²à¯' : 'Leaf Spot', symptoms: isTa ? 'à®‡à®²à¯ˆà®•à®³à®¿à®²à¯ à®šà®¿à®±à®¿à®¯ à®µà®Ÿà¯à®Ÿà®®à®¾à®© à®ªà®´à¯à®ªà¯à®ªà¯ à®ªà¯à®³à¯à®³à®¿à®•à®³à¯.' : 'Small circular brown spots with yellow halos on leaves.' }
             ]
         },
         'Soybean': {
             prevention: [
-                isTa ? 'சான்றிதழ் பெற்ற, நோய் எதிர்ப்பு திறன் கொண்ட ரகங்களை பயன்படுத்தவும்.' : 'Use certified, rust-resistant soybean varieties.',
-                isTa ? 'நிலத்தில் ஈரப்பதம் அதிகரிக்காமல் பார்க்கவும்.' : 'Avoid excess moisture conditions that encourage rust.',
-                isTa ? 'முறையான பயிர் சுழற்சி மூலம் நோய் சுமையை குறைக்கவும்.' : 'Reduce disease pressure through proper crop rotation.'
+                isTa ? 'à®šà®¾à®©à¯à®±à®¿à®¤à®´à¯ à®ªà¯†à®±à¯à®±, à®¨à¯‹à®¯à¯ à®Žà®¤à®¿à®°à¯à®ªà¯à®ªà¯ à®¤à®¿à®±à®©à¯ à®•à¯Šà®£à¯à®Ÿ à®°à®•à®™à¯à®•à®³à¯ˆ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use certified, rust-resistant soybean varieties.',
+                isTa ? 'à®¨à®¿à®²à®¤à¯à®¤à®¿à®²à¯ à®ˆà®°à®ªà¯à®ªà®¤à®®à¯ à®…à®¤à®¿à®•à®°à®¿à®•à¯à®•à®¾à®®à®²à¯ à®ªà®¾à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Avoid excess moisture conditions that encourage rust.',
+                isTa ? 'à®®à¯à®±à¯ˆà®¯à®¾à®© à®ªà®¯à®¿à®°à¯ à®šà¯à®´à®±à¯à®šà®¿ à®®à¯‚à®²à®®à¯ à®¨à¯‹à®¯à¯ à®šà¯à®®à¯ˆà®¯à¯ˆ à®•à¯à®±à¯ˆà®•à¯à®•à®µà¯à®®à¯.' : 'Reduce disease pressure through proper crop rotation.'
             ],
             treatment: [
-                isTa ? 'சோயா துரு நோய்க்கு டெபுகோனசோல் தெளிக்கவும்.' : 'Spray Tebuconazole for soybean rust management.',
-                isTa ? 'இலை நோய்களுக்கு புரோபிகோனசோல் பயன்படுத்தவும்.' : 'Apply Propiconazole for foliar disease management.'
+                isTa ? 'à®šà¯‹à®¯à®¾ à®¤à¯à®°à¯ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®Ÿà¯†à®ªà¯à®•à¯‹à®©à®šà¯‹à®²à¯ à®¤à¯†à®³à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Spray Tebuconazole for soybean rust management.',
+                isTa ? 'à®‡à®²à¯ˆ à®¨à¯‹à®¯à¯à®•à®³à¯à®•à¯à®•à¯ à®ªà¯à®°à¯‹à®ªà®¿à®•à¯‹à®©à®šà¯‹à®²à¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Apply Propiconazole for foliar disease management.'
             ],
             careTips: [
-                isTa ? 'பூக்கும் காலத்தில் சரியான சத்துக்கள் வழங்கவும்.' : 'Provide balanced nutrition during the flowering stage.',
-                isTa ? 'வாரம் ஒரு முறை பயிர் கண்காணிப்பு செய்யவும்.' : 'Scout crop weekly for early disease detection.'
+                isTa ? 'à®ªà¯‚à®•à¯à®•à¯à®®à¯ à®•à®¾à®²à®¤à¯à®¤à®¿à®²à¯ à®šà®°à®¿à®¯à®¾à®© à®šà®¤à¯à®¤à¯à®•à¯à®•à®³à¯ à®µà®´à®™à¯à®•à®µà¯à®®à¯.' : 'Provide balanced nutrition during the flowering stage.',
+                isTa ? 'à®µà®¾à®°à®®à¯ à®’à®°à¯ à®®à¯à®±à¯ˆ à®ªà®¯à®¿à®°à¯ à®•à®£à¯à®•à®¾à®£à®¿à®ªà¯à®ªà¯ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Scout crop weekly for early disease detection.'
             ],
             harvestingTips: [
-                isTa ? 'கூடுகள் மஞ்சளடைந்து காயும்போது அறுவடை செய்யவும்.' : 'Harvest when pods turn yellow to brown and are fully dry.',
-                isTa ? '13% க்கும் குறைவான ஈரப்பதத்தில் தானியங்களை சேமிக்கவும்.' : 'Store grains at below 13% moisture to prevent mould.'
+                isTa ? 'à®•à¯‚à®Ÿà¯à®•à®³à¯ à®®à®žà¯à®šà®³à®Ÿà¯ˆà®¨à¯à®¤à¯ à®•à®¾à®¯à¯à®®à¯à®ªà¯‹à®¤à¯ à®…à®±à¯à®µà®Ÿà¯ˆ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Harvest when pods turn yellow to brown and are fully dry.',
+                isTa ? '13% à®•à¯à®•à¯à®®à¯ à®•à¯à®±à¯ˆà®µà®¾à®© à®ˆà®°à®ªà¯à®ªà®¤à®¤à¯à®¤à®¿à®²à¯ à®¤à®¾à®©à®¿à®¯à®™à¯à®•à®³à¯ˆ à®šà¯‡à®®à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Store grains at below 13% moisture to prevent mould.'
             ],
             sustainablePractices: [
-                isTa ? 'பிராடிரைசோபியம் கலாச்சாரம் தரம் மண் வளம் அதிகரிக்க பயன்படுத்தவும்.' : 'Use Bradyrhizobium culture to fix atmospheric nitrogen.',
-                isTa ? 'இயற்கை உரங்களை மட்டும் பயன்படுத்தவும்.' : 'Prioritize organic inputs to maintain soil health.'
+                isTa ? 'à®ªà®¿à®°à®¾à®Ÿà®¿à®°à¯ˆà®šà¯‹à®ªà®¿à®¯à®®à¯ à®•à®²à®¾à®šà¯à®šà®¾à®°à®®à¯ à®¤à®°à®®à¯ à®®à®£à¯ à®µà®³à®®à¯ à®…à®¤à®¿à®•à®°à®¿à®•à¯à®• à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use Bradyrhizobium culture to fix atmospheric nitrogen.',
+                isTa ? 'à®‡à®¯à®±à¯à®•à¯ˆ à®‰à®°à®™à¯à®•à®³à¯ˆ à®®à®Ÿà¯à®Ÿà¯à®®à¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Prioritize organic inputs to maintain soil health.'
             ],
             irrigationStrategies: [
-                isTa ? 'துரு நோய் பரவலை தடுக்க மேல் நீர்ப்பாசனத்தை தவிர்க்கவும்.' : 'Avoid overhead irrigation to limit rust spread.',
-                isTa ? 'வேர் பகுதியில் மட்டும் நீர் வழங்கவும்.' : 'Provide water directly at the root zone.'
+                isTa ? 'à®¤à¯à®°à¯ à®¨à¯‹à®¯à¯ à®ªà®°à®µà®²à¯ˆ à®¤à®Ÿà¯à®•à¯à®• à®®à¯‡à®²à¯ à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®¤à¯à®¤à¯ˆ à®¤à®µà®¿à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Avoid overhead irrigation to limit rust spread.',
+                isTa ? 'à®µà¯‡à®°à¯ à®ªà®•à¯à®¤à®¿à®¯à®¿à®²à¯ à®®à®Ÿà¯à®Ÿà¯à®®à¯ à®¨à¯€à®°à¯ à®µà®´à®™à¯à®•à®µà¯à®®à¯.' : 'Provide water directly at the root zone.'
             ],
             agriculturalInputs: [
-                isTa ? 'பிராடிரைசோபியம்' : 'Bradyrhizobium Inoculant',
-                isTa ? 'N-P-K கலவை' : 'N-P-K Fertilizer',
-                isTa ? 'துத்தநாக சல்பேட்' : 'Zinc Sulphate'
+                isTa ? 'à®ªà®¿à®°à®¾à®Ÿà®¿à®°à¯ˆà®šà¯‹à®ªà®¿à®¯à®®à¯' : 'Bradyrhizobium Inoculant',
+                isTa ? 'N-P-K à®•à®²à®µà¯ˆ' : 'N-P-K Fertilizer',
+                isTa ? 'à®¤à¯à®¤à¯à®¤à®¨à®¾à®• à®šà®²à¯à®ªà¯‡à®Ÿà¯' : 'Zinc Sulphate'
             ],
             diseases: [
-                { name: isTa ? 'சோயா துரு நோய்' : 'Soybean Rust', symptoms: isTa ? 'இலையின் அடியில் சிறும்புல் நிற துரு தூள் புள்ளிகள்.' : 'Rust-brown pustules on the lower leaf surface.' },
-                { name: isTa ? 'இலைப்புள்ளி நோய்' : 'Leaf Spot', symptoms: isTa ? 'இலைகளில் பழுப்பு வட்ட புள்ளிகள் தோன்றி காய்ந்துவிடும்.' : 'Brown circular spots on leaves causing premature leaf drop.' }
+                { name: isTa ? 'à®šà¯‹à®¯à®¾ à®¤à¯à®°à¯ à®¨à¯‹à®¯à¯' : 'Soybean Rust', symptoms: isTa ? 'à®‡à®²à¯ˆà®¯à®¿à®©à¯ à®…à®Ÿà®¿à®¯à®¿à®²à¯ à®šà®¿à®±à¯à®®à¯à®ªà¯à®²à¯ à®¨à®¿à®± à®¤à¯à®°à¯ à®¤à¯‚à®³à¯ à®ªà¯à®³à¯à®³à®¿à®•à®³à¯.' : 'Rust-brown pustules on the lower leaf surface.' },
+                { name: isTa ? 'à®‡à®²à¯ˆà®ªà¯à®ªà¯à®³à¯à®³à®¿ à®¨à¯‹à®¯à¯' : 'Leaf Spot', symptoms: isTa ? 'à®‡à®²à¯ˆà®•à®³à®¿à®²à¯ à®ªà®´à¯à®ªà¯à®ªà¯ à®µà®Ÿà¯à®Ÿ à®ªà¯à®³à¯à®³à®¿à®•à®³à¯ à®¤à¯‹à®©à¯à®±à®¿ à®•à®¾à®¯à¯à®¨à¯à®¤à¯à®µà®¿à®Ÿà¯à®®à¯.' : 'Brown circular spots on leaves causing premature leaf drop.' }
             ]
         },
         'Black Gram': {
             prevention: [
-                isTa ? 'நோய்த் தடுப்பு ரகங்களை விதைப்பதற்கு தேர்வு செய்யவும்.' : 'Select virus-tolerant or resistant black gram varieties.',
-                isTa ? 'வெள்ளை ஈக்களை கட்டுப்படுத்துவது மொசைக் தடுக்கும்.' : 'Control whitefly vectors to prevent Yellow Mosaic Virus.',
-                isTa ? 'விதை நேர்த்திக்கு கார்பெண்டாசிம் பயன்படுத்தவும்.' : 'Treat seeds with Carbendazim before sowing.'
+                isTa ? 'à®¨à¯‹à®¯à¯à®¤à¯ à®¤à®Ÿà¯à®ªà¯à®ªà¯ à®°à®•à®™à¯à®•à®³à¯ˆ à®µà®¿à®¤à¯ˆà®ªà¯à®ªà®¤à®±à¯à®•à¯ à®¤à¯‡à®°à¯à®µà¯ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Select virus-tolerant or resistant black gram varieties.',
+                isTa ? 'à®µà¯†à®³à¯à®³à¯ˆ à®ˆà®•à¯à®•à®³à¯ˆ à®•à®Ÿà¯à®Ÿà¯à®ªà¯à®ªà®Ÿà¯à®¤à¯à®¤à¯à®µà®¤à¯ à®®à¯Šà®šà¯ˆà®•à¯ à®¤à®Ÿà¯à®•à¯à®•à¯à®®à¯.' : 'Control whitefly vectors to prevent Yellow Mosaic Virus.',
+                isTa ? 'à®µà®¿à®¤à¯ˆ à®¨à¯‡à®°à¯à®¤à¯à®¤à®¿à®•à¯à®•à¯ à®•à®¾à®°à¯à®ªà¯†à®£à¯à®Ÿà®¾à®šà®¿à®®à¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Treat seeds with Carbendazim before sowing.'
             ],
             treatment: [
-                isTa ? 'மஞ்சள் தேமல் நோய்க்கு பாதிக்கப்பட்ட செடிகளை உடனே அகற்றவும்.' : 'Uproot and destroy Yellow Mosaic Virus-infected plants immediately.',
-                isTa ? 'புழு தாக்குதலுக்கு இமிடாக்ளோப்ரிட் தெளிக்கவும்.' : 'Spray Imidacloprid to control whitefly vectors.'
+                isTa ? 'à®®à®žà¯à®šà®³à¯ à®¤à¯‡à®®à®²à¯ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®ªà®¾à®¤à®¿à®•à¯à®•à®ªà¯à®ªà®Ÿà¯à®Ÿ à®šà¯†à®Ÿà®¿à®•à®³à¯ˆ à®‰à®Ÿà®©à¯‡ à®…à®•à®±à¯à®±à®µà¯à®®à¯.' : 'Uproot and destroy Yellow Mosaic Virus-infected plants immediately.',
+                isTa ? 'à®ªà¯à®´à¯ à®¤à®¾à®•à¯à®•à¯à®¤à®²à¯à®•à¯à®•à¯ à®‡à®®à®¿à®Ÿà®¾à®•à¯à®³à¯‹à®ªà¯à®°à®¿à®Ÿà¯ à®¤à¯†à®³à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Spray Imidacloprid to control whitefly vectors.'
             ],
             careTips: [
-                isTa ? 'அதிக நைட்ரஜன் தவிர்த்து பொட்டாஷ் அளவை சரியாக வைக்கவும்.' : 'Maintain balanced potassium levels; avoid excess nitrogen.',
-                isTa ? 'சீரான இடைவெளியில் விதைக்கவும்.' : 'Maintain proper plant spacing for air circulation.'
+                isTa ? 'à®…à®¤à®¿à®• à®¨à¯ˆà®Ÿà¯à®°à®œà®©à¯ à®¤à®µà®¿à®°à¯à®¤à¯à®¤à¯ à®ªà¯Šà®Ÿà¯à®Ÿà®¾à®·à¯ à®…à®³à®µà¯ˆ à®šà®°à®¿à®¯à®¾à®• à®µà¯ˆà®•à¯à®•à®µà¯à®®à¯.' : 'Maintain balanced potassium levels; avoid excess nitrogen.',
+                isTa ? 'à®šà¯€à®°à®¾à®© à®‡à®Ÿà¯ˆà®µà¯†à®³à®¿à®¯à®¿à®²à¯ à®µà®¿à®¤à¯ˆà®•à¯à®•à®µà¯à®®à¯.' : 'Maintain proper plant spacing for air circulation.'
             ],
             harvestingTips: [
-                isTa ? 'கூடுகள் கருப்பு நிறமடைந்தவுடன் அறுவடை செய்யவும்.' : 'Harvest when pods turn dark/black and fully mature.',
-                isTa ? 'காலை நேரத்தில் அறுவடை செய்வதால் உதிர்தல் தடுக்கலாம்.' : 'Harvest in early morning to minimize pod shattering.'
+                isTa ? 'à®•à¯‚à®Ÿà¯à®•à®³à¯ à®•à®°à¯à®ªà¯à®ªà¯ à®¨à®¿à®±à®®à®Ÿà¯ˆà®¨à¯à®¤à®µà¯à®Ÿà®©à¯ à®…à®±à¯à®µà®Ÿà¯ˆ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Harvest when pods turn dark/black and fully mature.',
+                isTa ? 'à®•à®¾à®²à¯ˆ à®¨à¯‡à®°à®¤à¯à®¤à®¿à®²à¯ à®…à®±à¯à®µà®Ÿà¯ˆ à®šà¯†à®¯à¯à®µà®¤à®¾à®²à¯ à®‰à®¤à®¿à®°à¯à®¤à®²à¯ à®¤à®Ÿà¯à®•à¯à®•à®²à®¾à®®à¯.' : 'Harvest in early morning to minimize pod shattering.'
             ],
             sustainablePractices: [
-                isTa ? 'நிலம் வளப்படுத்த பயறுவகைகளை ஊடுபயிராக நடவும்.' : 'Intercrop to improve soil fertility naturally.',
-                isTa ? 'உயிரி உரங்களை ஊக்கமளிக்கவும்.' : 'Use bio-fertilizers like PSB and Rhizobium.'
+                isTa ? 'à®¨à®¿à®²à®®à¯ à®µà®³à®ªà¯à®ªà®Ÿà¯à®¤à¯à®¤ à®ªà®¯à®±à¯à®µà®•à¯ˆà®•à®³à¯ˆ à®Šà®Ÿà¯à®ªà®¯à®¿à®°à®¾à®• à®¨à®Ÿà®µà¯à®®à¯.' : 'Intercrop to improve soil fertility naturally.',
+                isTa ? 'à®‰à®¯à®¿à®°à®¿ à®‰à®°à®™à¯à®•à®³à¯ˆ à®Šà®•à¯à®•à®®à®³à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Use bio-fertilizers like PSB and Rhizobium.'
             ],
             irrigationStrategies: [
-                isTa ? 'சொட்டு நீர்ப்பாசனம் கருப்பு உழவுக்கு சிறந்தது.' : 'Drip irrigation is ideal for black gram cultivation.',
-                isTa ? 'அதிக நீர்ப்பாசனம் தவிர்க்கவும்.' : 'Avoid waterlogging, especially in heavy clay soils.'
+                isTa ? 'à®šà¯Šà®Ÿà¯à®Ÿà¯ à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®®à¯ à®•à®°à¯à®ªà¯à®ªà¯ à®‰à®´à®µà¯à®•à¯à®•à¯ à®šà®¿à®±à®¨à¯à®¤à®¤à¯.' : 'Drip irrigation is ideal for black gram cultivation.',
+                isTa ? 'à®…à®¤à®¿à®• à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®®à¯ à®¤à®µà®¿à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Avoid waterlogging, especially in heavy clay soils.'
             ],
             agriculturalInputs: [
-                isTa ? 'ரைசோபியம்' : 'Rhizobium culture',
-                isTa ? 'சூப்பர் பாஸ்பேட்' : 'Single Super Phosphate',
+                isTa ? 'à®°à¯ˆà®šà¯‹à®ªà®¿à®¯à®®à¯' : 'Rhizobium culture',
+                isTa ? 'à®šà¯‚à®ªà¯à®ªà®°à¯ à®ªà®¾à®¸à¯à®ªà¯‡à®Ÿà¯' : 'Single Super Phosphate',
                 isTa ? 'MOP' : 'Muriate of Potash (MOP)'
             ],
             diseases: [
-                { name: isTa ? 'மஞ்சள் தேமல் வைரஸ்' : 'Black Gram Yellow Mosaic Virus', symptoms: isTa ? 'இலைகளில் மஞ்சள் மற்றும் பச்சை இணைந்த தேமல் வடிவம்.' : 'Yellow and green mosaic mottling pattern on leaves.' },
-                { name: isTa ? 'பொடிப்பூஞ்சை நோய்' : 'Black Gram Powdery Mildew', symptoms: isTa ? 'இலைகளில் வெள்ளை பொடி போன்ற பூஞ்சை படர்வு.' : 'White powdery fungal coating on leaves and stems.' }
+                { name: isTa ? 'à®®à®žà¯à®šà®³à¯ à®¤à¯‡à®®à®²à¯ à®µà¯ˆà®°à®¸à¯' : 'Black Gram Yellow Mosaic Virus', symptoms: isTa ? 'à®‡à®²à¯ˆà®•à®³à®¿à®²à¯ à®®à®žà¯à®šà®³à¯ à®®à®±à¯à®±à¯à®®à¯ à®ªà®šà¯à®šà¯ˆ à®‡à®£à¯ˆà®¨à¯à®¤ à®¤à¯‡à®®à®²à¯ à®µà®Ÿà®¿à®µà®®à¯.' : 'Yellow and green mosaic mottling pattern on leaves.' },
+                { name: isTa ? 'à®ªà¯Šà®Ÿà®¿à®ªà¯à®ªà¯‚à®žà¯à®šà¯ˆ à®¨à¯‹à®¯à¯' : 'Black Gram Powdery Mildew', symptoms: isTa ? 'à®‡à®²à¯ˆà®•à®³à®¿à®²à¯ à®µà¯†à®³à¯à®³à¯ˆ à®ªà¯Šà®Ÿà®¿ à®ªà¯‹à®©à¯à®± à®ªà¯‚à®žà¯à®šà¯ˆ à®ªà®Ÿà®°à¯à®µà¯.' : 'White powdery fungal coating on leaves and stems.' }
             ]
         },
         'Green Gram': {
             prevention: [
-                isTa ? 'நோய் எதிர்ப்பு திறன் கொண்ட ரகங்களை தேர்ந்தெடுக்கவும்.' : 'Select disease-resistant and high-yielding varieties.',
-                isTa ? 'வைரஸ் பரவலை தடுக்க இமிடாக்ளோப்ரிட் தெளிக்கவும்.' : 'Spray Imidacloprid early to control whitefly virus vectors.',
-                isTa ? 'சுத்தமான விதைகளை மட்டும் விதைப்பதற்கு பயன்படுத்தவும்.' : 'Use only certified clean seeds for sowing.'
+                isTa ? 'à®¨à¯‹à®¯à¯ à®Žà®¤à®¿à®°à¯à®ªà¯à®ªà¯ à®¤à®¿à®±à®©à¯ à®•à¯Šà®£à¯à®Ÿ à®°à®•à®™à¯à®•à®³à¯ˆ à®¤à¯‡à®°à¯à®¨à¯à®¤à¯†à®Ÿà¯à®•à¯à®•à®µà¯à®®à¯.' : 'Select disease-resistant and high-yielding varieties.',
+                isTa ? 'à®µà¯ˆà®°à®¸à¯ à®ªà®°à®µà®²à¯ˆ à®¤à®Ÿà¯à®•à¯à®• à®‡à®®à®¿à®Ÿà®¾à®•à¯à®³à¯‹à®ªà¯à®°à®¿à®Ÿà¯ à®¤à¯†à®³à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Spray Imidacloprid early to control whitefly virus vectors.',
+                isTa ? 'à®šà¯à®¤à¯à®¤à®®à®¾à®© à®µà®¿à®¤à¯ˆà®•à®³à¯ˆ à®®à®Ÿà¯à®Ÿà¯à®®à¯ à®µà®¿à®¤à¯ˆà®ªà¯à®ªà®¤à®±à¯à®•à¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use only certified clean seeds for sowing.'
             ],
             treatment: [
-                isTa ? 'செர்கோஸ்போரா புள்ளி நோய்க்கு கார்பெண்டாசிம் தெளிக்கவும்.' : 'Spray Carbendazim for Cercospora leaf spot control.',
-                isTa ? 'மஞ்சள் தேமல் நோய்க்கு பாதிக்கப்பட்ட செடிகளை அகற்றவும்.' : 'Remove and destroy YMV-infected plants promptly.'
+                isTa ? 'à®šà¯†à®°à¯à®•à¯‹à®¸à¯à®ªà¯‹à®°à®¾ à®ªà¯à®³à¯à®³à®¿ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®•à®¾à®°à¯à®ªà¯†à®£à¯à®Ÿà®¾à®šà®¿à®®à¯ à®¤à¯†à®³à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Spray Carbendazim for Cercospora leaf spot control.',
+                isTa ? 'à®®à®žà¯à®šà®³à¯ à®¤à¯‡à®®à®²à¯ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®ªà®¾à®¤à®¿à®•à¯à®•à®ªà¯à®ªà®Ÿà¯à®Ÿ à®šà¯†à®Ÿà®¿à®•à®³à¯ˆ à®…à®•à®±à¯à®±à®µà¯à®®à¯.' : 'Remove and destroy YMV-infected plants promptly.'
             ],
             careTips: [
-                isTa ? 'களைகளை முன்கூட்டியே அகற்றவும்.' : 'Weed early and regularly for a clean crop.',
-                isTa ? 'பூக்கும் கட்டத்தில் நீர் அழுத்தம் இல்லாமல் பார்க்கவும்.' : 'Ensure no water stress at the flowering stage.'
+                isTa ? 'à®•à®³à¯ˆà®•à®³à¯ˆ à®®à¯à®©à¯à®•à¯‚à®Ÿà¯à®Ÿà®¿à®¯à¯‡ à®…à®•à®±à¯à®±à®µà¯à®®à¯.' : 'Weed early and regularly for a clean crop.',
+                isTa ? 'à®ªà¯‚à®•à¯à®•à¯à®®à¯ à®•à®Ÿà¯à®Ÿà®¤à¯à®¤à®¿à®²à¯ à®¨à¯€à®°à¯ à®…à®´à¯à®¤à¯à®¤à®®à¯ à®‡à®²à¯à®²à®¾à®®à®²à¯ à®ªà®¾à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Ensure no water stress at the flowering stage.'
             ],
             harvestingTips: [
-                isTa ? '75% கூடுகள் கருப்பாகும்போது அறுவடை செய்யவும்.' : 'Harvest when 75-80% of pods turn dark.',
-                isTa ? 'இரண்டு அல்லது மூன்று முறை கட்டுவதன் மூலம் கூடுதல் மகசூல் பெறலாம்.' : 'Multiple pickings can increase total yield.'
+                isTa ? '75% à®•à¯‚à®Ÿà¯à®•à®³à¯ à®•à®°à¯à®ªà¯à®ªà®¾à®•à¯à®®à¯à®ªà¯‹à®¤à¯ à®…à®±à¯à®µà®Ÿà¯ˆ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Harvest when 75-80% of pods turn dark.',
+                isTa ? 'à®‡à®°à®£à¯à®Ÿà¯ à®…à®²à¯à®²à®¤à¯ à®®à¯‚à®©à¯à®±à¯ à®®à¯à®±à¯ˆ à®•à®Ÿà¯à®Ÿà¯à®µà®¤à®©à¯ à®®à¯‚à®²à®®à¯ à®•à¯‚à®Ÿà¯à®¤à®²à¯ à®®à®•à®šà¯‚à®²à¯ à®ªà¯†à®±à®²à®¾à®®à¯.' : 'Multiple pickings can increase total yield.'
             ],
             sustainablePractices: [
-                isTa ? 'ரைசோபியம் மற்றும் PSB கலாச்சாரங்களை பயன்படுத்தவும்.' : 'Use Rhizobium and PSB cultures for better yield.',
-                isTa ? 'மண் வளப்படுத்துவதற்கு பசுந்தாள் உரமிடவும்.' : 'Incorporate green manure to improve soil fertility.'
+                isTa ? 'à®°à¯ˆà®šà¯‹à®ªà®¿à®¯à®®à¯ à®®à®±à¯à®±à¯à®®à¯ PSB à®•à®²à®¾à®šà¯à®šà®¾à®°à®™à¯à®•à®³à¯ˆ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use Rhizobium and PSB cultures for better yield.',
+                isTa ? 'à®®à®£à¯ à®µà®³à®ªà¯à®ªà®Ÿà¯à®¤à¯à®¤à¯à®µà®¤à®±à¯à®•à¯ à®ªà®šà¯à®¨à¯à®¤à®¾à®³à¯ à®‰à®°à®®à®¿à®Ÿà®µà¯à®®à¯.' : 'Incorporate green manure to improve soil fertility.'
             ],
             irrigationStrategies: [
-                isTa ? 'சொட்டு நீர்ப்பாசனம் பாசிப்பயறுக்கு சிறந்தது.' : 'Drip irrigation is effective for green gram.',
-                isTa ? 'தண்ணீர் தேங்குவதை தவிர்க்கவும்.' : 'Avoid waterlogging in the field.'
+                isTa ? 'à®šà¯Šà®Ÿà¯à®Ÿà¯ à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®®à¯ à®ªà®¾à®šà®¿à®ªà¯à®ªà®¯à®±à¯à®•à¯à®•à¯ à®šà®¿à®±à®¨à¯à®¤à®¤à¯.' : 'Drip irrigation is effective for green gram.',
+                isTa ? 'à®¤à®£à¯à®£à¯€à®°à¯ à®¤à¯‡à®™à¯à®•à¯à®µà®¤à¯ˆ à®¤à®µà®¿à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Avoid waterlogging in the field.'
             ],
             agriculturalInputs: [
-                isTa ? 'ரைசோபியம்' : 'Rhizobium culture',
-                isTa ? 'சூப்பர் பாஸ்பேட்' : 'Super Phosphate',
-                isTa ? 'பொட்டாஷ்' : 'Potash'
+                isTa ? 'à®°à¯ˆà®šà¯‹à®ªà®¿à®¯à®®à¯' : 'Rhizobium culture',
+                isTa ? 'à®šà¯‚à®ªà¯à®ªà®°à¯ à®ªà®¾à®¸à¯à®ªà¯‡à®Ÿà¯' : 'Super Phosphate',
+                isTa ? 'à®ªà¯Šà®Ÿà¯à®Ÿà®¾à®·à¯' : 'Potash'
             ],
             diseases: [
-                { name: isTa ? 'மஞ்சள் தேமல் வைரஸ்' : 'Green Gram Yellow Mosaic Virus', symptoms: isTa ? 'இலைகளில் மஞ்சள்-பச்சை தேமல் வடிவம்; கூடு பிடிப்பு குறையும்.' : 'Yellow-green mosaic on leaves; severely reduces pod set.' },
-                { name: isTa ? 'செர்கோஸ்போரா இலைப்புள்ளி நோய்' : 'Green Gram Cercospora Leaf Spot', symptoms: isTa ? 'இலைகளில் சிறிய வட்டமான கருஞ்சிவப்பு புள்ளிகள்.' : 'Small circular dark-brown spots with reddish borders on leaves.' }
+                { name: isTa ? 'à®®à®žà¯à®šà®³à¯ à®¤à¯‡à®®à®²à¯ à®µà¯ˆà®°à®¸à¯' : 'Green Gram Yellow Mosaic Virus', symptoms: isTa ? 'à®‡à®²à¯ˆà®•à®³à®¿à®²à¯ à®®à®žà¯à®šà®³à¯-à®ªà®šà¯à®šà¯ˆ à®¤à¯‡à®®à®²à¯ à®µà®Ÿà®¿à®µà®®à¯; à®•à¯‚à®Ÿà¯ à®ªà®¿à®Ÿà®¿à®ªà¯à®ªà¯ à®•à¯à®±à¯ˆà®¯à¯à®®à¯.' : 'Yellow-green mosaic on leaves; severely reduces pod set.' },
+                { name: isTa ? 'à®šà¯†à®°à¯à®•à¯‹à®¸à¯à®ªà¯‹à®°à®¾ à®‡à®²à¯ˆà®ªà¯à®ªà¯à®³à¯à®³à®¿ à®¨à¯‹à®¯à¯' : 'Green Gram Cercospora Leaf Spot', symptoms: isTa ? 'à®‡à®²à¯ˆà®•à®³à®¿à®²à¯ à®šà®¿à®±à®¿à®¯ à®µà®Ÿà¯à®Ÿà®®à®¾à®© à®•à®°à¯à®žà¯à®šà®¿à®µà®ªà¯à®ªà¯ à®ªà¯à®³à¯à®³à®¿à®•à®³à¯.' : 'Small circular dark-brown spots with reddish borders on leaves.' }
             ]
         },
         'Sunflower': {
             prevention: [
-                isTa ? 'நோய் எதிர்ப்பு சூரியகாந்தி ஒட்டு ரகங்களை தேர்ந்தெடுக்கவும்.' : 'Select disease-resistant hybrid sunflower varieties.',
-                isTa ? 'விதை நேர்த்திக்கு திரம் அல்லது கார்பெண்டாசிம் பயன்படுத்தவும்.' : 'Treat seeds with Thiram or Carbendazim before sowing.',
-                isTa ? 'நோய் தாக்கிய தாவர எச்சங்களை புலத்தில் இருந்து அகற்றவும்.' : 'Remove and destroy crop residues after harvest.'
+                isTa ? 'à®¨à¯‹à®¯à¯ à®Žà®¤à®¿à®°à¯à®ªà¯à®ªà¯ à®šà¯‚à®°à®¿à®¯à®•à®¾à®¨à¯à®¤à®¿ à®’à®Ÿà¯à®Ÿà¯ à®°à®•à®™à¯à®•à®³à¯ˆ à®¤à¯‡à®°à¯à®¨à¯à®¤à¯†à®Ÿà¯à®•à¯à®•à®µà¯à®®à¯.' : 'Select disease-resistant hybrid sunflower varieties.',
+                isTa ? 'à®µà®¿à®¤à¯ˆ à®¨à¯‡à®°à¯à®¤à¯à®¤à®¿à®•à¯à®•à¯ à®¤à®¿à®°à®®à¯ à®…à®²à¯à®²à®¤à¯ à®•à®¾à®°à¯à®ªà¯†à®£à¯à®Ÿà®¾à®šà®¿à®®à¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Treat seeds with Thiram or Carbendazim before sowing.',
+                isTa ? 'à®¨à¯‹à®¯à¯ à®¤à®¾à®•à¯à®•à®¿à®¯ à®¤à®¾à®µà®° à®Žà®šà¯à®šà®™à¯à®•à®³à¯ˆ à®ªà¯à®²à®¤à¯à®¤à®¿à®²à¯ à®‡à®°à¯à®¨à¯à®¤à¯ à®…à®•à®±à¯à®±à®µà¯à®®à¯.' : 'Remove and destroy crop residues after harvest.'
             ],
             treatment: [
-                isTa ? 'ஆல்டர்னேரியா புள்ளி நோய்க்கு மேன்கோசெப் தெளிக்கவும்.' : 'Spray Mancozeb for Alternaria leaf spot control.',
-                isTa ? 'தண்டு அழுகல் நோய்க்கு கார்பெண்டாசிம் பயன்படுத்தவும்.' : 'Apply Carbendazim for stem rot management.'
+                isTa ? 'à®†à®²à¯à®Ÿà®°à¯à®©à¯‡à®°à®¿à®¯à®¾ à®ªà¯à®³à¯à®³à®¿ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®®à¯‡à®©à¯à®•à¯‹à®šà¯†à®ªà¯ à®¤à¯†à®³à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Spray Mancozeb for Alternaria leaf spot control.',
+                isTa ? 'à®¤à®£à¯à®Ÿà¯ à®…à®´à¯à®•à®²à¯ à®¨à¯‹à®¯à¯à®•à¯à®•à¯ à®•à®¾à®°à¯à®ªà¯†à®£à¯à®Ÿà®¾à®šà®¿à®®à¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Apply Carbendazim for stem rot management.'
             ],
             careTips: [
-                isTa ? 'கூடு தலை திரும்பும் (கேபிடல்) கட்டத்தில் நீர்ப்பாசனம் செய்யவும்.' : 'Irrigate during head formation (capitulum stage).',
-                isTa ? 'முறையான இடைவெளியில் விதைத்து காற்றோட்டம் அதிகரிக்கவும்.' : 'Maintain proper inter-plant spacing for air circulation.'
+                isTa ? 'à®•à¯‚à®Ÿà¯ à®¤à®²à¯ˆ à®¤à®¿à®°à¯à®®à¯à®ªà¯à®®à¯ (à®•à¯‡à®ªà®¿à®Ÿà®²à¯) à®•à®Ÿà¯à®Ÿà®¤à¯à®¤à®¿à®²à¯ à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®®à¯ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Irrigate during head formation (capitulum stage).',
+                isTa ? 'à®®à¯à®±à¯ˆà®¯à®¾à®© à®‡à®Ÿà¯ˆà®µà¯†à®³à®¿à®¯à®¿à®²à¯ à®µà®¿à®¤à¯ˆà®¤à¯à®¤à¯ à®•à®¾à®±à¯à®±à¯‹à®Ÿà¯à®Ÿà®®à¯ à®…à®¤à®¿à®•à®°à®¿à®•à¯à®•à®µà¯à®®à¯.' : 'Maintain proper inter-plant spacing for air circulation.'
             ],
             harvestingTips: [
-                isTa ? 'கூடின் பின் பாகம் மஞ்சளடையும்போது அறுவடை செய்யவும்.' : 'Harvest when the back of the head turns yellow-brown.',
-                isTa ? 'விதைகளில் ஈரப்பதம் 10% க்கும் குறைவாக இருக்க வேண்டும்.' : 'Ensure seed moisture is below 10% before storage.'
+                isTa ? 'à®•à¯‚à®Ÿà®¿à®©à¯ à®ªà®¿à®©à¯ à®ªà®¾à®•à®®à¯ à®®à®žà¯à®šà®³à®Ÿà¯ˆà®¯à¯à®®à¯à®ªà¯‹à®¤à¯ à®…à®±à¯à®µà®Ÿà¯ˆ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Harvest when the back of the head turns yellow-brown.',
+                isTa ? 'à®µà®¿à®¤à¯ˆà®•à®³à®¿à®²à¯ à®ˆà®°à®ªà¯à®ªà®¤à®®à¯ 10% à®•à¯à®•à¯à®®à¯ à®•à¯à®±à¯ˆà®µà®¾à®• à®‡à®°à¯à®•à¯à®• à®µà¯‡à®£à¯à®Ÿà¯à®®à¯.' : 'Ensure seed moisture is below 10% before storage.'
             ],
             sustainablePractices: [
-                isTa ? 'ஊடுபயிராக பருப்பு வகைகளை வளர்க்கவும்.' : 'Grow legumes as intercrops to enhance soil fertility.',
-                isTa ? 'தேனீ மகரந்த சேர்க்கையை ஊக்குவிக்க ஊடுபயிர் செய்யவும்.' : 'Encourage bee pollination for better seed set.'
+                isTa ? 'à®Šà®Ÿà¯à®ªà®¯à®¿à®°à®¾à®• à®ªà®°à¯à®ªà¯à®ªà¯ à®µà®•à¯ˆà®•à®³à¯ˆ à®µà®³à®°à¯à®•à¯à®•à®µà¯à®®à¯.' : 'Grow legumes as intercrops to enhance soil fertility.',
+                isTa ? 'à®¤à¯‡à®©à¯€ à®®à®•à®°à®¨à¯à®¤ à®šà¯‡à®°à¯à®•à¯à®•à¯ˆà®¯à¯ˆ à®Šà®•à¯à®•à¯à®µà®¿à®•à¯à®• à®Šà®Ÿà¯à®ªà®¯à®¿à®°à¯ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Encourage bee pollination for better seed set.'
             ],
             irrigationStrategies: [
-                isTa ? 'முக்கிய வளர்ச்சி கட்டங்களில் நீர்ப்பாசனம் செய்யவும்.' : 'Irrigate at critical growth stages: germination, flowering, seed filling.',
-                isTa ? 'அதிக நீர்ப்பாசனம் தண்டு அழுகலை ஊக்குவிக்கும்.' : 'Excess irrigation can promote stem and root rot.'
+                isTa ? 'à®®à¯à®•à¯à®•à®¿à®¯ à®µà®³à®°à¯à®šà¯à®šà®¿ à®•à®Ÿà¯à®Ÿà®™à¯à®•à®³à®¿à®²à¯ à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®®à¯ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Irrigate at critical growth stages: germination, flowering, seed filling.',
+                isTa ? 'à®…à®¤à®¿à®• à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®®à¯ à®¤à®£à¯à®Ÿà¯ à®…à®´à¯à®•à®²à¯ˆ à®Šà®•à¯à®•à¯à®µà®¿à®•à¯à®•à¯à®®à¯.' : 'Excess irrigation can promote stem and root rot.'
             ],
             agriculturalInputs: [
-                isTa ? 'N-P-K கலவை (60:60:30 கிலோ/ஹெக்.)' : 'N-P-K Fertilizer (60:60:30 kg/ha)',
-                isTa ? 'போரான்' : 'Boron Micronutrient',
-                isTa ? 'அமோனியம் சல்பேட்' : 'Ammonium Sulphate'
+                isTa ? 'N-P-K à®•à®²à®µà¯ˆ (60:60:30 à®•à®¿à®²à¯‹/à®¹à¯†à®•à¯.)' : 'N-P-K Fertilizer (60:60:30 kg/ha)',
+                isTa ? 'à®ªà¯‹à®°à®¾à®©à¯' : 'Boron Micronutrient',
+                isTa ? 'à®…à®®à¯‹à®©à®¿à®¯à®®à¯ à®šà®²à¯à®ªà¯‡à®Ÿà¯' : 'Ammonium Sulphate'
             ],
             diseases: [
-                { name: isTa ? 'ஆல்டர்னேரியா இலைப்புள்ளி நோய்' : 'Sunflower Alternaria Leaf Spot', symptoms: isTa ? 'இலைகளில் கருப்பு-பழுப்பு வட்டமான புள்ளிகள்.' : 'Dark brown to black circular spots with yellow halos on leaves.' },
-                { name: isTa ? 'தண்டு அழுகல் நோய்' : 'Sunflower Stem Rot', symptoms: isTa ? 'தண்டின் அடியில் அழுகல்; செடி சோர்ந்து கீழே விழும்.' : 'Rotting at stem base; plant wilts and lodges under wind.' }
+                { name: isTa ? 'à®†à®²à¯à®Ÿà®°à¯à®©à¯‡à®°à®¿à®¯à®¾ à®‡à®²à¯ˆà®ªà¯à®ªà¯à®³à¯à®³à®¿ à®¨à¯‹à®¯à¯' : 'Sunflower Alternaria Leaf Spot', symptoms: isTa ? 'à®‡à®²à¯ˆà®•à®³à®¿à®²à¯ à®•à®°à¯à®ªà¯à®ªà¯-à®ªà®´à¯à®ªà¯à®ªà¯ à®µà®Ÿà¯à®Ÿà®®à®¾à®© à®ªà¯à®³à¯à®³à®¿à®•à®³à¯.' : 'Dark brown to black circular spots with yellow halos on leaves.' },
+                { name: isTa ? 'à®¤à®£à¯à®Ÿà¯ à®…à®´à¯à®•à®²à¯ à®¨à¯‹à®¯à¯' : 'Sunflower Stem Rot', symptoms: isTa ? 'à®¤à®£à¯à®Ÿà®¿à®©à¯ à®…à®Ÿà®¿à®¯à®¿à®²à¯ à®…à®´à¯à®•à®²à¯; à®šà¯†à®Ÿà®¿ à®šà¯‹à®°à¯à®¨à¯à®¤à¯ à®•à¯€à®´à¯‡ à®µà®¿à®´à¯à®®à¯.' : 'Rotting at stem base; plant wilts and lodges under wind.' }
             ]
         }
     };
 
     const defaultData = {
-        prevention: [isTa ? 'முறையான மண் ஆய்வு செய்யவும்.' : 'Conduct regular soil testing.', isTa ? 'தரமான விதைகளைத் தேர்ந்தெடுக்கவும்.' : 'Select high-quality certified seeds.'],
-        treatment: [isTa ? 'அறிவிக்கப்பட்ட பூஞ்சான் கொல்லிகளைப் பயன்படுத்தவும்.' : 'Use recommended fungicides.', isTa ? 'பாதிக்கப்பட்ட செடிகளை அகற்றவும்.' : 'Remove and destroy affected plants.'],
-        careTips: [isTa ? 'களைகளைக் கட்டுப்படுத்தவும்.' : 'Keep the field weed-free.', isTa ? 'முறையான நீர்ப்பாசனம் செய்யவும்.' : 'Ensure proper and timely irrigation.'],
-        harvestingTips: [isTa ? 'சரியான பக்குவத்தில் அறுவடை செய்யவும்.' : 'Harvest at the right maturity stage.'],
-        sustainablePractices: [isTa ? 'இயற்கை உரங்களைப் பயன்படுத்தவும்.' : 'Use more bio-fertilizers.'],
-        irrigationStrategies: [isTa ? 'நீரைச் சிக்கனமாகப் பயன்படுத்தவும்.' : 'Optimize water usage.'],
-        agriculturalInputs: [isTa ? 'N-P-K உரங்கள்' : 'N-P-K Fertilizers'],
+        prevention: [isTa ? 'à®®à¯à®±à¯ˆà®¯à®¾à®© à®®à®£à¯ à®†à®¯à¯à®µà¯ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Conduct regular soil testing.', isTa ? 'à®¤à®°à®®à®¾à®© à®µà®¿à®¤à¯ˆà®•à®³à¯ˆà®¤à¯ à®¤à¯‡à®°à¯à®¨à¯à®¤à¯†à®Ÿà¯à®•à¯à®•à®µà¯à®®à¯.' : 'Select high-quality certified seeds.'],
+        treatment: [isTa ? 'à®…à®±à®¿à®µà®¿à®•à¯à®•à®ªà¯à®ªà®Ÿà¯à®Ÿ à®ªà¯‚à®žà¯à®šà®¾à®©à¯ à®•à¯Šà®²à¯à®²à®¿à®•à®³à¯ˆà®ªà¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use recommended fungicides.', isTa ? 'à®ªà®¾à®¤à®¿à®•à¯à®•à®ªà¯à®ªà®Ÿà¯à®Ÿ à®šà¯†à®Ÿà®¿à®•à®³à¯ˆ à®…à®•à®±à¯à®±à®µà¯à®®à¯.' : 'Remove and destroy affected plants.'],
+        careTips: [isTa ? 'à®•à®³à¯ˆà®•à®³à¯ˆà®•à¯ à®•à®Ÿà¯à®Ÿà¯à®ªà¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Keep the field weed-free.', isTa ? 'à®®à¯à®±à¯ˆà®¯à®¾à®© à®¨à¯€à®°à¯à®ªà¯à®ªà®¾à®šà®©à®®à¯ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Ensure proper and timely irrigation.'],
+        harvestingTips: [isTa ? 'à®šà®°à®¿à®¯à®¾à®© à®ªà®•à¯à®•à¯à®µà®¤à¯à®¤à®¿à®²à¯ à®…à®±à¯à®µà®Ÿà¯ˆ à®šà¯†à®¯à¯à®¯à®µà¯à®®à¯.' : 'Harvest at the right maturity stage.'],
+        sustainablePractices: [isTa ? 'à®‡à®¯à®±à¯à®•à¯ˆ à®‰à®°à®™à¯à®•à®³à¯ˆà®ªà¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Use more bio-fertilizers.'],
+        irrigationStrategies: [isTa ? 'à®¨à¯€à®°à¯ˆà®šà¯ à®šà®¿à®•à¯à®•à®©à®®à®¾à®•à®ªà¯ à®ªà®¯à®©à¯à®ªà®Ÿà¯à®¤à¯à®¤à®µà¯à®®à¯.' : 'Optimize water usage.'],
+        agriculturalInputs: [isTa ? 'N-P-K à®‰à®°à®™à¯à®•à®³à¯' : 'N-P-K Fertilizers'],
         diseases: []
     };
 
@@ -7400,7 +7359,7 @@ app.get('/api/weather', async (req, res) => {
 
         res.json({
             temperature: Number((current.temperature_2m ?? 0).toFixed ? current.temperature_2m.toFixed(1) : Number(current.temperature_2m || 0).toFixed(1)),
-            temp: `${Number(current.temperature_2m || 0).toFixed(1)}Â°C`,
+            temp: `${Number(current.temperature_2m || 0).toFixed(1)}Ã‚Â°C`,
             humidity: current.relative_humidity_2m ?? null,
             rain: `${Number(current.precipitation || 0).toFixed(1)}mm`,
             precipitation: Number((current.precipitation || 0).toFixed(1)),
@@ -7434,9 +7393,9 @@ function startServer(port) {
             console.warn(`Port ${port} was requested, but ${activePort} is active instead.`);
         }
 
-        console.log(`\n✅ IoT Crop Recommendation server running at http://localhost:${activePort}`);
-        console.log(`✅ Server is READY! Open your browser to: http://localhost:${activePort}\n`);
-        console.log(`✅ Server accessible at: http://0.0.0.0:${activePort} or http://127.0.0.1:${activePort}`);
+        console.log(`\nâœ… IoT Crop Recommendation server running at http://localhost:${activePort}`);
+        console.log(`âœ… Server is READY! Open your browser to: http://localhost:${activePort}\n`);
+        console.log(`âœ… Server accessible at: http://0.0.0.0:${activePort} or http://127.0.0.1:${activePort}`);
     });
 
     server.on('error', (error) => {
@@ -7449,7 +7408,7 @@ function startServer(port) {
     });
 
     server.on('listening', () => {
-        console.log('✅ HTTP listener is active\n');
+        console.log('âœ… HTTP listener is active\n');
     });
 
     return server;
@@ -7474,7 +7433,7 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('DEBUG: Unhandled Rejection:', reason);
 });
 
-console.log('✅ Server initialized and ready to start...');
+console.log('âœ… Server initialized and ready to start...');
 
 
 
